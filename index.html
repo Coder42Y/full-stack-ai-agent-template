@@ -114,21 +114,14 @@
         color: var(--ink);
       }
 
-      .nav-action {
-        border: 1px solid var(--ink);
-        border-radius: 6px;
-        padding: 9px 14px;
-        color: var(--ink);
-      }
-
       .hero {
         padding: 76px 0 42px;
       }
 
       .hero-grid {
         display: grid;
-        grid-template-columns: minmax(0, 0.94fr) minmax(420px, 1.06fr);
-        gap: 44px;
+        grid-template-columns: minmax(0, 1.14fr) minmax(360px, 0.86fr);
+        gap: 38px;
         align-items: end;
       }
 
@@ -158,12 +151,13 @@
       }
 
       h1 {
-        max-width: 820px;
+        max-width: 940px;
         font-family: Georgia, "Times New Roman", "Songti SC", serif;
-        font-size: clamp(56px, 8vw, 108px);
+        font-size: clamp(56px, 7.2vw, 104px);
         font-weight: 500;
         line-height: 0.94;
         letter-spacing: 0;
+        text-wrap: balance;
       }
 
       .lead {
@@ -646,7 +640,6 @@
             <a href="#capabilities">能力</a>
             <a href="#architecture">架构</a>
             <a href="#workflow">使用</a>
-            <a class="nav-action" href="README.md">README</a>
           </div>
         </div>
       </nav>

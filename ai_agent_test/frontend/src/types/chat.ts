@@ -99,6 +99,20 @@ export interface ChartSpec {
   style: ChartStyle;
 }
 
+export interface EChartPayload {
+  kind: "echart";
+  option: Record<string, unknown>;
+}
+
+export interface PgQueryPayload {
+  kind: "pg_query";
+  sql: string;
+  data: Array<Record<string, unknown>>;
+  columns: string[];
+  row_count: number;
+  truncated: boolean;
+}
+
 // WebSocket event types from backend
 export type WSEventType =
   // PydanticAI / LangChain / LangGraph events

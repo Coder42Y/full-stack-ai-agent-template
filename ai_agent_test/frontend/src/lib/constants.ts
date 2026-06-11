@@ -2,8 +2,8 @@
  * Application constants.
  */
 
-export const APP_NAME = "ai_agent_test";
-export const APP_DESCRIPTION = "My FastAPI project";
+export const APP_NAME = "MobilityOps AI";
+export const APP_DESCRIPTION = "Shared mobility operations intelligence workspace";
 
 // API Routes (Next.js internal routes)
 export const API_ROUTES = {

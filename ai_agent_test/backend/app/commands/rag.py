@@ -19,6 +19,7 @@ from pathlib import Path
 import click
 
 from app.commands import command, error, info, success, warning
+from app.core.config import settings as app_settings
 from app.services.rag.config import DocumentExtensions, RAGSettings
 from app.services.rag.documents import DocumentProcessor
 from app.services.rag.embeddings import EmbeddingService
@@ -42,7 +43,7 @@ def get_rag_services() -> tuple[
     Returns:
         Tuple of (settings, vector_store, processor, retrieval, ingestion) services.
     """
-    settings = RAGSettings()
+    settings = app_settings.rag
     embedder = EmbeddingService(settings=settings)
     vector_store = MilvusVectorStore(settings=settings, embedding_service=embedder)
     processor = DocumentProcessor(settings=settings)

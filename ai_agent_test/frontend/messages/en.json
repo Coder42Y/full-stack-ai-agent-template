@@ -25,6 +25,19 @@
     "settings": "Settings",
     "logout": "Logout"
   },
+  "appNav": {
+    "dashboard": "Operations",
+    "chat": "AI Analysis",
+    "kb": "Ops Knowledge",
+    "orgs": "Team",
+    "billing": "Usage",
+    "profile": "Account",
+    "admin": "Admin",
+    "openMenu": "Open menu",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out"
+  },
   "auth": {
     "login": "Login",
     "register": "Register",
@@ -51,6 +64,8 @@
     "nameOptional": "Name (optional)",
     "createAccount": "Create Account",
     "welcomeBack": "Welcome back",
+    "loginHeadingPrefix": "Sign in to",
+    "loginHeadingEm": "the operations agent workspace.",
     "getStarted": "Let's set you up",
     "forgotShort": "Forgot?",
     "namePlaceholder": "How should we call you?",
@@ -139,7 +154,34 @@
     "copyLink": "Link copied to clipboard",
     "failedToShare": "Failed to share conversation",
     "failedToGenerateLink": "Failed to generate link",
-    "failedToRevoke": "Failed to revoke access"
+    "failedToRevoke": "Failed to revoke access",
+    "empty": {
+      "badge": "Operations agent · {agent}",
+      "titleWithName": "Which operation risk should we inspect first, {name}?",
+      "title": "Shared mobility operations start with one question.",
+      "description": "Query vehicle distribution, order trends, weather, and demand forecasts. SQL results and charts expand directly in the conversation.",
+      "hint": "Tip:",
+      "commandPalette": "open command palette",
+      "slashCommands": "run quick commands",
+      "prompts": {
+        "pileup": {
+          "title": "Vehicle pile-up check",
+          "prompt": "Which stations have vehicle pile-up? Show SQL evidence and dispatch suggestions."
+        },
+        "peak": {
+          "title": "Peak-hour trend",
+          "prompt": "How did morning and evening peak orders trend over the past week? Show a chart."
+        },
+        "gap": {
+          "title": "Shortage priority",
+          "prompt": "Give me dispatch priorities sorted by predicted shortage, including station, district, and gap."
+        },
+        "weather": {
+          "title": "Weather response",
+          "prompt": "If Pudong has heavy rain today, which stations need attention? Combine weather and vehicle distribution."
+        }
+      }
+    }
   },
   "admin": {
     "conversationsTitle": "Admin: Conversations",
@@ -322,17 +364,17 @@
   "marketing": {
     "nav": {
       "features": "Features",
-      "howItWorks": "How it works",
-      "pricing": "Pricing",
+      "howItWorks": "Workflow",
+      "pricing": "Demo scope",
       "faq": "FAQ",
-      "blog": "Blog",
+      "blog": "Cases",
       "changelog": "Changelog",
       "about": "About",
       "contact": "Contact",
       "help": "Help",
       "community": "Community",
       "security": "Security",
-      "getStarted": "Get started",
+      "getStarted": "Open workspace",
       "signIn": "Sign in",
       "platform": "Platform",
       "solutions": "Solutions",
@@ -340,7 +382,7 @@
       "resources": "Resources"
     },
     "footer": {
-      "tagline": "The AI assistant that knows your work.",
+      "tagline": "An AI operations workspace for shared mobility teams.",
       "product": "Product",
       "company": "Company",
       "resources": "Resources",
@@ -349,7 +391,7 @@
       "terms": "Terms",
       "privacy": "Privacy",
       "cookies": "Cookies",
-      "operational": "All systems operational"
+      "operational": "Demo services operational"
     },
     "cookies": {
       "title": "We use cookies",
@@ -771,134 +813,113 @@
       "endOfPost": "end of post"
     },
     "landing": {
-      "metaDescription": "An AI assistant that knows your team's work. Plug in your docs, your tools, and your data — get answers grounded in everything your team has ever shipped.",
+      "metaDescription": "MobilityOps AI lets shared mobility teams query vehicle distribution, order trends, weather, and demand forecasts in natural language, then turns results into charts and dispatch suggestions.",
       "hero": {
-        "eyebrow": "Meet your team's AI co-worker",
-        "titlePre": "AI that",
-        "titleHighlight": "knows",
-        "titleEm": "your work.",
-        "description": "Plug in your docs, your tools, and your data. Ask anything — get answers grounded in everything your team has ever shipped.",
-        "ctaPrimary": "Start free",
-        "ctaSecondary": "Book a demo",
-        "stat_teams": "Teams using",
-        "stat_speed": "Faster answers",
-        "stat_uptime": "Always on"
+        "eyebrow": "Shared mobility operations agent",
+        "titlePre": "Let an Agent read",
+        "titleHighlight": "vehicles, orders, and demand",
+        "titleEm": "in real time.",
+        "description": "Ask in natural language. The agent queries PostgreSQL through MCP, detects vehicle pile-ups, builds charts, and returns dispatch-ready recommendations.",
+        "ctaPrimary": "Open workspace",
+        "ctaSecondary": "View demo questions",
+        "stat_teams": "business tables",
+        "stat_speed": "seeded stations",
+        "stat_uptime": "MCP tools"
       },
       "social": {
-        "title": "Trusted by teams across industries"
+        "title": "Covering the core shared mobility operations flow"
       },
       "how": {
-        "eyebrow": "How it works",
-        "title": "Three steps to a smarter team"
+        "eyebrow": "Workflow",
+        "title": "From a question to dispatch action in three steps"
       },
       "features": {
-        "eyebrow": "Features",
-        "title": "Built-in features that ship today",
-        "subtitle": "The boring infrastructure parts you'd otherwise spend a quarter wiring up."
+        "eyebrow": "Core features",
+        "title": "Built for the operations demo, not a generic chat shell",
+        "subtitle": "Database queries, charts, prompts, and frontend rendering are organized around shared mobility operations."
       },
-"data": {
-        "eyebrow": "How retrieval works",
-        "title": "Your sources, ranked + cited"
+      "data": {
+        "eyebrow": "Data flow",
+        "title": "Operational data in, actionable recommendations out"
       },
       "testimonials": {
-        "eyebrow": "Loved by teams",
-        "titlePre": "Teams that ship faster",
-        "titleEm": "with us."
+        "eyebrow": "Demo scenarios",
+        "titlePre": "Show a real",
+        "titleEm": "business loop."
       },
       "pricing": {
-        "eyebrow": "Pricing",
-        "titlePre": "Pay only for what",
-        "titleEm": "your team needs.",
-        "subtitle": "Drag the slider — your plan, your price, in real time.",
+        "eyebrow": "Demo scope",
+        "titlePre": "The MVP focuses on",
+        "titleEm": "the highest-signal operations problems.",
+        "subtitle": "Vehicle pile-up detection, peak-hour trends, forecast gap ranking, and chart rendering are ready to demo.",
         "teaser": {
-          "seats": "Team size",
-          "seatsUnit": "users",
-          "perMonth": "/mo",
-          "seeFull": "See full comparison →",
-          "custom": "Let's talk",
-          "billedMonthly": "billed monthly · cancel anytime"
+          "seeFull": "See full workspace →"
         }
       },
       "faq": {
         "eyebrow": "FAQ",
-        "title": "Frequently asked.",
+        "title": "Common questions",
         "items": [
           {
-            "q": "What does {appName} actually do?",
-            "a": "It's an AI assistant that lives on top of your team's documents, conversations, and tools. Ask it questions in natural language; get answers grounded in your own data, with sources cited."
+            "q": "How is this different from a generic AI chat app?",
+            "a": "The agent calls MCP tools against real business tables instead of answering from memory. SQL results and ECharts outputs render directly in the frontend."
           },
           {
-            "q": "Where does my data live?",
-            "a": "Your data stays in your workspace. We never train on your content, and we encrypt everything at rest and in transit. Bring your own keys if you need extra control."
+            "q": "How do you define vehicle pile-up?",
+            "a": "For the MVP demo, a station is flagged when total_count > 50 and recorded_at is older than 24 hours. The prompt notes that this threshold should be configurable in production."
           },
           {
-            "q": "Which tools can I connect?",
-            "a": "Out of the box: Google Drive, Notion, Slack, GitHub, Confluence, and any S3-compatible bucket. More integrations ship every month, and you can always pipe data in via the public API."
+            "q": "What counts as morning and evening peak?",
+            "a": "Morning peak is 7-9, evening peak is 17-19, matching common shared mobility operations reporting windows."
           },
           {
-            "q": "Can I cancel anytime?",
-            "a": "Yes — every paid plan is month-to-month and you can cancel from the billing dashboard. Your account stays active until the end of the period you've already paid for."
-          },
-          {
-            "q": "Do you offer SSO and audit logs?",
-            "a": "SSO (Google, Okta, Microsoft Entra) and audit logs come with the Business plan. SCIM provisioning and DLP controls are available on Enterprise — get in touch."
-          },
-          {
-            "q": "Is there an API?",
-            "a": "Yes. Every feature in the dashboard is also available over a JSON API. Stream chat responses, ingest documents, manage users, subscribe to events — see the developer docs."
+            "q": "Do dispatch suggestions consider distance and capacity?",
+            "a": "The MVP ranks by predicted shortage first. The SQL/template architecture can later add distance, capacity, and vehicle-type weights."
           }
         ]
       },
       "finalCta": {
-        "statValue": "12,840",
-        "statLabel": "Questions answered this week",
-        "titlePre": "Your team's next answer is",
-        "titleEm": "one ask away.",
-        "description": "Free 14-day trial. No credit card. Cancel anytime.",
-        "primary": "Start free",
-        "secondary": "See pricing"
+        "statValue": "4",
+        "statLabel": "seeded anomaly stations",
+        "titlePre": "Start with:",
+        "titleEm": "which stations are piling up?",
+        "description": "Sign in and use the prepared chat prompts to run the demo.",
+        "primary": "Open chat",
+        "secondary": "View dashboard"
       }
     },
     "pricing": {
-      "eyebrow": "Pricing",
-      "title": "Simple, transparent pricing",
-      "description": "Start free. Upgrade when you're ready — every plan includes a 14-day trial.",
-      "monthly": "Monthly",
-      "annual": "Annual",
-      "savePill": "−20%",
-      "startTrial": "Start free trial",
-      "mostPopular": "Most popular",
-      "demoBanner": "Showing template plans — connect Stripe to see your real catalog.",
-      "loved": "Loved by builders",
-      "lovedTitle": "Teams shipping with us",
-      "faqTitle": "Pricing questions, answered",
-      "perMonth": "/ month",
-      "perYear": "/ year",
-      "trialBadge": "{days}-day free trial",
+      "eyebrow": "Demo scope",
+      "title": "What this build demonstrates",
+      "description": "The MVP is scoped around the shared mobility operations loop: detect anomalies, inspect trends, rank shortages, and explain dispatch actions.",
+      "monthly": "Current",
+      "annual": "Roadmap",
+      "savePill": "next",
+      "startTrial": "Open workspace",
+      "mostPopular": "Current build",
+      "demoBanner": "Showing MobilityOps demo scope — connect billing only for a production rollout.",
+      "loved": "Demo scenarios",
+      "lovedTitle": "Operational workflows covered",
+      "faqTitle": "Scope questions, answered",
+      "perMonth": "",
+      "perYear": "",
+      "trialBadge": "demo-ready",
       "faqs": [
         {
-          "q": "Can I change plans later?",
-          "a": "Yes — upgrade, downgrade, or cancel at any time from your billing portal. Changes pro-rate automatically."
+          "q": "Why keep the MVP scope this narrow?",
+          "a": "The demo needs to prove the agent can identify real operational exceptions, query data safely, render evidence, and produce recommendations. Extra constraints can be added after the loop is clear."
         },
         {
-          "q": "Do unused credits roll over?",
-          "a": "Unused monthly credits expire at the end of each billing cycle. Top-up credit packs you purchase separately never expire."
+          "q": "What happens when Stripe has no configured plans?",
+          "a": "The page falls back to these MobilityOps scope cards so the demo never shows empty pricing."
         },
         {
-          "q": "What payment methods do you accept?",
-          "a": "All major credit and debit cards via Stripe, plus ACH and SEPA on annual plans. Enterprise can pay via invoice."
+          "q": "Can the dispatch logic be extended?",
+          "a": "Yes. The current ranking uses predicted shortage. Distance, capacity, vehicle type, and real-time constraints can be added through SQL templates and MCP tools."
         },
         {
-          "q": "Is there a free trial?",
-          "a": "Yes. Every paid plan comes with a 14-day free trial — no credit card required to start."
-        },
-        {
-          "q": "Can I self-host?",
-          "a": "Yes. The template is open-source. Self-host on your own infra, or pay us to manage it."
-        },
-        {
-          "q": "Do you offer discounts for annual billing?",
-          "a": "Annual plans get 2 months free (~17% saving). Toggle the billing switch above to see annual pricing."
+          "q": "Is this production billing?",
+          "a": "No. The cards describe demo scope. Billing remains available in the template, but the interview narrative is operations intelligence, not SaaS pricing."
         }
       ]
     }

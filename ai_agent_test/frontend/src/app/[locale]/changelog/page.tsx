@@ -32,12 +32,12 @@ const TYPE_STYLES: Record<ChangeType, string> = {
 export default async function ChangelogPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const t = await getTranslations("marketing.changelog");
-  const isPl = locale === "pl";
+  const isZh = locale === "zh";
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(isPl ? "pl-PL" : "en-US", {
+    return d.toLocaleDateString(isZh ? "zh-CN" : "en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -112,7 +112,7 @@ export default async function ChangelogPage({ params }: { params: Promise<{ loca
             className="border-foreground/20 bg-background absolute top-0 left-0 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-dashed md:h-11 md:w-11"
           />
           <p className="text-foreground/45 font-mono text-[11px] tracking-wider uppercase md:py-2.5">
-            {isPl ? "→ początek historii" : "→ start of history"}
+            {isZh ? "→ 历史起点" : "→ start of history"}
           </p>
         </div>
       </div>

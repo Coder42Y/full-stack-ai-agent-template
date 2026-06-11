@@ -33,7 +33,7 @@ export function FeatureSection({
         <div className="mb-6">
           <span className="eyebrow-badge">{eyebrow}</span>
         </div>
-        <h2 className="text-display-lg text-foreground [&_em]:font-accent [&_em]:text-foreground/85 mb-7 [&_em]:font-normal [&_em]:italic">
+        <h2 className="text-display-lg text-foreground mb-7 [&_em]:not-italic">
           {title}
         </h2>
         <p className="text-foreground/75 mb-10 max-w-xl text-xl leading-relaxed">{description}</p>

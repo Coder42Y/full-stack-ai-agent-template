@@ -22,7 +22,7 @@ export function MarketingFooter({
   legal = [],
 }: MarketingFooterProps) {
   return (
-    <footer className="theme-dark bg-background text-foreground grain relative overflow-hidden">
+    <footer className="theme-light bg-background text-foreground grain relative overflow-hidden">
       {/* Glowing brand-color sphere — the visual anchor */}
       <div
         aria-hidden

@@ -57,9 +57,9 @@ interface ConversationsResponse {
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "早上好";
+  if (hour < 18) return "下午好";
+  return "晚上好";
 }
 
 function pctDelta(current: number[], prior: number[]): number | undefined {
@@ -146,7 +146,7 @@ export default function DashboardPage() {
         timeline.slice(-period * 2, -period).map((b) => b.total_calls),
       )
     : undefined;
-  const deltaLabel = `vs prior ${period}d`;
+  const deltaLabel = `较前 ${period} 天`;
 
   const firstName = user?.full_name?.split(" ")[0] || user?.email?.split("@")[0];
 
@@ -172,9 +172,9 @@ export default function DashboardPage() {
           />
 
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Dashboard
+            共享出行运营看板
           </p>
-          <h1 className="font-display text-foreground mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
+          <h1 className="font-display text-foreground [&_em]:font-accent mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:font-normal [&_em]:italic">
             {getGreeting()}
             {firstName ? (
               <>
@@ -186,7 +186,7 @@ export default function DashboardPage() {
             )}
           </h1>
           <p className="text-foreground/65 mt-4 max-w-md text-sm">
-            Here&apos;s what&apos;s happening with your workspace.
+            快速查看系统状态、运营知识库和最近的智能分析记录。
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -194,7 +194,7 @@ export default function DashboardPage() {
               href={ROUTES.CHAT}
               className="bg-foreground text-background hover:bg-foreground/90 group inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-5 text-sm font-medium transition-colors"
             >
-              <span>New chat</span>
+              <span>开始运营分析</span>
               <span className="bg-brand text-brand-foreground flex h-8 w-8 items-center justify-center rounded-full transition-transform group-hover:rotate-45">
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </span>
@@ -207,7 +207,7 @@ export default function DashboardPage() {
         <div className="border-foreground/10 bg-foreground/[0.02] relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border p-6 sm:p-7">
           <div>
             <p className="text-foreground/55 mb-4 font-mono text-[11px] tracking-wider uppercase">
-              Status
+              系统状态
             </p>
             <div className="flex items-center gap-3">
               <span
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                 }
               />
               <span className="font-display text-foreground text-lg font-semibold">
-                {healthError ? "API offline" : health?.status || "Operational"}
+                {healthError ? "API 离线" : health?.status || "运行中"}
               </span>
             </div>
             {health?.version && (
@@ -235,19 +235,19 @@ export default function DashboardPage() {
 
           <dl className="space-y-2.5 text-xs">
             <div className="flex items-center justify-between">
-              <dt className="text-foreground/55 font-mono tracking-wider uppercase">Collections</dt>
+              <dt className="text-foreground/55 font-mono tracking-wider uppercase">知识库</dt>
               <dd className="text-foreground font-mono tabular-nums">
                 {ragStats ? ragStats.collections : "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-foreground/55 font-mono tracking-wider uppercase">Vectors</dt>
+              <dt className="text-foreground/55 font-mono tracking-wider uppercase">向量</dt>
               <dd className="text-foreground font-mono tabular-nums">
                 {ragStats ? ragStats.vectors.toLocaleString() : "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-foreground/55 font-mono tracking-wider uppercase">Plan</dt>
+              <dt className="text-foreground/55 font-mono tracking-wider uppercase">方案</dt>
               <dd>
                 <SubscriptionChip />
               </dd>
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       {/* WORKSPACE METRICS */}
       <div className="flex items-center justify-between">
         <h2 className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Workspace metrics
+          运营智能体指标
         </h2>
         <SegmentedControl
           value={String(period)}
@@ -283,13 +283,13 @@ export default function DashboardPage() {
           lowThreshold={credits?.low_threshold ?? 0}
         />
         <StatCard
-          label="Conversations"
+          label="分析记录"
           value={convLoading ? "—" : (conversations?.total ?? 0).toLocaleString()}
           icon={MessageSquare}
           loading={convLoading}
         />
         <StatCard
-          label={`API calls (${period}d)`}
+          label={`工具调用 (${period} 天)`}
           value={timeline ? callsSpark.reduce((a, b) => a + b, 0).toLocaleString() : "—"}
           icon={Activity}
           delta={callsDelta}
@@ -298,9 +298,9 @@ export default function DashboardPage() {
           loading={!timeline}
         />
         <StatCard
-          label="Knowledge base"
+          label="运营知识库"
           value={ragStats ? ragStats.vectors.toLocaleString() : "—"}
-          unit={ragStats ? `vector${ragStats.vectors === 1 ? "" : "s"}` : undefined}
+          unit={ragStats ? "向量" : undefined}
           icon={Database}
           loading={!ragStats}
         />
@@ -313,7 +313,7 @@ export default function DashboardPage() {
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase transition-colors"
         >
           <CreditCard className="h-3.5 w-3.5" />
-          Manage billing →
+          管理用量 →
         </Link>
       </div>
 
@@ -336,20 +336,18 @@ export default function DashboardPage() {
       {/* Admin row */}
       {user?.role === "admin" && (
         <div>
-          <h2 className="font-display text-foreground mb-3 text-base font-semibold">
-            Admin actions
-          </h2>
+          <h2 className="font-display text-foreground mb-3 text-base font-semibold">管理操作</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <AdminTile
               icon={Star}
-              label="Response ratings"
-              description="View and manage ratings"
+              label="回答评价"
+              description="查看和管理用户反馈"
               href={ROUTES.ADMIN_RATINGS}
             />
             <AdminTile
               icon={List}
-              label="All conversations"
-              description="Inspect any user's chats"
+              label="全部分析记录"
+              description="查看用户对话和工具调用"
               href={ROUTES.ADMIN_CONVERSATIONS}
             />
           </div>
@@ -411,7 +409,7 @@ function FeaturedCreditsCard({
       <div className="flex items-start justify-between gap-2">
         <p className="text-foreground/55 inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wider uppercase">
           <Sparkles className="text-brand h-3 w-3" />
-          Credits balance
+          额度余额
         </p>
         {trend && (
           <span
@@ -437,7 +435,7 @@ function FeaturedCreditsCard({
       </div>
 
       <p className="text-foreground/45 mt-2 font-mono text-[10px] tracking-wider uppercase">
-        {trend ? deltaLabel : belowThreshold ? "Below auto-refill threshold" : "Live balance"}
+        {trend ? deltaLabel : belowThreshold ? "低于自动补充阈值" : "实时余额"}
       </p>
 
       {spark.length >= 2 && (
@@ -470,7 +468,7 @@ function SearchHint() {
   return (
     <div className="border-foreground/15 bg-background hidden items-center gap-2 rounded-full border px-3 py-1.5 text-xs sm:inline-flex">
       <Search className="text-foreground/45 h-3.5 w-3.5" />
-      <span className="text-foreground/55">Search</span>
+      <span className="text-foreground/55">搜索</span>
       <kbd className="border-foreground/15 bg-card text-foreground/65 rounded-md border px-1.5 py-0.5 font-mono text-[10px]">
         ⌘K
       </kbd>

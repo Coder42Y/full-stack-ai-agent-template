@@ -29,7 +29,7 @@ export interface BlogPost extends BlogPostMeta {
 /**
  * Per-locale MDX file resolution.
  *
- * For locale `pl` and slug `foo`, we try `content/blog/foo.pl.mdx` first;
+ * For locale `en` and slug `foo`, we try `content/blog/foo.en.mdx` first;
  * if absent, fall back to `content/blog/foo.mdx` (the default-locale source).
  * This lets a single post show up in both languages by default, with optional
  * translation per locale by dropping a `.{locale}.mdx` file next to the source.
@@ -89,7 +89,7 @@ async function resolvePostFile(slug: string, locale: Locale): Promise<string | n
   return null;
 }
 
-/** Strip optional `.{locale}` suffix from a filename like `foo.pl.mdx` → `foo`. */
+/** Strip optional `.{locale}` suffix from a filename like `foo.zh.mdx` → `foo`. */
 function slugFromFilename(filename: string): string {
   const noExt = filename.replace(/\.mdx$/, "");
   // If looks like `slug.{locale}` and the locale part matches a real locale,
@@ -97,7 +97,7 @@ function slugFromFilename(filename: string): string {
   const parts = noExt.split(".");
   if (parts.length >= 2) {
     const last = parts[parts.length - 1];
-    if (last === "pl" || last === "en") {
+    if (last === "zh" || last === "en") {
       return parts.slice(0, -1).join(".");
     }
   }
@@ -127,7 +127,17 @@ export async function getAllBlogPosts(locale: Locale = defaultLocale): Promise<B
 
   return posts
     .filter((p): p is BlogPost => p !== null)
-    .map(({ content: _content, ...meta }) => meta)
+    .map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt,
+      date: post.date,
+      author: post.author,
+      authorRole: post.authorRole,
+      tags: post.tags,
+      cover: post.cover,
+      readingTime: post.readingTime,
+    }))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 

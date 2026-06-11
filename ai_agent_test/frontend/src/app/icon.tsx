@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-/** Dynamic favicon — black square with a lime brand dot. Renders at 32×32. */
+/** Dynamic favicon — light square with a brand dot. Renders at 32×32. */
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
@@ -14,7 +14,8 @@ export default function Icon() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#0E0E0C",
+        background: "#F7F9FC",
+        border: "1px solid #C9D2E3",
         borderRadius: "6px",
       }}
     >

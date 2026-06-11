@@ -27,7 +27,7 @@ function buildLocalizedPath(pathname: string, newLocale: Locale): string {
 }
 
 /**
- * Default language switcher — segmented pills (EN | PL).
+ * Default language switcher — segmented pills (ZH | EN).
  * Used in the dashboard footer / settings, where space allows two buttons.
  */
 export function LanguageSwitcher() {
@@ -100,7 +100,7 @@ export function LanguageSwitcherCompact() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Language"
+        aria-label="Language / 语言"
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(

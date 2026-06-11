@@ -19,8 +19,8 @@ export default function GlobalError({
             justifyContent: "center",
             padding: "1rem",
             textAlign: "center",
-            backgroundColor: "#09090b",
-            color: "#fafafa",
+            backgroundColor: "#f7f9fc",
+            color: "#182033",
           }}
         >
           <p
@@ -47,7 +47,7 @@ export default function GlobalError({
           <p
             style={{
               marginTop: "1rem",
-              color: "#a1a1aa",
+              color: "#4b5565",
               maxWidth: "28rem",
             }}
           >
@@ -59,7 +59,7 @@ export default function GlobalError({
               style={{
                 marginTop: "0.5rem",
                 fontSize: "0.75rem",
-                color: "#71717a",
+                color: "#697386",
               }}
             >
               Error ID: {error.digest}
@@ -89,9 +89,9 @@ export default function GlobalError({
                 fontSize: "0.875rem",
                 fontWeight: 500,
                 borderRadius: "0.5rem",
-                border: "1px solid #27272a",
-                backgroundColor: "transparent",
-                color: "#fafafa",
+                border: "1px solid #c9d2e3",
+                backgroundColor: "#ffffff",
+                color: "#182033",
                 textDecoration: "none",
               }}
             >

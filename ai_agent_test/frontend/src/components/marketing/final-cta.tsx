@@ -7,7 +7,7 @@ import { AnimatedNumber } from "./animated-number";
 interface FinalCtaProps {
   /** Big animated stat displayed above the headline. */
   stat: { value: string; label: string };
-  /** Headline below the stat — supports `<em>` for italic accent. */
+  /** Headline below the stat — supports `<em>` for semantic emphasis. */
   title: ReactNode;
   /** Optional reassurance line under the buttons. */
   description?: string;
@@ -47,7 +47,7 @@ export function FinalCta({ stat, title, description, primary, secondary }: Final
           <AnimatedNumber value={stat.value} durationMs={1400} />
         </div>
 
-        <h2 className="text-display-lg text-foreground/85 [&_em]:font-accent mt-10 max-w-2xl [&_em]:font-normal [&_em]:italic">
+        <h2 className="text-display-lg text-foreground/85 mt-10 max-w-2xl [&_em]:not-italic">
           {title}
         </h2>
 

@@ -74,10 +74,7 @@ export const viewport: Viewport = {
   // Required for env(safe-area-inset-*) to evaluate non-zero on iOS notches —
   // used by the mobile bottom tab bar.
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F2E8" },
-    { media: "(prefers-color-scheme: dark)", color: SITE.themeColor },
-  ],
+  themeColor: SITE.themeColor,
 };
 
 export default function RootLayout({
@@ -89,7 +86,7 @@ export default function RootLayout({
     <html
       lang={defaultLocale}
       suppressHydrationWarning
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${display.variable} ${body.variable} ${mono.variable} light`}
     >
       <body className="font-body">{children}</body>
     </html>

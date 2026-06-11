@@ -143,7 +143,9 @@ class Settings(BaseSettings):
 
     # === AI Agent (pydantic_ai, openai) ===
     OPENAI_API_KEY: str = ""
-    OPENAI_BASE_URL: str = ""  # OpenAI-compatible base URL (e.g. https://open.bigmodel.cn/api/paas/v4)
+    OPENAI_BASE_URL: str = (
+        ""  # OpenAI-compatible base URL (e.g. https://open.bigmodel.cn/api/paas/v4)
+    )
     AI_MODEL: str = "glm-5.1"
     AI_TEMPERATURE: float = 0.7
     AI_THINKING_ENABLED: bool = False
@@ -172,7 +174,19 @@ class Settings(BaseSettings):
             "env": {
                 "TAVILY_API_KEY": "",  # 从 .env 注入
             },
-        }
+        },
+        "pg_query": {
+            "command": "python",
+            "args": ["-m", "app.agents.mcp_servers.pg_query_server"],
+            "env": {
+                "DATABASE_URL": "",  # 从 lifespan 注入同步 DB URL
+            },
+        },
+        "echarts": {
+            "command": "python",
+            "args": ["-m", "app.agents.mcp_servers.chart_server"],
+            "env": {},
+        },
     }
 
     # === Messaging Channels ===

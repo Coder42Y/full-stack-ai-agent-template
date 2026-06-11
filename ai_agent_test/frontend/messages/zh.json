@@ -1,0 +1,335 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "close": "关闭",
+    "confirm": "确认",
+    "yes": "是",
+    "no": "否"
+  },
+  "navigation": {
+    "home": "首页",
+    "dashboard": "运营看板",
+    "profile": "个人资料",
+    "settings": "设置",
+    "logout": "退出登录"
+  },
+  "appNav": {
+    "dashboard": "运营看板",
+    "chat": "智能分析",
+    "kb": "运营知识库",
+    "orgs": "团队",
+    "billing": "用量",
+    "profile": "账号",
+    "admin": "管理后台",
+    "openMenu": "打开菜单",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "创建账号",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？",
+    "loginSuccess": "登录成功",
+    "registerSuccess": "账号创建成功",
+    "logoutSuccess": "已退出登录",
+    "invalidCredentials": "邮箱或密码不正确",
+    "emailRequired": "请输入有效邮箱",
+    "passwordRequired": "请输入密码",
+    "passwordMismatch": "两次输入的密码不一致",
+    "continueWithGoogle": "使用 Google 登录",
+    "signUpWithGoogle": "使用 Google 注册",
+    "orContinueWith": "或继续使用",
+    "orRegisterWith": "或使用邮箱注册",
+    "redirecting": "正在跳转...",
+    "loggingIn": "正在登录...",
+    "creatingAccount": "正在创建账号...",
+    "nameOptional": "姓名（选填）",
+    "createAccount": "创建账号",
+    "welcomeBack": "欢迎回来",
+    "loginHeadingPrefix": "登录",
+    "loginHeadingEm": "运营智能体工作台。",
+    "getStarted": "开始配置运营工作台",
+    "forgotShort": "忘记？",
+    "namePlaceholder": "运营同学怎么称呼你？",
+    "emailPlaceholder": "demo@example.com",
+    "orSignInWith": "或使用以下方式登录",
+    "orSignUpWith": "或使用以下方式注册"
+  },
+  "chat": {
+    "title": "运营智能体",
+    "newChat": "新建分析",
+    "sendMessage": "询问车辆堆积、早晚高峰、缺车预测...",
+    "thinking": "正在分析...",
+    "noConversations": "还没有分析记录",
+    "startNewChat": "发起一次运营分析",
+    "deleteConversation": "删除分析",
+    "archiveConversation": "归档分析",
+    "renameConversation": "重命名分析",
+    "conversations": "分析记录",
+    "rename": "重命名",
+    "share": "分享",
+    "archive": "归档",
+    "delete": "删除",
+    "newConversation": "新建分析",
+    "analyzeFiles": "分析附件",
+    "copyMessage": "复制",
+    "helpful": "有帮助",
+    "notHelpful": "没有帮助",
+    "saveConversationToRate": "保存分析后才能评价",
+    "ratingRemoved": "评价已移除",
+    "thankYouFeedback": "感谢反馈",
+    "ratingFailed": "提交评价失败",
+    "whatWentWrong": "哪里不符合预期？",
+    "feedbackHelp": "补充说明可以帮助优化运营分析。",
+    "describeIssue": "描述问题...（选填）",
+    "skipComment": "跳过说明",
+    "shareConversation": "分享分析",
+    "shareDescription": "把这次运营分析分享给同事，或生成公开链接。",
+    "userIdOrEmail": "用户 ID 或邮箱",
+    "generateShareLink": "生成分享链接",
+    "sharedWith": "已分享给",
+    "conversationShared": "分析已分享",
+    "linkGenerated": "分享链接已生成",
+    "accessRevoked": "访问已撤销",
+    "copyLink": "链接已复制",
+    "failedToShare": "分享失败",
+    "failedToGenerateLink": "生成链接失败",
+    "failedToRevoke": "撤销访问失败",
+    "empty": {
+      "badge": "运营智能体 · {agent}",
+      "titleWithName": "今天先看哪块运营风险，{name}？",
+      "title": "共享出行运营，从一句问题开始。",
+      "description": "查询车辆分布、订单趋势、天气和需求预测；SQL 结果与图表会在对话中展开。",
+      "hint": "建议：",
+      "commandPalette": "打开命令面板",
+      "slashCommands": "调用快捷指令",
+      "prompts": {
+        "pileup": {
+          "title": "车辆堆积巡检",
+          "prompt": "哪些站点存在车辆堆积？请给出 SQL 依据和调度建议。"
+        },
+        "peak": {
+          "title": "早晚高峰趋势",
+          "prompt": "最近一周早晚高峰订单趋势怎么样？请用图表展示。"
+        },
+        "gap": {
+          "title": "缺车优先级",
+          "prompt": "按预测缺口给我一份调度优先级建议，列出站点、区域和缺口。"
+        },
+        "weather": {
+          "title": "天气应急",
+          "prompt": "如果浦东新区今天暴雨，哪些站点需要提前关注？请结合天气和车辆分布。"
+        }
+      }
+    }
+  },
+  "billing": {
+    "title": "用量",
+    "description": "查看 {org} 的模型调用和额度。",
+    "subscription": "订阅与额度",
+    "subscriptionDesc": "升级以支持更多运营成员和分析额度。",
+    "subscriptionDescPaid": "管理订阅、额度和账单。",
+    "seatsUsed": "席位使用",
+    "upgrade": "升级方案",
+    "manageBilling": "管理账单",
+    "redirecting": "正在跳转...",
+    "successMessage": "订阅已更新",
+    "tierFree": "免费",
+    "tierSolo": "单人",
+    "tierTeam": "团队",
+    "tierBusiness": "企业"
+  },
+  "landing": {
+    "heroTitle": "共享出行",
+    "heroHighlight": "运营智能体",
+    "heroTitleEnd": "实时分析车辆、订单与需求",
+    "heroSubtitle": "面向共享单车、助力车、滑板车运营团队的 AI Demo：自动查询运营数据库，识别车辆堆积，分析早晚高峰，并生成可视化调度建议。",
+    "getStarted": "进入运营工作台",
+    "signIn": "登录",
+    "featureAiChat": "自然语言查数",
+    "featureAiChatDesc": "直接询问站点堆积、订单趋势、区域缺口，Agent 自动生成安全 SQL 并返回表格依据。",
+    "featureRag": "运营知识库",
+    "featureRagDesc": "沉淀调度规则、应急预案和站点说明，让回答不只给数字，也能给操作建议。",
+    "featureAuth": "权限与审计",
+    "featureAuthDesc": "保留登录、组织、管理后台等生产级能力，便于后续扩展到真实团队协作。",
+    "featureDashboard": "运营看板",
+    "featureDashboardDesc": "集中查看模型调用、知识库、分析记录和系统状态。",
+    "featureApi": "MCP 工具层",
+    "featureApiDesc": "PostgreSQL 查询和 ECharts 图表生成通过 MCP 暴露，Agent 无需硬编码业务接口。",
+    "featureRealtime": "实时对话",
+    "featureRealtimeDesc": "WebSocket 流式输出工具调用、SQL 结果和最终分析结论。",
+    "techStackTitle": "为共享出行 Demo 定制",
+    "ctaTitle": "开始跑一次运营分析",
+    "ctaSubtitle": "登录后试试：哪些站点车辆堆积？最近一周早晚高峰趋势怎么样？",
+    "createAccount": "创建账号",
+    "exploreApi": "查看 API",
+    "footerDesc": "共享出行运营智能体 Demo。",
+    "footerProduct": "产品",
+    "footerResources": "资源",
+    "apiDocs": "API 文档",
+    "learnMore": "了解更多",
+    "copyright": "保留所有权利。"
+  },
+  "marketing": {
+    "nav": {
+      "features": "能力",
+      "howItWorks": "工作流",
+      "pricing": "用量",
+      "faq": "FAQ",
+      "blog": "案例",
+      "changelog": "更新",
+      "about": "关于",
+      "contact": "联系",
+      "help": "帮助",
+      "community": "社区",
+      "security": "安全",
+      "getStarted": "进入工作台",
+      "signIn": "登录",
+      "platform": "平台",
+      "solutions": "方案",
+      "customers": "客户",
+      "resources": "资源"
+    },
+    "footer": {
+      "tagline": "面向共享出行运营团队的 AI 分析工作台。",
+      "product": "产品",
+      "company": "项目",
+      "resources": "资源",
+      "helpCenter": "帮助中心",
+      "apiDocs": "API 文档",
+      "terms": "条款",
+      "privacy": "隐私",
+      "cookies": "Cookie",
+      "operational": "Demo 服务运行中"
+    },
+    "landing": {
+      "metaDescription": "共享出行运营智能体：用自然语言查询车辆分布、订单趋势、天气和需求预测，并生成可视化调度建议。",
+      "hero": {
+        "eyebrow": "共享出行运营智能体",
+        "titlePre": "把车辆、订单和需求",
+        "titleHighlight": "交给 Agent",
+        "titleEm": "实时分析。",
+        "description": "面向上海共享单车、助力车、滑板车运营 Demo。你只需要提问，Agent 会查询 PostgreSQL、识别异常、生成图表并给出调度建议。",
+        "ctaPrimary": "进入运营工作台",
+        "ctaSecondary": "查看演示问题",
+        "stat_teams": "业务表",
+        "stat_speed": "可查询站点",
+        "stat_uptime": "MCP 工具"
+      },
+      "social": {
+        "title": "覆盖共享出行核心运营场景"
+      },
+      "how": {
+        "eyebrow": "工作流",
+        "title": "从问题到调度建议，只走三步"
+      },
+      "features": {
+        "eyebrow": "核心能力",
+        "title": "为运营 Demo 定制，不是通用聊天壳",
+        "subtitle": "数据库、图表、Prompt 和前端渲染都围绕共享出行场景组织。"
+      },
+      "data": {
+        "eyebrow": "数据链路",
+        "title": "业务数据进来，运营结论出去"
+      },
+      "testimonials": {
+        "eyebrow": "演示场景",
+        "titlePre": "让面试官看到",
+        "titleEm": "真实业务闭环。"
+      },
+      "pricing": {
+        "eyebrow": "Demo 范围",
+        "titlePre": "MVP 先解决",
+        "titleEm": "最关键的运营问题。",
+        "subtitle": "堆积识别、早晚高峰趋势、预测缺口排序和图表展示已经可演示。",
+        "teaser": {
+          "seeFull": "查看完整工作台 →"
+        }
+      },
+      "faq": {
+        "eyebrow": "FAQ",
+        "title": "常见问题",
+        "items": [
+          {
+            "q": "这个 Demo 和普通 AI Chat 有什么区别？",
+            "a": "它会调用 MCP 工具查询真实业务表，而不是凭空回答。SQL 结果和 ECharts 图表都会在前端展开展示。"
+          },
+          {
+            "q": "车辆堆积如何判定？",
+            "a": "MVP 口径是 total_count > 50 且 recorded_at 超过 24 小时。Prompt 中也标注了该阈值在生产环境应配置化。"
+          },
+          {
+            "q": "早晚高峰怎么定义？",
+            "a": "早高峰为 7-9 点，晚高峰为 17-19 点，符合共享出行运营报表常用口径。"
+          },
+          {
+            "q": "调度建议考虑距离和容量吗？",
+            "a": "MVP 先按预测缺口排序。架构上后续可以在 SQL 模板中加入距离、容量和车辆类型权重。"
+          }
+        ]
+      },
+      "finalCta": {
+        "statValue": "4",
+        "statLabel": "预置异常站点",
+        "titlePre": "现在就问一句：",
+        "titleEm": "哪些站点堆积？",
+        "description": "登录后直接从聊天页开始演示。推荐问题已经放在空态卡片里。",
+        "primary": "打开聊天",
+        "secondary": "查看工作台"
+      }
+    },
+    "pricing": {
+      "eyebrow": "Demo 范围",
+      "title": "这个版本演示什么",
+      "description": "MVP 聚焦共享出行运营闭环：识别异常、查看趋势、排序缺口，并解释调度动作。",
+      "monthly": "当前",
+      "annual": "路线图",
+      "savePill": "next",
+      "startTrial": "进入工作台",
+      "mostPopular": "当前版本",
+      "demoBanner": "当前展示 MobilityOps Demo 范围；生产落地时再接真实计费。",
+      "loved": "演示场景",
+      "lovedTitle": "覆盖的运营工作流",
+      "faqTitle": "范围说明",
+      "perMonth": "",
+      "perYear": "",
+      "trialBadge": "可演示",
+      "faqs": [
+        {
+          "q": "为什么 MVP 范围这么克制？",
+          "a": "Demo 重点是证明 Agent 能识别运营异常、安全查数、展示依据并给出建议。距离、容量等复杂约束可以在闭环跑通后扩展。"
+        },
+        {
+          "q": "Stripe 没有配置方案时会怎样？",
+          "a": "页面会回退到这些 MobilityOps 范围卡片，避免演示时出现空价格页。"
+        },
+        {
+          "q": "调度逻辑后续能扩展吗？",
+          "a": "可以。当前按预测缺口排序，后续可通过 SQL 模板和 MCP 工具加入距离、容量、车型和实时约束。"
+        },
+        {
+          "q": "这里是生产计费页吗？",
+          "a": "不是。卡片描述的是 Demo 范围。模板保留计费能力，但面试叙事应聚焦运营智能，而不是 SaaS 定价。"
+        }
+      ]
+    }
+  }
+}

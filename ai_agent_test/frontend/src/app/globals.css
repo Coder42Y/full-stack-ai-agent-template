@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* =========================================================================
    Design tokens — single brand var drives the whole app.
    Change `--brand-h` / `--brand-c` to retheme.
-   Section-level dark/light: wrap with `.theme-dark` or `.theme-light`.
+   The app intentionally uses a high-contrast light palette.
    ========================================================================= */
 
 @theme {
@@ -28,25 +30,25 @@
      (e.g. lime). Dark themes override this to use the bright brand directly. */
   --color-chart: oklch(55% var(--brand-c) var(--brand-h));
 
-  /* Light theme — cream */
-  --color-background: oklch(96% 0.005 90);
-  --color-foreground: oklch(15% 0 0);
+  /* High-contrast light theme */
+  --color-background: oklch(98.5% 0.006 255);
+  --color-foreground: oklch(18% 0.025 255);
   --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(15% 0 0);
+  --color-card-foreground: oklch(18% 0.025 255);
   --color-popover: oklch(100% 0 0);
-  --color-popover-foreground: oklch(15% 0 0);
-  --color-primary: oklch(15% 0 0);
+  --color-popover-foreground: oklch(18% 0.025 255);
+  --color-primary: oklch(22% 0.035 255);
   --color-primary-foreground: oklch(98% 0 0);
-  --color-secondary: oklch(93% 0.005 90);
-  --color-secondary-foreground: oklch(20% 0 0);
-  --color-muted: oklch(93% 0.005 90);
-  --color-muted-foreground: oklch(45% 0 0);
-  --color-accent: oklch(93% 0.005 90);
-  --color-accent-foreground: oklch(20% 0 0);
+  --color-secondary: oklch(94% 0.012 255);
+  --color-secondary-foreground: oklch(21% 0.03 255);
+  --color-muted: oklch(94% 0.012 255);
+  --color-muted-foreground: oklch(38% 0.035 255);
+  --color-accent: oklch(92.5% 0.018 255);
+  --color-accent-foreground: oklch(20% 0.035 255);
   --color-destructive: oklch(57.7% 0.245 27.325);
   --color-destructive-foreground: oklch(98.5% 0 0);
-  --color-border: oklch(88% 0.005 90);
-  --color-input: oklch(88% 0.005 90);
+  --color-border: oklch(82% 0.018 255);
+  --color-input: oklch(78% 0.02 255);
   --color-ring: var(--color-brand);
 
   /* Radius */
@@ -68,73 +70,73 @@
   --duration-slow: 400ms;
 }
 
-/* Dark theme — softer near-black */
+/* Force light colors even for users whose system preference is dark. */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --color-background: oklch(8% 0.005 90);
-    --color-foreground: oklch(95% 0.005 90);
-    --color-card: oklch(12% 0.005 90);
-    --color-card-foreground: oklch(95% 0.005 90);
-    --color-popover: oklch(12% 0.005 90);
-    --color-popover-foreground: oklch(95% 0.005 90);
-    --color-primary: oklch(95% 0 0);
-    --color-primary-foreground: oklch(8% 0.005 90);
-    --color-secondary: oklch(18% 0.005 90);
-    --color-secondary-foreground: oklch(95% 0 0);
-    --color-muted: oklch(18% 0.005 90);
-    --color-muted-foreground: oklch(63% 0.005 90);
-    --color-accent: oklch(20% 0.005 90);
-    --color-accent-foreground: oklch(95% 0 0);
-    --color-border: oklch(22% 0.005 90);
-    --color-input: oklch(22% 0.005 90);
-    --color-chart: var(--color-brand);
+    --color-background: oklch(98.5% 0.006 255);
+    --color-foreground: oklch(18% 0.025 255);
+    --color-card: oklch(100% 0 0);
+    --color-card-foreground: oklch(18% 0.025 255);
+    --color-popover: oklch(100% 0 0);
+    --color-popover-foreground: oklch(18% 0.025 255);
+    --color-primary: oklch(22% 0.035 255);
+    --color-primary-foreground: oklch(98% 0 0);
+    --color-secondary: oklch(94% 0.012 255);
+    --color-secondary-foreground: oklch(21% 0.03 255);
+    --color-muted: oklch(94% 0.012 255);
+    --color-muted-foreground: oklch(38% 0.035 255);
+    --color-accent: oklch(92.5% 0.018 255);
+    --color-accent-foreground: oklch(20% 0.035 255);
+    --color-border: oklch(82% 0.018 255);
+    --color-input: oklch(78% 0.02 255);
+    --color-chart: oklch(55% var(--brand-c) var(--brand-h));
   }
 }
 
 :root.dark {
-  --color-background: oklch(8% 0.005 90);
-  --color-foreground: oklch(95% 0.005 90);
-  --color-card: oklch(12% 0.005 90);
-  --color-card-foreground: oklch(95% 0.005 90);
-  --color-popover: oklch(12% 0.005 90);
-  --color-popover-foreground: oklch(95% 0.005 90);
-  --color-primary: oklch(95% 0 0);
-  --color-primary-foreground: oklch(8% 0.005 90);
-  --color-secondary: oklch(18% 0.005 90);
-  --color-secondary-foreground: oklch(95% 0 0);
-  --color-muted: oklch(18% 0.005 90);
-  --color-muted-foreground: oklch(63% 0.005 90);
-  --color-accent: oklch(20% 0.005 90);
-  --color-accent-foreground: oklch(95% 0 0);
-  --color-border: oklch(22% 0.005 90);
-  --color-input: oklch(22% 0.005 90);
-  --color-chart: var(--color-brand);
+  --color-background: oklch(98.5% 0.006 255);
+  --color-foreground: oklch(18% 0.025 255);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(18% 0.025 255);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(18% 0.025 255);
+  --color-primary: oklch(22% 0.035 255);
+  --color-primary-foreground: oklch(98% 0 0);
+  --color-secondary: oklch(94% 0.012 255);
+  --color-secondary-foreground: oklch(21% 0.03 255);
+  --color-muted: oklch(94% 0.012 255);
+  --color-muted-foreground: oklch(38% 0.035 255);
+  --color-accent: oklch(92.5% 0.018 255);
+  --color-accent-foreground: oklch(20% 0.035 255);
+  --color-border: oklch(82% 0.018 255);
+  --color-input: oklch(78% 0.02 255);
+  --color-chart: oklch(55% var(--brand-c) var(--brand-h));
 }
 
 /* =========================================================================
-   Section-level theme switching (alternating dark/light landing).
-   `.theme-dark` and `.theme-light` work regardless of root theme.
+   Section-level tone classes. Both resolve to the light palette so legacy
+   `theme="dark"` sections stay bright and readable.
    ========================================================================= */
 
 .theme-light {
-  --color-background: oklch(96% 0.005 90);
-  --color-foreground: oklch(15% 0 0);
+  --color-background: oklch(98.5% 0.006 255);
+  --color-foreground: oklch(18% 0.025 255);
   --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(15% 0 0);
-  --color-muted: oklch(93% 0.005 90);
-  --color-muted-foreground: oklch(45% 0 0);
-  --color-border: oklch(88% 0.005 90);
+  --color-card-foreground: oklch(18% 0.025 255);
+  --color-muted: oklch(94% 0.012 255);
+  --color-muted-foreground: oklch(38% 0.035 255);
+  --color-border: oklch(82% 0.018 255);
 }
 
 .theme-dark {
-  --color-background: oklch(8% 0.005 90);
-  --color-foreground: oklch(95% 0.005 90);
-  --color-card: oklch(12% 0.005 90);
-  --color-card-foreground: oklch(95% 0.005 90);
-  --color-muted: oklch(18% 0.005 90);
-  --color-muted-foreground: oklch(63% 0.005 90);
-  --color-border: oklch(22% 0.005 90);
-  --color-chart: var(--color-brand);
+  --color-background: oklch(98.5% 0.006 255);
+  --color-foreground: oklch(18% 0.025 255);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(18% 0.025 255);
+  --color-muted: oklch(94% 0.012 255);
+  --color-muted-foreground: oklch(38% 0.035 255);
+  --color-border: oklch(82% 0.018 255);
+  --color-chart: oklch(55% var(--brand-c) var(--brand-h));
 }
 
 @layer base {
@@ -145,6 +147,7 @@
      document, so this only affects public/marketing pages where html scrolls. */
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -412,9 +415,7 @@
   }
 
   /* Subtle radial spotlight backdrop. Uses background-image so the section's
-     `bg-background` utility (which sets background-color) keeps providing the
-     base color — otherwise the `background:` shorthand would clobber it and
-     the section inherits the body's bg, defeating .theme-dark. */
+     `bg-background` utility keeps providing the base color. */
   .spotlight-bg {
     background-image:
       radial-gradient(
@@ -811,74 +812,5 @@
   .hljs-deletion {
     color: #b31d28;
     background-color: #ffeef0;
-  }
-
-  .dark .hljs,
-  .theme-dark .hljs {
-    color: #e1e4e8;
-  }
-  .dark .hljs-comment,
-  .dark .hljs-quote,
-  .theme-dark .hljs-comment,
-  .theme-dark .hljs-quote {
-    color: #6a737d;
-  }
-  .dark .hljs-keyword,
-  .dark .hljs-selector-tag,
-  .dark .hljs-literal,
-  .theme-dark .hljs-keyword,
-  .theme-dark .hljs-selector-tag,
-  .theme-dark .hljs-literal {
-    color: #ff7b72;
-  }
-  .dark .hljs-name,
-  .dark .hljs-tag,
-  .theme-dark .hljs-name,
-  .theme-dark .hljs-tag {
-    color: #7ee787;
-  }
-  .dark .hljs-attr,
-  .dark .hljs-attribute,
-  .theme-dark .hljs-attr,
-  .theme-dark .hljs-attribute {
-    color: #d2a8ff;
-  }
-  .dark .hljs-string,
-  .dark .hljs-symbol,
-  .dark .hljs-bullet,
-  .theme-dark .hljs-string,
-  .theme-dark .hljs-symbol,
-  .theme-dark .hljs-bullet {
-    color: #a5d6ff;
-  }
-  .dark .hljs-number,
-  .theme-dark .hljs-number {
-    color: #79c0ff;
-  }
-  .dark .hljs-meta,
-  .dark .hljs-built_in,
-  .dark .hljs-builtin-name,
-  .dark .hljs-type,
-  .dark .hljs-params,
-  .theme-dark .hljs-meta,
-  .theme-dark .hljs-built_in,
-  .theme-dark .hljs-builtin-name,
-  .theme-dark .hljs-type,
-  .theme-dark .hljs-params {
-    color: #ffa657;
-  }
-  .dark .hljs-function .hljs-title,
-  .theme-dark .hljs-function .hljs-title {
-    color: #d2a8ff;
-  }
-  .dark .hljs-addition,
-  .theme-dark .hljs-addition {
-    color: #aff5b4;
-    background-color: #033a16;
-  }
-  .dark .hljs-deletion,
-  .theme-dark .hljs-deletion {
-    color: #ffdcd7;
-    background-color: #67060c;
   }
 }

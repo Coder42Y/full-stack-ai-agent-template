@@ -16,10 +16,10 @@ import { defaultLocale, locales } from "@/i18n";
 export const SITE = {
   name: APP_NAME,
   /** Tagline used in title templates + OG defaults. */
-  tagline: "AI assistant for modern teams",
+  tagline: "Shared mobility operations intelligence",
   /** One-paragraph default description (≤160 chars for SERP truncation). */
   description:
-    "Plug in your docs, your tools, and your data. Ask anything — get answers grounded in everything your team has ever shipped.",
+    "Ask operational questions about vehicles, orders, weather, and demand forecasts. Get SQL-backed answers and charts.",
   /** Canonical absolute origin. NO trailing slash. */
   url:
     (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") as string | undefined) ??
@@ -27,17 +27,17 @@ export const SITE = {
   /** Twitter handle for `twitter:site` (with @). Empty string disables. */
   twitter: "",
   /** Theme color used in PWA manifest + browser chrome. */
-  themeColor: "#0E0E0C",
+  themeColor: "#F7F9FC",
   /** Long-form keywords. Light SEO weight today; useful for clarity. */
   keywords: [
-    "AI assistant",
-    "team knowledge",
+    "shared mobility",
+    "operations intelligence",
     "AI agent",
-    "RAG",
-    "team productivity",
-    "knowledge base",
-    "internal search",
-    "B2B SaaS",
+    "MCP",
+    "PostgreSQL analytics",
+    "ECharts",
+    "vehicle dispatch",
+    "demand forecasting",
   ],
   /** Locale defaults — pulls from your i18n config. */
   defaultLocale,
@@ -46,8 +46,8 @@ export const SITE = {
 
 /** Map our locale codes → BCP-47 / Open Graph locale strings. */
 export const OG_LOCALE: Record<(typeof locales)[number], string> = {
+  zh: "zh_CN",
   en: "en_US",
-  pl: "pl_PL",
 };
 
 interface PageMetaInput {

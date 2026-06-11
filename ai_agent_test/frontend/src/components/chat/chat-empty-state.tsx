@@ -1,34 +1,31 @@
 "use client";
 
-import { ArrowUpRight, BookOpen, Code2, FileSearch, Sparkles } from "lucide-react";
+import { ArrowUpRight, Bike, CloudRain, MapPinned, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 const PROMPTS = [
   {
-    icon: FileSearch,
-    title: "Summarize my docs",
-    prompt: "Summarize the key points from my latest indexed documents.",
-    accent: "from-brand/30 to-brand/5",
+    icon: Bike,
+    key: "pileup",
+    accent: "from-amber-500/30 to-brand/5",
   },
   {
-    icon: BookOpen,
-    title: "Explain a concept",
-    prompt: "Explain how vector search and RAG work together — keep it under 200 words.",
-    accent: "from-brand/30 to-brand/5",
+    icon: TrendingUp,
+    key: "peak",
+    accent: "from-sky-500/30 to-brand/5",
   },
   {
-    icon: Code2,
-    title: "Write some code",
-    prompt: "Write a Python function that hashes a password with bcrypt and verifies it.",
-    accent: "from-brand/30 to-brand/5",
+    icon: MapPinned,
+    key: "gap",
+    accent: "from-emerald-500/30 to-brand/5",
   },
   {
-    icon: Sparkles,
-    title: "Brainstorm",
-    prompt: "Give me 5 ideas for an onboarding email sequence for a developer tool.",
-    accent: "from-brand/30 to-brand/5",
+    icon: CloudRain,
+    key: "weather",
+    accent: "from-rose-500/30 to-brand/5",
   },
 ];
 
@@ -39,6 +36,7 @@ interface ChatEmptyStateProps {
 
 export function ChatEmptyState({ onPick, agentLabel = "pydantic_ai" }: ChatEmptyStateProps) {
   const { user } = useAuth();
+  const t = useTranslations("chat.empty");
   const firstName = user?.full_name?.split(" ")[0] || user?.email?.split("@")[0];
 
   return (
@@ -60,31 +58,21 @@ export function ChatEmptyState({ onPick, agentLabel = "pydantic_ai" }: ChatEmpty
             className="bg-brand inline-block h-1.5 w-1.5 animate-pulse rounded-full"
             style={{ boxShadow: "0 0 8px var(--color-brand)" }}
           />
-          Powered by {agentLabel}
+          {t("badge", { agent: agentLabel })}
         </span>
 
-        <h2 className="font-display text-foreground text-4xl leading-[1.05] font-bold tracking-tight md:text-5xl [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          {firstName ? (
-            <>
-              Ready when you are, <em>{firstName}.</em>
-            </>
-          ) : (
-            <>
-              How can I <em>help today?</em>
-            </>
-          )}
+        <h2 className="font-display text-foreground [&_em]:font-accent text-4xl leading-[1.05] font-bold tracking-tight md:text-5xl [&_em]:font-normal [&_em]:italic">
+          {firstName ? t("titleWithName", { name: firstName }) : t("title")}
         </h2>
-        <p className="text-foreground/65 mt-4 max-w-md text-sm md:text-base">
-          Streaming answers, tool calls, citations — try a prompt below or just start typing.
-        </p>
+        <p className="text-foreground/65 mt-4 max-w-md text-sm md:text-base">{t("description")}</p>
       </div>
 
       <div className="mt-10 grid w-full gap-3 sm:grid-cols-2">
         {PROMPTS.map((p) => (
           <button
-            key={p.title}
+            key={p.key}
             type="button"
-            onClick={() => onPick(p.prompt)}
+            onClick={() => onPick(t(`prompts.${p.key}.prompt`))}
             className={cn(
               "group border-foreground/10 bg-card/60 hover:border-brand/40 hover:bg-card relative isolate flex items-start gap-4 overflow-hidden rounded-2xl border p-5 text-left transition-all",
               "hover:shadow-[0_0_40px_-12px_oklch(from_var(--color-brand)_l_c_h/0.45)]",
@@ -94,7 +82,7 @@ export function ChatEmptyState({ onPick, agentLabel = "pydantic_ai" }: ChatEmpty
             <div
               aria-hidden
               className={cn(
-                "pointer-events-none absolute -top-12 -right-12 -z-10 h-32 w-32 rounded-full blur-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+                "pointer-events-none absolute -top-12 -right-12 -z-10 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-300 group-hover:opacity-100",
                 "bg-gradient-to-br",
                 p.accent,
               )}
@@ -108,9 +96,9 @@ export function ChatEmptyState({ onPick, agentLabel = "pydantic_ai" }: ChatEmpty
             </span>
 
             <div className="min-w-0 flex-1">
-              <p className="text-foreground text-sm font-semibold">{p.title}</p>
+              <p className="text-foreground text-sm font-semibold">{t(`prompts.${p.key}.title`)}</p>
               <p className="text-foreground/55 mt-1 line-clamp-2 text-xs leading-relaxed">
-                {p.prompt}
+                {t(`prompts.${p.key}.prompt`)}
               </p>
             </div>
 
@@ -125,16 +113,16 @@ export function ChatEmptyState({ onPick, agentLabel = "pydantic_ai" }: ChatEmpty
       </div>
 
       <div className="text-foreground/45 mt-10 inline-flex items-center gap-2 font-mono text-[11px] tracking-wider uppercase">
-        <span>Tip:</span>
+        <span>{t("hint")}</span>
         <kbd className="border-foreground/15 bg-card text-foreground/65 rounded-md border px-1.5 py-0.5 text-[10px]">
           ⌘K
         </kbd>
-        <span>for command palette</span>
+        <span>{t("commandPalette")}</span>
         <span className="text-foreground/20">·</span>
         <kbd className="border-foreground/15 bg-card text-foreground/65 rounded-md border px-1.5 py-0.5 text-[10px]">
           /
         </kbd>
-        <span>for slash commands</span>
+        <span>{t("slashCommands")}</span>
       </div>
     </div>
   );

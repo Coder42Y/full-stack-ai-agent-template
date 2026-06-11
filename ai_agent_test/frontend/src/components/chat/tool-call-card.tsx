@@ -14,10 +14,13 @@ import {
   ChevronUp,
   Code2,
   BarChart3,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "./copy-button";
 import { ChartMessage, parseChartResult } from "./chart-message";
+import { EChartMessage, parseEChartResult } from "./echart-message";
+import { PgQueryResult, parsePgQueryResult } from "./pg-query-result";
 
 interface ToolCallCardProps {
   toolCall: ToolCall;
@@ -455,9 +458,10 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
   // formatted view for args + raw output (the </> button). Charts are the
   // exception: they're only useful when visible, so expand them by default.
   const [expanded, setExpanded] = useState(
-    toolCall.name === "create_chart_tool" &&
-      toolCall.status === "completed" &&
-      parseChartResult(toolCall.result) !== null,
+    toolCall.status === "completed" &&
+      ((toolCall.name === "create_chart_tool" && parseChartResult(toolCall.result) !== null) ||
+        (toolCall.name === "mcp_create_echart" && parseEChartResult(toolCall.result) !== null) ||
+        (toolCall.name === "mcp_execute_query" && parsePgQueryResult(toolCall.result) !== null)),
   );
   const [showRaw, setShowRaw] = useState(false);
 
@@ -502,13 +506,30 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
     [toolCall.name, toolCall.status, toolCall.result],
   );
   const isChart = chartSpec !== null;
+  const echartPayload = useMemo(
+    () =>
+      toolCall.name === "mcp_create_echart" && toolCall.status === "completed"
+        ? parseEChartResult(toolCall.result)
+        : null,
+    [toolCall.name, toolCall.status, toolCall.result],
+  );
+  const isEChart = echartPayload !== null;
+  const pgQueryPayload = useMemo(
+    () =>
+      toolCall.name === "mcp_execute_query" && toolCall.status === "completed"
+        ? parsePgQueryResult(toolCall.result)
+        : null,
+    [toolCall.name, toolCall.status, toolCall.result],
+  );
+  const isPgQuery = pgQueryPayload !== null;
   // A chart that finishes after this card mounted (live streaming) won't
   // have triggered the initial-state default — expand it on transition.
   useEffect(() => {
-    if (isChart) setExpanded(true);
-  }, [isChart]);
+    if (isChart || isEChart || isPgQuery) setExpanded(true);
+  }, [isChart, isEChart, isPgQuery]);
 
-  const hasSpecialRenderer = isDateTime || isRAGSearch || isWebSearch || isChart;
+  const hasSpecialRenderer =
+    isDateTime || isRAGSearch || isWebSearch || isChart || isEChart || isPgQuery;
   const friendlyName = isDateTime
     ? "Current Date & Time"
     : isRAGSearch
@@ -517,7 +538,11 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
         ? "Web Search"
         : isChart
           ? "Chart"
-          : toolCall.name;
+          : isEChart
+            ? "图表生成"
+            : isPgQuery
+              ? "数据查询"
+              : toolCall.name;
 
   const ToolIcon = isDateTime
     ? Clock
@@ -527,7 +552,11 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
         ? Globe
         : isChart
           ? BarChart3
-          : Wrench;
+          : isEChart
+            ? BarChart3
+            : isPgQuery
+              ? Database
+              : Wrench;
 
   const toggleExpanded = () => {
     setExpanded((prev) => {
@@ -605,6 +634,10 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
             <WebSearchResults data={webResults} />
           ) : toolCall.status === "completed" && isChart && chartSpec ? (
             <ChartMessage spec={chartSpec} />
+          ) : toolCall.status === "completed" && isEChart && echartPayload ? (
+            <EChartMessage payload={echartPayload} />
+          ) : toolCall.status === "completed" && isPgQuery && pgQueryPayload ? (
+            <PgQueryResult payload={pgQueryPayload} />
           ) : (
             <GenericToolResult toolCall={toolCall} resultText={resultText} />
           )}

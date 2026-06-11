@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0E0E0C",
+  themeColor: "#F7F9FC",
 };
 
 export default function MagicLinkVerifyLayout({ children }: { children: React.ReactNode }) {

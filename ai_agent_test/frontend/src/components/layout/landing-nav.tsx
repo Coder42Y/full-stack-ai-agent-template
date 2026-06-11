@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks";
-import { ThemeToggle } from "@/components/theme";
 import { LanguageSwitcherCompact } from "@/components/language-switcher";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 import { LogOut, User } from "lucide-react";
@@ -31,7 +30,6 @@ export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: Lan
             Pricing
           </Link>
           <LanguageSwitcherCompact />
-          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link

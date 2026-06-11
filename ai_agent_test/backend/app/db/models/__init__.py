@@ -17,6 +17,13 @@ from app.db.models.audit_log import AppAdminAuditLog
 from app.db.models.knowledge_base import KnowledgeBase
 from app.db.models.user_slash_command import UserSlashCommand
 from app.db.models.prompt_template import PromptTemplate
+from app.db.models.mobility import (
+    DemandForecast,
+    Order,
+    Station,
+    VehicleDistribution,
+    Weather,
+)
 
 __all__ = [
     "User",
@@ -39,4 +46,9 @@ __all__ = [
     "KnowledgeBase",
     "UserSlashCommand",
     "PromptTemplate",
+    "Station",
+    "VehicleDistribution",
+    "Order",
+    "Weather",
+    "DemandForecast",
 ]

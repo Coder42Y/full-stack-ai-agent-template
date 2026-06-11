@@ -75,7 +75,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[LifespanState, None]:
             server_configs = settings.MCP_SERVERS.copy()
             for _sname, _sconf in server_configs.items():
                 if "env" in _sconf:
-                    _sconf["env"]["TAVILY_API_KEY"] = settings.TAVILY_API_KEY
+                    if "TAVILY_API_KEY" in _sconf["env"]:
+                        _sconf["env"]["TAVILY_API_KEY"] = settings.TAVILY_API_KEY
+                    if "DATABASE_URL" in _sconf["env"]:
+                        _sconf["env"]["DATABASE_URL"] = settings.DATABASE_URL_SYNC
 
             mcp_manager = MCPClientManager(server_configs)
             await mcp_manager.connect_all()
@@ -88,6 +91,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[LifespanState, None]:
             # 否则保留内置 WebSearch 作为 fallback
             if discovered:
                 from app.agents.assistant import set_mcp_manager
+
                 set_mcp_manager(mcp_manager)
                 state["mcp_manager"] = mcp_manager
             else:

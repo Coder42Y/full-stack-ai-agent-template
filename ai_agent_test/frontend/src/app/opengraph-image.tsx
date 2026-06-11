@@ -7,8 +7,8 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
 
-/** Default Open Graph image. Black background, oversized brand title with a lime
- *  highlight on a key word, plus eyebrow + tagline. Mirrors the hero treatment. */
+/** Default Open Graph image. Light background, oversized brand title with a
+ *  brand highlight on a key word, plus eyebrow + tagline. */
 export default function OpengraphImage() {
   return new ImageResponse(
     <div
@@ -19,10 +19,10 @@ export default function OpengraphImage() {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "64px 80px",
-        backgroundColor: "#0E0E0C",
+        backgroundColor: "#F7F9FC",
         backgroundImage:
-          "radial-gradient(ellipse 80% 60% at 80% 0%, rgba(197,249,74,0.18), transparent 60%)",
-        color: "#F2F1EB",
+          "radial-gradient(ellipse 80% 60% at 80% 0%, rgba(99,102,241,0.16), transparent 60%)",
+        color: "#182033",
         fontFamily: "sans-serif",
       }}
     >
@@ -34,7 +34,7 @@ export default function OpengraphImage() {
               width: 14,
               height: 14,
               borderRadius: 9999,
-              background: "#C5F94A",
+              background: "#6366F1",
             }}
           />
           <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.01em" }}>
@@ -44,7 +44,7 @@ export default function OpengraphImage() {
         <span
           style={{
             fontSize: 18,
-            opacity: 0.6,
+            opacity: 0.72,
             fontFamily: "monospace",
             textTransform: "uppercase",
             letterSpacing: "0.1em",
@@ -70,7 +70,7 @@ export default function OpengraphImage() {
           <span
             style={{
               background:
-                "linear-gradient(transparent 50%, #C5F94A 50%, #C5F94A 90%, transparent 90%)",
+                "linear-gradient(transparent 50%, #C7D2FE 50%, #C7D2FE 90%, transparent 90%)",
               paddingLeft: 8,
               paddingRight: 8,
             }}
@@ -83,7 +83,7 @@ export default function OpengraphImage() {
 
       {/* Bottom row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 28, opacity: 0.7, maxWidth: 720, lineHeight: 1.4 }}>
+        <span style={{ fontSize: 28, opacity: 0.78, maxWidth: 720, lineHeight: 1.4 }}>
           {SITE.description}
         </span>
         <div
@@ -92,8 +92,8 @@ export default function OpengraphImage() {
             fontWeight: 600,
             padding: "14px 28px",
             borderRadius: 9999,
-            background: "#F2F1EB",
-            color: "#0E0E0C",
+            background: "#182033",
+            color: "#F7F9FC",
             display: "flex",
             alignItems: "center",
             gap: 10,

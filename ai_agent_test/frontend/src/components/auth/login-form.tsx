@@ -46,7 +46,7 @@ export function LoginForm() {
       <div className="space-y-2">
         <span className="eyebrow text-foreground/55">{t("welcomeBack")}</span>
         <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Sign in to <em>your workspace.</em>
+          {t("loginHeadingPrefix")} <em>{t("loginHeadingEm")}</em>
         </h1>
         <p className="text-foreground/65 text-sm">
           {t("noAccount")}{" "}

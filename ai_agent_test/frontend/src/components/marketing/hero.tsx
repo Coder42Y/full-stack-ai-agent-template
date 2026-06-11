@@ -18,36 +18,45 @@ interface HeroCta {
   href: string;
 }
 
+type HeroDemoScript = React.ComponentProps<typeof HeroDemo>["script"];
+
 interface HeroProps {
   eyebrow?: string;
-  /** Headline supports `<em>` for italic accent emphasis. */
+  /** Headline supports `<em>` for semantic emphasis. */
   title: ReactNode;
   description: string;
   primaryCta: HeroCta;
   secondaryCta?: HeroCta;
   stats?: HeroStats[];
+  demoScript?: HeroDemoScript;
+  demoPlaceholder?: string;
+  floatingPills?: Array<{
+    icon: (typeof FLOAT_PILLS)[number]["icon"];
+    label: string;
+    className: string;
+  }>;
   theme?: "light" | "dark";
 }
 
 const FLOAT_PILLS = [
   {
     icon: MessageSquare,
-    label: "Real-time chat",
+    label: "自然语言查数",
     className: "left-[-12px] top-12 md:left-[-32px] md:top-16 float-y",
   },
   {
     icon: Database,
-    label: "Connected to your data",
+    label: "连接运营数据库",
     className: "right-[-8px] top-24 md:right-[-40px] md:top-28 float-y-delayed",
   },
   {
     icon: Wrench,
-    label: "Acts on your behalf",
+    label: "MCP 工具调用",
     className: "left-[8%] bottom-[-18px] md:left-[12%] md:bottom-[-24px] float-y-delayed",
   },
   {
     icon: Sparkles,
-    label: "Always on",
+    label: "图表与建议",
     className: "right-[10%] bottom-[-12px] md:right-[12%] md:bottom-[-20px] float-y",
   },
 ];
@@ -59,6 +68,9 @@ export function Hero({
   primaryCta,
   secondaryCta,
   stats,
+  demoScript,
+  demoPlaceholder,
+  floatingPills = FLOAT_PILLS,
   theme = "dark",
 }: HeroProps) {
   return (
@@ -81,7 +93,7 @@ export function Hero({
           </div>
         )}
 
-        <h1 className="text-display-2xl text-foreground [&_em]:font-accent [&_em]:text-foreground/85 max-w-4xl [&_em]:font-normal [&_em]:italic">
+        <h1 className="text-display-2xl text-foreground max-w-4xl [&_em]:not-italic">
           {title}
         </h1>
 
@@ -118,10 +130,10 @@ export function Hero({
         />
 
         <div className="tilt-3d transition-transform">
-          <HeroDemo />
+          <HeroDemo script={demoScript} placeholder={demoPlaceholder} />
         </div>
 
-        {FLOAT_PILLS.map((pill) => (
+        {floatingPills.map((pill) => (
           <div
             key={pill.label}
             className={cn(

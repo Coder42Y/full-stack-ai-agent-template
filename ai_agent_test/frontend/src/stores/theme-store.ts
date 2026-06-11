@@ -13,11 +13,16 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      theme: "system",
-      setTheme: (theme) => set({ theme }),
+      theme: "light",
+      setTheme: (theme) => {
+        void theme;
+        set({ theme: "light" });
+      },
     }),
     {
       name: "theme-storage",
+      merge: (_persistedState, currentState) => ({ ...currentState, theme: "light" }),
+      partialize: () => ({ theme: "light" }),
     },
   ),
 );
@@ -27,11 +32,6 @@ export const useThemeStore = create<ThemeState>()(
  * When theme is "system", it checks the user's system preference.
  */
 export function getResolvedTheme(theme: Theme): "light" | "dark" {
-  if (theme === "system") {
-    if (typeof window !== "undefined") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    return "light";
-  }
-  return theme;
+  void theme;
+  return "light";
 }

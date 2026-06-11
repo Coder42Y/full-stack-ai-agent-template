@@ -2,16 +2,22 @@
 
 import { BrandColorPicker } from "@/components/settings/brand-color-picker";
 import { SettingsRow, SettingsSection } from "@/components/settings/settings-section";
-import { ThemeToggle } from "@/components/theme";
 
 export default function AppearanceSettingsPage() {
   return (
     <div className="space-y-6">
-      <SettingsSection title="Theme" description="Light, dark, or follow your system preference.">
+      <SettingsSection
+        title="Theme"
+        description="The demo uses a fixed high-contrast light interface."
+      >
         <SettingsRow
           label="Color scheme"
-          description="Affects the entire dashboard. Marketing pages alternate sections regardless."
-          control={<ThemeToggle variant="dropdown" />}
+          description="Dark mode is disabled so the dashboard and marketing pages stay visually consistent."
+          control={
+            <span className="border-foreground/15 bg-background inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
+              Light
+            </span>
+          }
         />
       </SettingsSection>
 

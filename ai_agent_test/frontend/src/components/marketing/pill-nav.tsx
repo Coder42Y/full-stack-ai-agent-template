@@ -31,7 +31,7 @@ export function PillNav({ brand, links, ctaLabel, ctaHref, secondaryCta }: PillN
   return (
     <header
       className={cn(
-        "theme-dark",
+        "theme-light",
         "fixed inset-x-0 top-4 z-50 mx-auto flex w-[min(96%,1100px)] items-center justify-between gap-2 px-3 py-2 transition-all",
         scrolled ? "pill-nav shadow-lg" : "pill-nav",
       )}

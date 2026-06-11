@@ -14,19 +14,19 @@ interface Action {
 }
 
 const ACTIONS: Action[] = [
-  { label: "Start a chat", icon: MessageSquare, href: ROUTES.CHAT, featured: true },
-  { label: "Upload to KB", icon: Database, href: ROUTES.RAG },
-  { label: "Invite team", icon: Users, href: ROUTES.ORGS },
-  { label: "Billing", icon: CreditCard, href: ROUTES.BILLING },
-  { label: "Settings", icon: Settings, href: ROUTES.SETTINGS },
-  { label: "API docs", icon: BookOpen, href: `${BACKEND_URL}/docs`, external: true },
+  { label: "开始分析", icon: MessageSquare, href: ROUTES.CHAT, featured: true },
+  { label: "运营知识库", icon: Database, href: ROUTES.RAG },
+  { label: "团队成员", icon: Users, href: ROUTES.ORGS },
+  { label: "用量额度", icon: CreditCard, href: ROUTES.BILLING },
+  { label: "系统设置", icon: Settings, href: ROUTES.SETTINGS },
+  { label: "API 文档", icon: BookOpen, href: `${BACKEND_URL}/docs`, external: true },
 ];
 
 export function QuickActions() {
   return (
     <div className="border-border bg-card rounded-2xl border p-4 sm:p-5">
       <h2 className="text-foreground/55 mb-2.5 font-mono text-[11px] tracking-wider uppercase">
-        Quick actions
+        快捷操作
       </h2>
       <div className="flex flex-wrap gap-1.5">
         {ACTIONS.map((action) => (

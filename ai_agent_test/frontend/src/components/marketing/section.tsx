@@ -13,10 +13,8 @@ interface SectionProps {
   fullHeight?: boolean;
 }
 
-/** Marketing section wrapper. Sets local theme tokens via `.theme-light`/`.theme-dark`,
- *  applies background + foreground from those tokens, and provides a max-width container.
- *  Renders a subtle hairline + radial glow at the top edge so adjacent dark/light
- *  sections separate cleanly without a hard cut. */
+/** Marketing section wrapper. Keeps public pages on the high-contrast light palette
+ *  while preserving the `theme` prop API used by existing pages. */
 export function Section({
   children,
   theme = "light",
@@ -25,11 +23,13 @@ export function Section({
   padding = "py-32 md:py-44",
   fullHeight = false,
 }: SectionProps) {
+  void theme;
+
   return (
     <section
       id={id}
       className={cn(
-        theme === "dark" ? "theme-dark" : "theme-light",
+        "theme-light",
         "bg-background text-foreground relative",
         padding,
         fullHeight && "flex min-h-[90vh] flex-col justify-center",

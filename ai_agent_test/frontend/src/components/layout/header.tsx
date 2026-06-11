@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui";
-import { ThemeToggle } from "@/components/theme";
 import { LanguageSwitcherCompact } from "@/components/language-switcher";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -24,19 +24,20 @@ import { useSidebarStore } from "@/stores";
 import { OrgSwitcher } from "@/components/teams";
 
 const adminNavItems = [
-  { name: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard, adminOnly: false },
-  { name: "Chat", href: ROUTES.CHAT, icon: MessageSquare, adminOnly: false },
-  { name: "RAG", href: ROUTES.KB, icon: Database, adminOnly: false },
-  { name: "Organizations", href: ROUTES.ORGS, icon: Building2, adminOnly: false },
-  { name: "Billing", href: ROUTES.BILLING, icon: CreditCard, adminOnly: false },
-  { name: "Profile", href: ROUTES.PROFILE, icon: UserCircle, adminOnly: false },
-  { name: "Admin", href: ROUTES.ADMIN, icon: ShieldCheck, adminOnly: true },
+  { labelKey: "dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard, adminOnly: false },
+  { labelKey: "chat", href: ROUTES.CHAT, icon: MessageSquare, adminOnly: false },
+  { labelKey: "kb", href: ROUTES.KB, icon: Database, adminOnly: false },
+  { labelKey: "orgs", href: ROUTES.ORGS, icon: Building2, adminOnly: false },
+  { labelKey: "billing", href: ROUTES.BILLING, icon: CreditCard, adminOnly: false },
+  { labelKey: "profile", href: ROUTES.PROFILE, icon: UserCircle, adminOnly: false },
+  { labelKey: "admin", href: ROUTES.ADMIN, icon: ShieldCheck, adminOnly: true },
 ];
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const { toggle } = useSidebarStore();
   const pathname = usePathname();
+  const t = useTranslations("appNav");
 
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
@@ -45,7 +46,7 @@ export function Header() {
         <div className="flex items-center gap-1 sm:gap-4">
           <Button variant="ghost" size="sm" className="h-10 w-10 p-0 md:hidden" onClick={toggle}>
             <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
+            <span className="sr-only">{t("openMenu")}</span>
           </Button>
 
           <Link href={ROUTES.DASHBOARD} className="text-sm font-bold tracking-tight sm:text-base">
@@ -60,7 +61,7 @@ export function Header() {
                 const isActive = pathname?.includes(item.href);
                 return (
                   <Link
-                    key={item.name}
+                    key={item.labelKey}
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
@@ -71,18 +72,17 @@ export function Header() {
                     )}
                   >
                     <item.icon className="h-3.5 w-3.5" />
-                    {item.name}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
           </nav>
         </div>
 
-        {/* Right: org switcher, language, theme, user */}
+        {/* Right: org switcher, language, user */}
         <div className="flex items-center gap-2 sm:gap-3">
           {isAuthenticated && <OrgSwitcher />}
           <LanguageSwitcherCompact />
-          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Button variant="ghost" size="sm" asChild className="h-10 px-2 sm:px-3">
@@ -105,16 +105,16 @@ export function Header() {
                 className="h-10 w-10 p-0 sm:w-auto sm:px-3"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
+                <span className="sr-only sm:not-sr-only sm:ml-2">{t("logout")}</span>
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild className="h-10">
-                <Link href={ROUTES.LOGIN}>Login</Link>
+                <Link href={ROUTES.LOGIN}>{t("login")}</Link>
               </Button>
               <Button size="sm" asChild className="h-10">
-                <Link href={ROUTES.REGISTER}>Register</Link>
+                <Link href={ROUTES.REGISTER}>{t("register")}</Link>
               </Button>
             </>
           )}

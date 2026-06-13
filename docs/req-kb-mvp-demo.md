@@ -44,21 +44,28 @@ The verifier covers `git diff --check`, repo ruff, template contract tests, Post
 
 ## Current Live Demo
 
-A live generated backend can run in tmux with:
+A live generated frontend/backend preview can be started with one command:
 
 ```bash
-tmux -S /tmp/req-kb-mvp.tmux new-session -d -s req-kb-mvp-live "cd /tmp/req_kb_mvp_verify_pg/req_kb_mvp_verify_pg/backend && POSTGRES_HOST=localhost POSTGRES_PORT=15432 POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres POSTGRES_DB=req_kb_mvp_live OPENAI_API_KEY=dummy ./.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8769 > /tmp/req-kb-mvp-live.log 2>&1"
+bash scripts/start_req_kb_preview.sh
 ```
 
-Current checked artifacts:
+The script regenerates the latest template under `/home/KrisAgent/tmp/req_kb_preview_live`, resets a preview PostgreSQL database, applies migrations, installs dependencies, starts backend/frontend in tmux, and verifies:
 
-- Frontend: `http://172.29.237.34:8770/kb`
-- Latest browser E2E workbench: `http://172.29.237.34:8770/kb/74077eec-0fad-431a-8a4a-98eb83c735ce`
-- Backend health: `http://172.29.237.34:8769/api/v1/health`
-- backend tmux session: `req-kb-mvp-live`
-- frontend tmux session: `req-kb-mvp-frontend`
-- backend log: `/tmp/req-kb-mvp-live.log`
-- frontend log: `/tmp/req-kb-mvp-frontend.log`
+- backend `/api/v1/health`
+- frontend `/kb`
+- frontend demo-admin BFF `/api/auth/demo-admin`
+- frontend KB BFF `/api/kb`
+
+Default preview artifacts:
+
+- Frontend: `http://172.29.237.34:8783/kb`
+- Backend health: `http://172.29.237.34:8782/api/v1/health`
+- backend tmux session: `req-kb-preview-backend`
+- frontend tmux session: `req-kb-preview-frontend`
+- backend log: `/tmp/req-kb-preview-backend.log`
+- frontend log: `/tmp/req-kb-preview-frontend.log`
+- smoke results: `/tmp/req-kb-preview-demo-admin.json`, `/tmp/req-kb-preview-kb.json`
 - live HTTP flow result: `/tmp/req-kb-mvp-live-flow.json`
 - Chinese browser E2E report: `/tmp/req-kb-cn-e2e-report.json`
 - Chinese browser E2E screenshot: `/tmp/req-kb-cn-e2e-success.png`

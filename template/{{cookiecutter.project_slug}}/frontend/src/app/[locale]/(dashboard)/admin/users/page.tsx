@@ -118,13 +118,13 @@ export default function AdminUsersPage() {
     <div className="flex h-full flex-col">
       <div className="mb-6">
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Users
+          用户
         </p>
         <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Everyone in <em>your workspace.</em>
+          工作区内的<em>所有用户</em>
         </h2>
         <p className="text-muted-foreground">
-          Inspect, suspend, or impersonate any user in the workspace.
+          MVP 阶段默认使用管理员身份，可在这里查看用户状态并进行调试操作。
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Search by email or name…"
+            placeholder="按邮箱或姓名搜索..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -146,14 +146,14 @@ export default function AdminUsersPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                每页 {n}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{total} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">共 {total} 个用户</div>
 
       <Table>
         <TableHeader>
@@ -163,28 +163,28 @@ export default function AdminUsersPage() {
               dir={sort.dir}
               onClick={() => toggleSort("email")}
             >
-              User
+              用户
             </SortableHead>
             <SortableHead
               active={sort.by === "role"}
               dir={sort.dir}
               onClick={() => toggleSort("role")}
             >
-              Role
+              角色
             </SortableHead>
             <SortableHead
               active={sort.by === "is_active"}
               dir={sort.dir}
               onClick={() => toggleSort("is_active")}
             >
-              Status
+              状态
             </SortableHead>
             <SortableHead
               active={sort.by === "created_at"}
               dir={sort.dir}
               onClick={() => toggleSort("created_at")}
             >
-              Joined
+              加入时间
             </SortableHead>
             <TableHead />
           </TableRow>
@@ -224,19 +224,19 @@ export default function AdminUsersPage() {
                       {u.is_app_admin && (
                         <Badge variant="default" className="gap-0.5">
                           <Shield className="h-2.5 w-2.5" />
-                          App
+                          应用管理员
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     {u.is_active ? (
-                      <Badge variant="default">Active</Badge>
+                      <Badge variant="default">启用</Badge>
                     ) : (
-                      <Badge variant="destructive">Suspended</Badge>
+                      <Badge variant="destructive">已停用</Badge>
                     )}
                   </TableCell>
-                  <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(u.created_at).toLocaleDateString("zh-CN")}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -246,7 +246,7 @@ export default function AdminUsersPage() {
                         handleOpenUser(u);
                       }}
                     >
-                      Inspect
+                      查看
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
           {!isLoading && users.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
-                {search ? `No users match "${search}".` : "No users yet."}
+                {search ? `没有匹配“${search}”的用户。` : "暂无用户。"}
               </TableCell>
             </TableRow>
           )}
@@ -335,7 +335,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        第 {start}–{end} 条，共 {total} 条
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -343,7 +343,7 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label="上一页"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -355,7 +355,7 @@ function PaginationBar({
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label="下一页"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

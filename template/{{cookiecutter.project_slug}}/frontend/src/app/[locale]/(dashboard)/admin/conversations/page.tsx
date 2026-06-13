@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import {
   ArrowDown,
   ArrowUp,
@@ -68,7 +67,6 @@ function UserAvatar({
 }
 
 export default function AdminConversationsPage() {
-  const t = useTranslations("admin");
   const { conversations, conversationsTotal, users, isLoading, fetchConversations, fetchUsers } =
     useAdminConversations();
 
@@ -124,19 +122,21 @@ export default function AdminConversationsPage() {
     <div className="flex h-full flex-col">
       <div className="mb-6">
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Conversations
+          对话
         </p>
         <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-          {t("conversationsTitle")}
+          需求对话记录
         </h2>
-        <p className="text-foreground/65 mt-1 text-sm">{t("conversationsDesc")}</p>
+        <p className="text-foreground/65 mt-1 text-sm">
+          查看所有用户发起的需求对话，定位澄清、问答和变更讨论。
+        </p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder={t("search")}
+            placeholder="搜索标题或用户..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -148,9 +148,9 @@ export default function AdminConversationsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="active">活跃</SelectItem>
+            <SelectItem value="archived">已归档</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
           </SelectContent>
         </Select>
 
@@ -159,10 +159,10 @@ export default function AdminConversationsPage() {
           onValueChange={(v) => setSelectedUserId(v === "all" ? null : v)}
         >
           <SelectTrigger className="w-[260px]">
-            <SelectValue placeholder="All owners" />
+            <SelectValue placeholder="全部创建者" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All owners</SelectItem>
+            <SelectItem value="all">全部创建者</SelectItem>
             {userOptions.map((u) => (
               <SelectItem key={u.id} value={u.id}>
                 <span className="flex items-center gap-2">
@@ -181,14 +181,14 @@ export default function AdminConversationsPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                每页 {n}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{conversationsTotal} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">共 {conversationsTotal} 条对话</div>
 
       <Table>
         <TableHeader>
@@ -198,30 +198,30 @@ export default function AdminConversationsPage() {
               dir={sort.dir}
               onClick={() => toggleSort("title")}
             >
-              {t("title")}
+              标题
             </SortableHead>
             <SortableHead
               active={sort.by === "owner"}
               dir={sort.dir}
               onClick={() => toggleSort("owner")}
             >
-              {t("owner")}
+              创建者
             </SortableHead>
             <SortableHead
               active={sort.by === "messages"}
               dir={sort.dir}
               onClick={() => toggleSort("messages")}
             >
-              {t("messages")}
+              消息数
             </SortableHead>
             <SortableHead
               active={sort.by === "created_at"}
               dir={sort.dir}
               onClick={() => toggleSort("created_at")}
             >
-              {t("created")}
+              创建时间
             </SortableHead>
-            <TableHead>{t("status")}</TableHead>
+            <TableHead>状态</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -238,7 +238,7 @@ export default function AdminConversationsPage() {
               ))
             : conversations.map((conv) => (
                 <TableRow key={conv.id}>
-                  <TableCell className="font-medium">{conv.title || t("untitled")}</TableCell>
+                  <TableCell className="font-medium">{conv.title || "未命名对话"}</TableCell>
                   <TableCell>
                     {conv.user_email ? (
                       <span className="flex items-center gap-2">
@@ -254,12 +254,12 @@ export default function AdminConversationsPage() {
                     )}
                   </TableCell>
                   <TableCell>{conv.message_count}</TableCell>
-                  <TableCell>{new Date(conv.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(conv.created_at).toLocaleDateString("zh-CN")}</TableCell>
                   <TableCell>
                     {conv.is_archived ? (
-                      <Badge variant="secondary">Archived</Badge>
+                      <Badge variant="secondary">已归档</Badge>
                     ) : (
-                      <Badge variant="default">Active</Badge>
+                      <Badge variant="default">活跃</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -268,7 +268,7 @@ export default function AdminConversationsPage() {
                       className="text-foreground/40 hover:text-foreground inline-flex items-center gap-1 font-mono text-[11px] tracking-wider uppercase transition-colors"
                     >
                       <ExternalLink className="h-3 w-3" />
-                      {t("view")}
+                      查看
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -276,7 +276,7 @@ export default function AdminConversationsPage() {
           {!isLoading && conversations.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
-                {t("noConversations")}
+                暂无对话。
               </TableCell>
             </TableRow>
           )}
@@ -347,7 +347,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        第 {start}–{end} 条，共 {total} 条
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -355,7 +355,7 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label="上一页"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -367,7 +367,7 @@ function PaginationBar({
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label="下一页"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

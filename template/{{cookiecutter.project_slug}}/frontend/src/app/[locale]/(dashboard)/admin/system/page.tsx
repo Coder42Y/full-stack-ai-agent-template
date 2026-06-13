@@ -10,7 +10,9 @@ import {
   HardDrive,
   RefreshCw,
   Server,
+{%- if cookiecutter.enable_billing %}
   Wifi,
+{%- endif %}
   Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -60,15 +62,15 @@ function buildServices(resp: BackendHealthResp | null): ServiceHealth[] {
     {
       key: "api",
       name: "API",
-      description: "REST + WebSocket gateway",
+      description: "REST 与 WebSocket 网关",
       icon: Server,
       status: overall === "unknown" ? "operational" : overall,
       uptime90d: 99.94,
     },
     {
       key: "database",
-      name: "Database",
-      description: "PostgreSQL primary",
+      name: "数据库",
+      description: "PostgreSQL 主库",
       icon: Database,
       status: statusFromString(resp?.database?.status),
       uptime90d: 99.97,
@@ -77,7 +79,7 @@ function buildServices(resp: BackendHealthResp | null): ServiceHealth[] {
     {
       key: "redis",
       name: "Redis",
-      description: "Cache & queue broker",
+      description: "缓存与队列代理",
       icon: Zap,
       status: statusFromString(resp?.redis?.status),
       uptime90d: 99.96,
@@ -85,8 +87,8 @@ function buildServices(resp: BackendHealthResp | null): ServiceHealth[] {
     },
     {
       key: "vector",
-      name: "Vector store",
-      description: "RAG embeddings backend",
+      name: "向量库",
+      description: "RAG 向量检索后端",
       icon: HardDrive,
       status: statusFromString(resp?.vector_store?.status),
       uptime90d: 99.91,
@@ -94,24 +96,26 @@ function buildServices(resp: BackendHealthResp | null): ServiceHealth[] {
     },
     {
       key: "llm",
-      name: "LLM provider",
-      description: resp?.llm?.provider ? `Provider: ${resp.llm.provider}` : "Default model API",
+      name: "大模型服务",
+      description: resp?.llm?.provider ? `供应商：${resp.llm.provider}` : "默认模型 API",
       icon: Cpu,
       status: statusFromString(resp?.llm?.status),
       uptime90d: 99.87,
     },
+{%- if cookiecutter.enable_billing %}
     {
       key: "stripe",
       name: "Stripe API",
-      description: "Billing & payments",
+      description: "账单与支付",
       icon: Wifi,
       status: statusFromString(resp?.stripe?.status),
       uptime90d: 99.99,
     },
+{%- endif %}
     {
       key: "worker",
-      name: "Background worker",
-      description: "Document ingestion + sync jobs",
+      name: "后台任务",
+      description: "文档入库与同步任务",
       icon: Activity,
       status: statusFromString(resp?.worker?.status),
       uptime90d: 99.89,
@@ -134,10 +138,10 @@ const STATUS_DOT: Record<ServiceStatus, string> = {
 };
 
 const STATUS_LABEL: Record<ServiceStatus, string> = {
-  operational: "Operational",
-  degraded: "Degraded",
-  outage: "Outage",
-  unknown: "Unknown",
+  operational: "正常",
+  degraded: "降级",
+  outage: "故障",
+  unknown: "未知",
 };
 
 export default function SystemHealthPage() {
@@ -159,7 +163,7 @@ export default function SystemHealthPage() {
       setResp(data);
       setLastChecked(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch health");
+      setError(err instanceof Error ? err.message : "获取健康状态失败");
     } finally {
       setLoading(false);
     }
@@ -189,10 +193,10 @@ export default function SystemHealthPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-foreground text-xl font-semibold tracking-tight">
-            System health
+            系统健康
           </h2>
           <p className="text-foreground/55 text-xs">
-            Live readiness for each backing service. Auto-refreshes every 30s.
+            实时查看后端依赖服务状态，默认每 30 秒自动刷新。
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -210,11 +214,11 @@ export default function SystemHealthPage() {
               aria-hidden
               className={cn("h-1.5 w-1.5 rounded-full", auto ? "bg-brand animate-pulse" : "bg-foreground/40")}
             />
-            Auto-refresh {auto ? "on" : "off"}
+            自动刷新 {auto ? "开启" : "关闭"}
           </button>
           <Button size="sm" variant="outline" onClick={load} className="rounded-full">
             <RefreshCw className={cn("mr-2 h-3.5 w-3.5", loading && "animate-spin")} />
-            Refresh
+            刷新
           </Button>
         </div>
       </div>
@@ -246,22 +250,22 @@ export default function SystemHealthPage() {
             </span>
             <div>
               <p className="text-foreground/55 font-mono text-[11px] uppercase tracking-wider">
-                Overall
+                整体状态
               </p>
               <p className="font-display text-foreground mt-0.5 text-2xl font-bold tracking-tight">
                 {overall === "operational"
-                  ? "All systems operational"
+                  ? "所有系统正常"
                   : overall === "outage"
-                    ? "Active outage"
+                    ? "存在故障"
                     : overall === "degraded"
-                      ? "Degraded performance"
-                      : "Status unknown"}
+                      ? "性能降级"
+                      : "状态未知"}
               </p>
             </div>
           </div>
           {lastChecked && (
             <span className="text-foreground/55 font-mono text-[11px] uppercase tracking-wider">
-              Checked {lastChecked.toLocaleTimeString()}
+              检查于 {lastChecked.toLocaleTimeString("zh-CN")}
             </span>
           )}
         </div>
@@ -273,7 +277,7 @@ export default function SystemHealthPage() {
       ) : error ? (
         <div className="border-destructive/30 bg-destructive/[0.04] rounded-2xl border p-6 text-center">
           <AlertCircle className="text-destructive mx-auto h-6 w-6" />
-          <p className="text-foreground mt-3 text-sm font-medium">Couldn&apos;t fetch health</p>
+          <p className="text-foreground mt-3 text-sm font-medium">无法获取健康状态</p>
           <p className="text-foreground/65 mt-1 text-xs">{error}</p>
         </div>
       ) : (
@@ -311,7 +315,7 @@ export default function SystemHealthPage() {
                 </span>
               </div>
               <div className="border-foreground/8 mt-1 flex items-center justify-between gap-3 border-t pt-3 font-mono text-[10px] uppercase tracking-wider text-foreground/55">
-                <span>{s.uptime90d.toFixed(2)}% · 90d</span>
+                <span>{s.uptime90d.toFixed(2)}% · 90 天</span>
                 {typeof s.latencyMs === "number" && <span>p50 {s.latencyMs}ms</span>}
               </div>
             </li>
@@ -320,8 +324,8 @@ export default function SystemHealthPage() {
       )}
 
       <p className="text-foreground/45 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider">
-        Backend wishlist: <code className="font-mono">/health/ready</code> with per-service detail.
-        90d uptime is currently illustrative.
+        后续可将 <code className="font-mono">/health/ready</code> 扩展为真实分服务探针。
+        当前 90 天可用率为演示数据。
       </p>
     </div>
   );

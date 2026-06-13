@@ -28,10 +28,10 @@ export function OnboardingBanner() {
       </div>
       <div className="flex-1">
         <p className="text-foreground font-display text-base font-semibold">
-          Finish setting up your workspace
+          完成需求工作区设置
         </p>
         <p className="text-foreground/65 mt-0.5 text-sm">
-          Pick an agent, connect data, and invite your team — under 2 minutes.
+          选择需求助手、接入文档并邀请团队成员，约 2 分钟完成。
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ export function OnboardingBanner() {
           href="/onboarding/welcome"
           className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
         >
-          Continue
+          继续
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
         <button
@@ -49,7 +49,7 @@ export function OnboardingBanner() {
             setShow(false);
           }}
           className="text-foreground/45 hover:text-foreground hover:bg-foreground/5 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-          aria-label="Dismiss"
+          aria-label="关闭"
         >
           <X className="h-4 w-4" />
         </button>

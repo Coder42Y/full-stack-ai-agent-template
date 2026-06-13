@@ -21,7 +21,7 @@ export function ForgotPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!EMAIL_RE.test(email)) {
-      setError("Please enter a valid email address");
+      setError("请输入有效邮箱地址");
       return;
     }
     setError("");
@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
     } catch (err) {
       // Treat "not found" the same as success to avoid email enumeration.
       if (err instanceof ApiError && err.status >= 500) {
-        setError("Something went wrong. Please try again.");
+        setError("出现错误，请重试。");
         setIsLoading(false);
         return;
       }
@@ -51,13 +51,13 @@ export function ForgotPasswordForm() {
           <Mail className="text-foreground h-6 w-6" />
         </div>
         <div className="space-y-2">
-          <span className="eyebrow text-foreground/55">Check your inbox</span>
+          <span className="eyebrow text-foreground/55">请检查邮箱</span>
           <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            Link sent. <em>On its way.</em>
+            重置链接<em>已发送</em>
           </h1>
           <p className="text-foreground/70 text-sm">
-            If an account exists for <span className="text-foreground font-medium">{email}</span>,
-            you&apos;ll get a reset link in a moment. It expires in 1 hour.
+            如果 <span className="text-foreground font-medium">{email}</span> 对应账号存在，
+            稍后会收到密码重置链接。链接 1 小时内有效。
           </p>
         </div>
         <Link
@@ -65,7 +65,7 @@ export function ForgotPasswordForm() {
           className="text-foreground/65 hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to sign in
+          返回登录
         </Link>
       </div>
     );
@@ -74,12 +74,12 @@ export function ForgotPasswordForm() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">Forgot password?</span>
+        <span className="eyebrow text-foreground/55">忘记密码？</span>
         <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Happens to the <em>best of us.</em>
+          重新设置<em>登录密码</em>
         </h1>
         <p className="text-foreground/65 text-sm">
-          Drop your email below — we&apos;ll send you a one-time link to set a new password.
+          输入邮箱后，我们会发送一次性链接用于设置新密码。
         </p>
       </div>
 
@@ -116,10 +116,10 @@ export function ForgotPasswordForm() {
           className="bg-foreground text-background hover:bg-foreground/90 h-12 w-full rounded-full text-base font-medium"
         >
           {isLoading ? (
-            "Sending…"
+            "发送中..."
           ) : (
             <>
-              Send reset link
+              发送重置链接
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -130,7 +130,7 @@ export function ForgotPasswordForm() {
           className="text-foreground/55 hover:text-foreground mt-2 inline-flex items-center gap-2 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to sign in
+          返回登录
         </Link>
       </form>
     </div>

@@ -28,7 +28,7 @@ export function OrgSwitcher() {
     return (
       <Button variant="outline" size="sm" onClick={() => router.push("/orgs")}>
         <Building2 className="mr-2 h-4 w-4" />
-        Select org
+        选择组织
       </Button>
     );
   }
@@ -58,18 +58,18 @@ export function OrgSwitcher() {
             </Avatar>
             <span className="truncate">{org.name}</span>
             {org.is_personal && (
-              <span className="text-muted-foreground ml-auto text-[10px]">Personal</span>
+              <span className="text-muted-foreground ml-auto text-[10px]">个人</span>
             )}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push("/orgs")} className="gap-2">
           <Building2 className="h-4 w-4" />
-          Manage organizations
+          管理组织
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => router.push("/orgs?create=1")} className="gap-2">
           <Plus className="h-4 w-4" />
-          New organization
+          新建组织
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

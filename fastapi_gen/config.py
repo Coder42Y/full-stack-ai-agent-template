@@ -392,7 +392,7 @@ class ProjectConfig(BaseModel):
 
     # Marketing / Frontend pages
     enable_marketing_site: bool = False
-    enable_i18n: bool = True
+    enable_i18n: bool = False
     include_example_crud: bool = False
     enable_changelog: bool = False
     enable_testimonials: bool = False

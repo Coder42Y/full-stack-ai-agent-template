@@ -14,9 +14,9 @@ interface KBListProps {
 }
 
 const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
-  personal: { label: "Personal", icon: Lock },
-  org: { label: "Organization", icon: Users },
-  app: { label: "App-wide", icon: Sparkles },
+  personal: { label: "个人", icon: Lock },
+  org: { label: "组织", icon: Users },
+  app: { label: "全局", icon: Sparkles },
 };
 
 /**
@@ -91,7 +91,7 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
       <Link
         href={`/kb/${kb.id}`}
         className="focus-visible:ring-foreground/20 absolute inset-0 z-10 rounded-[inherit] focus-visible:ring-2 focus-visible:outline-none"
-        aria-label={`Open ${kb.name}`}
+        aria-label={`打开 ${kb.name}`}
       />
 
       <div className="pointer-events-none relative z-20 flex h-full flex-col p-5 sm:p-6">
@@ -114,7 +114,7 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
             {kb.is_default && (
               <span className="bg-brand/15 text-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase">
                 <Sparkles className="h-2.5 w-2.5" />
-                Default
+                默认
               </span>
             )}
             {canDelete && !kb.is_default && (
@@ -125,14 +125,14 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
                   e.stopPropagation();
                   if (
                     confirm(
-                      `Delete "${kb.name}"? This will remove the knowledge base and all its documents.`,
+                      `确认删除“${kb.name}”？这会移除该需求项目及其所有文档。`,
                     )
                   ) {
                     onDelete();
                   }
                 }}
                 className="text-foreground/45 hover:bg-destructive/10 hover:text-destructive pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-lg opacity-0 transition-all group-hover:opacity-100 focus-visible:opacity-100"
-                aria-label="Delete knowledge base"
+                aria-label="删除需求项目"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

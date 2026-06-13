@@ -32,11 +32,11 @@ export default function AccountSettingsPage() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters");
+      toast.error("新密码至少需要 8 个字符");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("两次输入的密码不一致");
       return;
     }
     setSaving(true);
@@ -45,16 +45,16 @@ export default function AccountSettingsPage() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      toast.success("Password updated");
+      toast.success("密码已更新");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
       // Backend may not have this endpoint yet — surface a helpful message.
       if (err instanceof ApiError && err.status === 404) {
-        toast.error("Password change requires backend wiring (POST /auth/password/change).");
+        toast.error("修改密码接口尚未接入（POST /auth/password/change）。");
       } else {
-        toast.error(err instanceof ApiError ? err.message : "Failed to update password");
+        toast.error(err instanceof ApiError ? err.message : "更新密码失败");
       }
     } finally {
       setSaving(false);
@@ -66,13 +66,13 @@ export default function AccountSettingsPage() {
     setDeleting(true);
     try {
       await apiClient.delete(`/users/${user.id}`);
-      toast.success("Account deleted");
+      toast.success("账号已删除");
       logout();
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        toast.error("Self-delete not enabled. Contact support.");
+        toast.error("当前未启用自助删除账号。");
       } else {
-        toast.error(err instanceof ApiError ? err.message : "Failed to delete account");
+        toast.error(err instanceof ApiError ? err.message : "删除账号失败");
       }
     } finally {
       setDeleting(false);
@@ -82,8 +82,8 @@ export default function AccountSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Change password"
-        description="Use a strong, unique password — 8+ characters, mixed case, numbers."
+        title="修改密码"
+        description="使用至少 8 个字符的强密码。MVP 演示环境下该能力依赖后端接口接入。"
         action={
           <Button
             onClick={handleChangePassword}
@@ -91,7 +91,7 @@ export default function AccountSettingsPage() {
             size="sm"
             className="rounded-full"
           >
-            {saving ? "Saving…" : "Update password"}
+            {saving ? "保存中..." : "更新密码"}
           </Button>
         }
       >
@@ -101,7 +101,7 @@ export default function AccountSettingsPage() {
               htmlFor="current-pw"
               className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
             >
-              Current password
+              当前密码
             </Label>
             <Input
               id="current-pw"
@@ -118,7 +118,7 @@ export default function AccountSettingsPage() {
                 htmlFor="new-pw"
                 className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
               >
-                New password
+                新密码
               </Label>
               <Input
                 id="new-pw"
@@ -134,7 +134,7 @@ export default function AccountSettingsPage() {
                 htmlFor="confirm-pw"
                 className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
               >
-                Confirm new password
+                确认新密码
               </Label>
               <Input
                 id="confirm-pw"
@@ -150,37 +150,37 @@ export default function AccountSettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        title="Sign out everywhere"
-        description="Revoke every active session including this one. You'll be signed out immediately."
+        title="退出所有设备"
+        description="撤销所有活跃会话，包括当前设备。"
       >
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" className="rounded-full">
               <Lock className="mr-2 h-3.5 w-3.5" />
-              Sign out everywhere
+              退出所有设备
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Sign out from all devices?</AlertDialogTitle>
+              <AlertDialogTitle>确认退出所有设备？</AlertDialogTitle>
               <AlertDialogDescription>
-                This revokes every active session and signs you out of this device too.
+                这会撤销所有活跃会话，并立即退出当前设备。
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
                   try {
                     await apiClient.delete("/sessions");
-                    toast.success("Signed out from all devices");
+                    toast.success("已退出所有设备");
                     logout();
                   } catch {
-                    toast.error("Failed to sign out everywhere");
+                    toast.error("退出所有设备失败");
                   }
                 }}
               >
-                Sign out everywhere
+                退出所有设备
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -188,8 +188,8 @@ export default function AccountSettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        title="Delete account"
-        description="Permanently remove your account, conversations, and uploaded data. This can't be undone."
+        title="删除账号"
+        description="永久删除账号、对话和上传数据。该操作无法撤销。"
         danger
       >
         <div className="border-destructive/20 bg-destructive/[0.04] flex items-start gap-3 rounded-xl border p-4">
@@ -197,10 +197,9 @@ export default function AccountSettingsPage() {
             <AlertTriangle className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-foreground text-sm font-semibold">This is irreversible</p>
+            <p className="text-foreground text-sm font-semibold">该操作无法撤销</p>
             <p className="text-foreground/65 mt-0.5 text-xs leading-relaxed">
-              All conversations, knowledge base contents, API keys, and personal data will be
-              permanently deleted. Active subscriptions will be canceled.
+              所有对话、需求知识库内容和个人数据都会被永久删除。
             </p>
           </div>
         </div>
@@ -208,25 +207,24 @@ export default function AccountSettingsPage() {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm" className="rounded-full">
-              Delete my account
+              删除我的账号
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogTitle>确认删除账号？</AlertDialogTitle>
               <AlertDialogDescription>
-                Your conversations, knowledge base contents, API keys, and all personal data will be
-                permanently deleted. Active subscriptions will be canceled. This cannot be undone.
+                你的对话、需求知识库内容和个人数据会被永久删除。该操作无法撤销。
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 disabled={deleting}
                 onClick={handleDeleteAccount}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? "Deleting…" : "Yes, delete my account"}
+                {deleting ? "删除中..." : "确认删除账号"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -31,7 +31,7 @@ export function SlashCommandPalette({
     return (
       <div className="border-foreground/10 bg-popover absolute bottom-full left-0 mb-2 w-full max-w-sm rounded-xl border p-3 shadow-lg">
         <p className="text-foreground/55 text-xs">
-          No matching commands. Press <kbd className="font-mono">Esc</kbd> to dismiss.
+          没有匹配的快捷指令。按 <kbd className="font-mono">Esc</kbd> 关闭。
         </p>
       </div>
     );
@@ -40,8 +40,8 @@ export function SlashCommandPalette({
   return (
     <div className="border-foreground/10 bg-popover absolute bottom-full left-0 mb-2 w-full max-w-md overflow-hidden rounded-xl border shadow-lg">
       <div className="border-foreground/8 text-foreground/55 flex items-center justify-between border-b px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase">
-        <span>Commands</span>
-        <span className="hidden sm:inline">↑↓ to navigate · ↵ to run · esc to dismiss</span>
+        <span>快捷指令</span>
+        <span className="hidden sm:inline">↑↓ 选择 · ↵ 执行 · Esc 关闭</span>
       </div>
       <ul ref={listRef} className="max-h-64 overflow-y-auto py-1">
         {commands.map((cmd, i) => (

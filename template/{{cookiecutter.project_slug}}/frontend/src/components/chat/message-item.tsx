@@ -190,7 +190,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                     <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
                     <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
                   </div>
-                  <span className="text-muted-foreground text-xs">Thinking...</span>
+                  <span className="text-muted-foreground text-xs">思考中...</span>
                 </div>
               )}
 
@@ -273,8 +273,8 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
               <button
                 type="button"
                 onClick={onRegenerate}
-                title="Regenerate response"
-                aria-label="Regenerate response"
+                title="重新生成回复"
+                aria-label="重新生成回复"
                 className="bg-muted hover:bg-muted/80 text-foreground/70 hover:text-foreground inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <RefreshCw className="h-3 w-3" />

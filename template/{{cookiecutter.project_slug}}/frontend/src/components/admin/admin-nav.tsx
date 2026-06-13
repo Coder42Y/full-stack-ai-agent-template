@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
+{%- if cookiecutter.enable_billing %}
   CreditCard,
+{%- endif %}
   LayoutDashboard,
 {%- if cookiecutter.use_ai %}
   MessageSquare,
@@ -24,14 +26,16 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-  { label: "Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Users", href: "/admin/users", icon: Users },
+  { label: "总览", href: "/admin", icon: LayoutDashboard },
+  { label: "用户", href: "/admin/users", icon: Users },
 {%- if cookiecutter.use_ai %}
-  { label: "Conversations", href: "/admin/conversations", icon: MessageSquare },
-  { label: "Ratings", href: "/admin/ratings", icon: Star },
+  { label: "对话", href: "/admin/conversations", icon: MessageSquare },
+  { label: "评分", href: "/admin/ratings", icon: Star },
 {%- endif %}
-  { label: "Stripe events", href: "/admin/stripe-events", icon: CreditCard },
-  { label: "System health", href: "/admin/system", icon: Activity },
+{%- if cookiecutter.enable_billing %}
+  { label: "支付事件", href: "/admin/stripe-events", icon: CreditCard },
+{%- endif %}
+  { label: "系统健康", href: "/admin/system", icon: Activity },
 ];
 
 export function AdminNav() {
@@ -42,8 +46,8 @@ export function AdminNav() {
     <>
       {/* Desktop: vertical sidebar */}
       <nav className="hidden lg:block">
-        <p className="text-foreground/45 mb-3 px-3 font-mono text-[10px] uppercase tracking-wider">
-          Admin
+        <p className="mb-2 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+          管理后台
         </p>
         <ul className="space-y-0.5">
           {ITEMS.map((item) => {
@@ -56,9 +60,9 @@ export function AdminNav() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "group flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors",
                     active
-                      ? "bg-foreground/10 text-foreground"
+                      ? "bg-foreground/[0.08] text-foreground"
                       : "text-foreground/65 hover:bg-foreground/5 hover:text-foreground",
                   )}
                 >
@@ -80,7 +84,7 @@ export function AdminNav() {
       </nav>
 
       {/* Mobile: horizontal pill scroll */}
-      <nav className="scrollbar-thin -mx-3 flex gap-1.5 overflow-x-auto px-3 pb-2 lg:hidden">
+      <nav className="scrollbar-thin -mx-2 flex gap-1.5 overflow-x-auto px-2 lg:hidden">
         {ITEMS.map((item) => {
           const active =
             item.href === "/admin"
@@ -91,10 +95,10 @@ export function AdminNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "border-foreground/15 inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                "inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-foreground/15 px-3 text-sm font-medium transition-colors",
                 active
-                  ? "bg-foreground text-background border-foreground"
-                  : "text-foreground/65 hover:text-foreground hover:border-foreground/40",
+                  ? "border-foreground bg-foreground text-background"
+                  : "text-foreground/65 hover:border-foreground/40 hover:text-foreground",
               )}
             >
               <item.icon className="h-3.5 w-3.5" />

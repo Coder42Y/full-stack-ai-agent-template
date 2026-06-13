@@ -50,11 +50,11 @@ export function InviteMemberDialog({ open, onOpenChange, orgId }: InviteMemberDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite member</DialogTitle>
+          <DialogTitle>邀请成员</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="invite-email">Email address</Label>
+            <Label htmlFor="invite-email">邮箱地址</Label>
             <Input
               id="invite-email"
               type="email"
@@ -65,23 +65,23 @@ export function InviteMemberDialog({ open, onOpenChange, orgId }: InviteMemberDi
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="invite-role">Role</Label>
+            <Label htmlFor="invite-role">角色</Label>
             <Select value={role} onValueChange={(v) => setRole(v as OrgRole)}>
               <SelectTrigger id="invite-role">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="member">成员</SelectItem>
+                <SelectItem value="admin">管理员</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              取消
             </Button>
             <Button type="submit" disabled={!email.trim() || isSubmitting}>
-              {isSubmitting ? "Sending..." : "Send invite"}
+              {isSubmitting ? "发送中..." : "发送邀请"}
             </Button>
           </DialogFooter>
         </form>

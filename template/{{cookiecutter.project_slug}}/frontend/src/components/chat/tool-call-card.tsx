@@ -45,7 +45,7 @@ function DateTimeResult({ result }: { result: string }) {
         <div className="flex items-center gap-2">
           <Calendar className="text-primary h-5 w-5" />
           <div>
-            <p className="text-muted-foreground text-xs">Date</p>
+            <p className="text-muted-foreground text-xs">日期</p>
             <p className="text-sm font-semibold">{dateMatch[1]}</p>
           </div>
         </div>
@@ -54,7 +54,7 @@ function DateTimeResult({ result }: { result: string }) {
         <div className="flex items-center gap-2">
           <Clock className="text-primary h-5 w-5" />
           <div>
-            <p className="text-muted-foreground text-xs">Time</p>
+            <p className="text-muted-foreground text-xs">时间</p>
             <p className="text-sm font-semibold">{timeMatch[1]}</p>
           </div>
         </div>
@@ -103,7 +103,7 @@ function RAGSearchResults({ result }: { result: string }) {
       return (
         <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
           <Search className="h-4 w-4" />
-          No relevant documents found
+          未找到相关文档
         </div>
       );
     }
@@ -126,11 +126,11 @@ function RAGSearchResults({ result }: { result: string }) {
       <div className="text-foreground/55 flex items-center gap-2 font-mono text-[10px] tracking-wider uppercase">
         <Search className="h-3 w-3" />
         <span>
-          {items.length} chunk{items.length !== 1 ? "s" : ""}
+          {items.length} 个片段
         </span>
         <span>·</span>
         <span>
-          {sourceCount} source{sourceCount !== 1 ? "s" : ""}
+          {sourceCount} 个来源
         </span>
       </div>
 
@@ -171,13 +171,13 @@ function RAGSourceGroup({
           {source}
         </span>
         <span className="text-foreground/45 ml-auto font-mono text-[10px] tracking-wider uppercase">
-          {chunks.length} chunk{chunks.length !== 1 ? "s" : ""}
+          {chunks.length} 个片段
         </span>
         <ScoreDot score={bestScore} />
         {collection && (
           <span
             className="border-foreground/15 text-foreground/55 hidden shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[9px] tracking-wider uppercase sm:inline"
-            title={`Collection: ${collection}`}
+            title={`集合：${collection}`}
           >
             {collection}
           </span>
@@ -208,11 +208,11 @@ function RAGSourceGroup({
                   </p>
                   {(chunk.page || chunk.chunk) && (
                     <div className="text-foreground/45 mt-1 flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase">
-                      {chunk.page && <span>p.{chunk.page}</span>}
+                      {chunk.page && <span>第 {chunk.page} 页</span>}
                       {chunk.chunk && (
                         <>
                           {chunk.page && <span>·</span>}
-                          <span>chunk {chunk.chunk}</span>
+                          <span>片段 {chunk.chunk}</span>
                         </>
                       )}
                     </div>
@@ -252,7 +252,7 @@ function ScoreDot({ score }: { score: number }) {
   return (
     <span
       className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone)}
-      title={`Relevance: ${score.toFixed(2)}`}
+      title={`相关度：${score.toFixed(2)}`}
     />
   );
 }
@@ -301,7 +301,7 @@ function WebSearchResults({ data }: { data: WebSearchPayload }) {
     return (
       <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
         <Globe className="h-4 w-4" />
-        No web results found
+        未找到网页结果
       </div>
     );
   }
@@ -311,7 +311,7 @@ function WebSearchResults({ data }: { data: WebSearchPayload }) {
       <div className="text-foreground/55 flex items-center gap-2 font-mono text-[10px] tracking-wider uppercase">
         <Globe className="h-3 w-3" />
         <span>
-          {data.results.length} web result{data.results.length !== 1 ? "s" : ""}
+          {data.results.length} 条网页结果
         </span>
       </div>
 
@@ -384,12 +384,12 @@ function RawToolView({
   return (
     <div className="space-y-3">
       {isEmptyArgs(toolCall.args) ? (
-        <p className="text-muted-foreground text-xs italic">No arguments</p>
+        <p className="text-muted-foreground text-xs italic">无参数</p>
       ) : (
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Arguments
+              参数
             </p>
             <CopyButton
               text={formatArgs(toolCall.args)}
@@ -405,7 +405,7 @@ function RawToolView({
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Result
+              结果
             </p>
             <CopyButton text={resultText} className="opacity-0 group-hover:opacity-100" />
           </div>
@@ -441,7 +441,7 @@ function GenericToolResult({
   if (toolCall.status !== "completed" && !resultText) {
     return (
       <p className="text-muted-foreground py-2 text-xs italic">
-        {toolCall.status === "error" ? "Tool failed." : "Running…"}
+        {toolCall.status === "error" ? "工具调用失败。" : "运行中..."}
       </p>
     );
   }
@@ -452,7 +452,7 @@ function GenericToolResult({
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Arguments
+              参数
             </p>
             <CopyButton
               text={formatArgs(toolCall.args)}
@@ -558,14 +558,14 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
   ;
 
   const friendlyName = isDateTime
-    ? "Current Date & Time"
+    ? "当前日期时间"
     : isRAGSearch
-      ? "Knowledge Base Search"
+      ? "需求库检索"
       : isWebSearch
-        ? "Web Search"
+        ? "网页搜索"
 {%- if cookiecutter.enable_charts %}
         : isChart
-          ? "Chart"
+          ? "图表"
 {%- endif %}
         : toolCall.name;
 
@@ -633,7 +633,7 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
               showRaw && "text-primary",
             )}
             onClick={toggleRaw}
-            title={showRaw ? "Show formatted view" : "Show arguments + raw output"}
+            title={showRaw ? "显示格式化视图" : "显示参数和原始输出"}
           >
             <Code2 className="h-3.5 w-3.5" />
           </Button>

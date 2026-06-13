@@ -623,9 +623,9 @@ def new(output: Path | None, no_input: bool, name: str | None, minimal: bool) ->
 @click.option(
     "--i18n/--no-i18n",
     "i18n",
-    default=True,
+    default=False,
     help="Generate i18n infrastructure (next-intl + locale switcher). "
-    "Disable for single-language English-only frontends.",
+    "Default is a single-language frontend with no language switcher.",
 )
 @click.option(
     "--example-resource",

@@ -58,7 +58,7 @@ export function useAdminConversations() {
         setConversations(response.items);
         setConversationsTotal(response.total);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to load conversations";
+        const message = err instanceof Error ? err.message : "加载对话失败";
         setError(message);
       } finally {
         endLoad();
@@ -91,7 +91,7 @@ export function useAdminConversations() {
         setUsers(response.items);
         setUsersTotal(response.total);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to load users";
+        const message = err instanceof Error ? err.message : "加载用户失败";
         setError(message);
       } finally {
         endLoad();
@@ -110,7 +110,7 @@ export function useAdminConversations() {
       setSelectedConversation(conv);
       return conv;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to load conversation";
+      const message = err instanceof Error ? err.message : "加载对话详情失败";
       setError(message);
       return null;
     } finally {

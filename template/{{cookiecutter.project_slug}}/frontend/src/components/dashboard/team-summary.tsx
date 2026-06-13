@@ -41,21 +41,20 @@ export function TeamSummary() {
     return null;
   }
 
-  // Personal org → CTA to create a real workspace
+  // Personal org -> CTA to create a real workspace
   if (activeOrg.is_personal) {
     return (
       <section className="border-border bg-card flex flex-col rounded-2xl border p-5 lg:p-6">
         <header>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Team
+            团队
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            Personal workspace
+            个人协作空间
           </h2>
         </header>
         <p className="text-foreground/65 mt-3 text-sm">
-          You&apos;re working solo. Create an organization to invite teammates and share
-          conversations + knowledge bases.
+          当前是个人空间。创建组织后可以邀请成员，共享需求对话和需求项目。
         </p>
         <div className="mt-auto pt-5">
           <Link
@@ -63,7 +62,7 @@ export function TeamSummary() {
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Create organization
+            创建组织
           </Link>
         </div>
       </section>
@@ -78,17 +77,17 @@ export function TeamSummary() {
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Team · {activeOrg.name}
+            团队 · {activeOrg.name}
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            Members &amp; invitations
+            成员与邀请
           </h2>
         </div>
         <Link
           href={`/orgs/${activeOrg.id}/members`}
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1 text-xs font-medium transition-colors"
         >
-          Manage
+          管理
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       </header>
@@ -96,12 +95,12 @@ export function TeamSummary() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Stat
           icon={<Users className="h-4 w-4" />}
-          label={memberCount === 1 ? "member" : "members"}
+          label="成员"
           value={loading ? null : memberCount}
         />
         <Stat
           icon={<MailPlus className="h-4 w-4" />}
-          label={pendingCount === 1 ? "pending invite" : "pending invites"}
+          label="待接受邀请"
           value={loading ? null : pendingCount}
           tone={pendingCount > 0 ? "accent" : "neutral"}
         />
@@ -113,7 +112,7 @@ export function TeamSummary() {
           className="border-foreground/15 hover:border-foreground/40 text-foreground inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
         >
           <UserPlus className="h-4 w-4" />
-          Invite teammate
+          邀请成员
         </Link>
       </div>
     </section>

@@ -20,10 +20,10 @@ function relative(iso: string): string {
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return "";
   const diff = Math.round((Date.now() - t) / 1000);
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 60) return "刚刚";
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  return `${Math.floor(diff / 86400)} 天前`;
 }
 
 export function ActiveSessions() {
@@ -45,17 +45,17 @@ export function ActiveSessions() {
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Active sessions
+            活跃会话
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            {sessions ? `${sessions.length} signed-in device${sessions.length === 1 ? "" : "s"}` : "—"}
+            {sessions ? `${sessions.length} 台已登录设备` : "-"}
           </h2>
         </div>
         <Link
           href="/settings/profile"
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1 text-xs font-medium transition-colors"
         >
-          Revoke
+          管理
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       </header>
@@ -66,7 +66,7 @@ export function ActiveSessions() {
         ) : sessions.length === 0 ? (
           <div className="border-foreground/10 bg-card flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-8 text-center">
             <Shield className="text-foreground/30 h-7 w-7" />
-            <p className="text-foreground/55 text-sm">No active sessions tracked.</p>
+            <p className="text-foreground/55 text-sm">暂无已记录的活跃会话。</p>
           </div>
         ) : (
           <ul className="space-y-2">
@@ -85,15 +85,15 @@ export function ActiveSessions() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground truncate text-sm font-medium">
-                    {s.device_name || "Unknown device"}
+                    {s.device_name || "未知设备"}
                     {s.is_current && (
                       <span className="text-foreground/55 ml-2 font-mono text-[10px] tracking-wider uppercase">
-                        This device
+                        当前设备
                       </span>
                     )}
                   </p>
                   <p className="text-foreground/55 text-xs">
-                    {s.ip_address ? `${s.ip_address} · ` : ""}Active {relative(s.last_used_at)}
+                    {s.ip_address ? `${s.ip_address} · ` : ""}活跃于 {relative(s.last_used_at)}
                   </p>
                 </div>
               </li>

@@ -89,13 +89,13 @@ export function FilePreviewPanel() {
     <aside
       className="border-foreground/10 bg-card relative flex h-full max-w-full shrink-0 flex-col border-l"
       style={{ width: `${width}px` }}
-      aria-label="File preview"
+      aria-label="文件预览"
     >
       {/* Drag handle — sits on the left edge, takes ~6px of cursor target */}
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize file preview"
+        aria-label="调整文件预览宽度"
         onMouseDown={onMouseDown}
         className={cn(
           "group absolute top-0 left-0 z-20 h-full w-1.5 -translate-x-1/2 cursor-col-resize",
@@ -123,14 +123,14 @@ export function FilePreviewPanel() {
           target="_blank"
           rel="noopener noreferrer"
           className="text-foreground/55 hover:bg-foreground/5 hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors"
-          title="Open in new tab"
+          title="在新标签页打开"
         >
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
         <a
           href={downloadUrl}
           className="text-foreground/55 hover:bg-foreground/5 hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors"
-          title="Download"
+          title="下载"
         >
           <Download className="h-3.5 w-3.5" />
         </a>
@@ -138,8 +138,8 @@ export function FilePreviewPanel() {
           type="button"
           onClick={close}
           className="text-foreground/55 hover:bg-foreground/5 hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors"
-          aria-label="Close preview"
-          title="Close"
+          aria-label="关闭预览"
+          title="关闭"
         >
           <X className="h-4 w-4" />
         </button>
@@ -379,7 +379,7 @@ function HtmlViewer({ url }: { url: string }) {
     <iframe
       sandbox=""
       srcDoc={html}
-      title="HTML preview"
+      title="HTML 预览"
       className="block min-h-0 w-full flex-1 border-0 bg-white"
     />
   );
@@ -587,14 +587,14 @@ function BinaryFallback({ url, filename }: { url: string; filename: string }) {
       </div>
       <div>
         <p className="text-foreground text-sm font-medium">{filename}</p>
-        <p className="text-foreground/55 mt-1 text-xs">No inline preview for this file type.</p>
+        <p className="text-foreground/55 mt-1 text-xs">此文件类型暂不支持内联预览。</p>
       </div>
       <a
         href={url}
         className="border-foreground/15 hover:border-foreground/40 hover:bg-foreground/5 mt-2 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono text-[11px] tracking-wider uppercase transition-colors"
       >
         <Download className="h-3.5 w-3.5" />
-        Download
+        下载
       </a>
     </div>
   );
@@ -606,7 +606,7 @@ function LoadingState() {
   return (
     <div className="text-foreground/55 flex min-h-0 flex-1 items-center justify-center gap-2 text-xs">
       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-      Loading…
+      加载中...
     </div>
   );
 }
@@ -615,7 +615,7 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="text-destructive/80 flex min-h-0 flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-xs">
       <AlertCircle className="h-5 w-5" />
-      <p>Couldn&apos;t load preview</p>
+      <p>无法加载预览</p>
       <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">{message}</p>
     </div>
   );

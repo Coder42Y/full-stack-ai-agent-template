@@ -24,10 +24,10 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   if (/\d/.test(pw)) score++;
   if (/[^a-zA-Z0-9]/.test(pw)) score++;
 
-  if (score <= 1) return { score: 1, label: "Weak", color: "bg-destructive" };
-  if (score <= 2) return { score: 2, label: "Fair", color: "bg-orange-500" };
-  if (score <= 3) return { score: 3, label: "Good", color: "bg-yellow-500" };
-  return { score: 4, label: "Strong", color: "bg-brand" };
+  if (score <= 1) return { score: 1, label: "较弱", color: "bg-destructive" };
+  if (score <= 2) return { score: 2, label: "一般", color: "bg-orange-500" };
+  if (score <= 3) return { score: 3, label: "良好", color: "bg-yellow-500" };
+  return { score: 4, label: "较强", color: "bg-brand" };
 }
 
 export function RegisterForm() {
@@ -52,16 +52,16 @@ export function RegisterForm() {
     setError("");
 
     if (!EMAIL_RE.test(email)) {
-      setError("Please enter a valid email address");
+      setError("请输入有效邮箱地址");
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError("密码至少 8 个字符");
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      toast.error("Passwords do not match");
+      setError("两次输入的密码不一致");
+      toast.error("两次输入的密码不一致");
       return;
     }
 
@@ -72,7 +72,7 @@ export function RegisterForm() {
       router.push(ROUTES.LOGIN + "?registered=true");
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "Registration failed. Please try again.";
+        err instanceof ApiError ? err.message : "注册失败，请重试。";
       setError(message);
       toast.error(message);
     } finally {
@@ -85,7 +85,7 @@ export function RegisterForm() {
       <div className="space-y-2">
         <span className="eyebrow text-foreground/55">{t("getStarted")}</span>
         <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Create your <em>workspace.</em>
+          创建<em>需求工作台</em>
         </h1>
         <p className="text-foreground/65 text-sm">
           {t("hasAccount")}{" "}
@@ -152,7 +152,7 @@ export function RegisterForm() {
           <Input
             id="password"
             type="password"
-            placeholder="At least 8 characters"
+            placeholder="至少 8 个字符"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -180,12 +180,12 @@ export function RegisterForm() {
                   {password.length >= 8 ? (
                     <span className="text-brand inline-flex items-center gap-1">
                       <Check className="h-3 w-3" />
-                      8+ chars
+                      8+ 字符
                     </span>
                   ) : (
                     <span className="text-foreground/55 inline-flex items-center gap-1">
                       <X className="h-3 w-3" />
-                      8+ chars
+                      8+ 字符
                     </span>
                   )}
                 </div>
@@ -204,7 +204,7 @@ export function RegisterForm() {
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="Repeat the password"
+            placeholder="再次输入密码"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -242,19 +242,19 @@ export function RegisterForm() {
         </Button>
 
         <p className="text-foreground/50 text-center text-xs">
-          By creating an account, you agree to our{" "}
+          创建账号即表示你同意我们的{" "}
           <Link
             href="/legal/terms"
             className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
           >
-            Terms
+            服务条款
           </Link>{" "}
-          and{" "}
+          和{" "}
           <Link
             href="/legal/privacy"
             className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
           >
-            Privacy Policy
+            隐私政策
           </Link>
           .
         </p>

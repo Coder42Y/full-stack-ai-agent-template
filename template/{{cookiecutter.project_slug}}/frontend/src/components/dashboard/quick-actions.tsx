@@ -25,23 +25,23 @@ interface Action {
 }
 
 const ACTIONS: Action[] = [
-  { label: "Start a chat", icon: MessageSquare, href: ROUTES.CHAT, featured: true },
-  { label: "Upload to KB", icon: Database, href: ROUTES.RAG },
+  { label: "开始对话", icon: MessageSquare, href: ROUTES.CHAT, featured: true },
+  { label: "上传资料", icon: Database, href: ROUTES.RAG },
 {%- if cookiecutter.enable_teams %}
-  { label: "Invite team", icon: Users, href: ROUTES.ORGS },
+  { label: "邀请团队", icon: Users, href: ROUTES.ORGS },
 {%- endif %}
 {%- if cookiecutter.enable_billing %}
-  { label: "Billing", icon: CreditCard, href: ROUTES.BILLING },
+  { label: "账单", icon: CreditCard, href: ROUTES.BILLING },
 {%- endif %}
-  { label: "Settings", icon: Settings, href: ROUTES.SETTINGS },
-  { label: "API docs", icon: BookOpen, href: `${BACKEND_URL}/docs`, external: true },
+  { label: "设置", icon: Settings, href: ROUTES.SETTINGS },
+  { label: "API 文档", icon: BookOpen, href: `${BACKEND_URL}/docs`, external: true },
 ];
 
 export function QuickActions() {
   return (
     <div className="border-border bg-card rounded-2xl border p-4 sm:p-5">
       <h2 className="text-foreground/55 mb-2.5 font-mono text-[11px] tracking-wider uppercase">
-        Quick actions
+        快捷操作
       </h2>
       <div className="flex flex-wrap gap-1.5">
         {ACTIONS.map((action) => (

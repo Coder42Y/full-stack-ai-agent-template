@@ -30,7 +30,7 @@ export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: Lan
             href={ROUTES.PRICING}
             className="text-muted-foreground hover:text-foreground hidden rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:inline-flex"
           >
-            Pricing
+            价格
           </Link>
 {%- if cookiecutter.enable_i18n %}
           <LanguageSwitcherCompact />
@@ -51,7 +51,7 @@ export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: Lan
               <button
                 onClick={logout}
                 className="text-muted-foreground hover:text-foreground rounded-full p-1.5 transition-colors"
-                title="Logout"
+                title="退出登录"
               >
                 <LogOut className="h-3.5 w-3.5" />
               </button>

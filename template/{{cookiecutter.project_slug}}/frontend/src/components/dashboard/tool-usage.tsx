@@ -23,7 +23,13 @@ interface ToolStatsResponse {
 const MAX_ROWS = 6;
 
 function humanize(name: string): string {
-  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const labels: Record<string, string> = {
+    web_search: "网页搜索",
+    rag_search: "需求库检索",
+    file_search: "文件检索",
+    code_interpreter: "代码分析",
+  };
+  return labels[name] ?? name.replace(/_/g, " ");
 }
 
 function formatDuration(ms: number | null): string {
@@ -62,10 +68,10 @@ export function ToolUsage() {
     <section className="border-border bg-card flex flex-col rounded-2xl border p-5 lg:p-6">
       <header>
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Tools used · 7d
+          工具调用 · 7天
         </p>
         <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-          What the agent reaches for
+          AI 最近使用的工具
         </h2>
       </header>
 
@@ -75,9 +81,9 @@ export function ToolUsage() {
         ) : error || items.length === 0 ? (
           <div className="border-foreground/10 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center">
             <Wrench className="text-foreground/30 h-8 w-8" />
-            <p className="text-foreground/55 text-sm">No tool calls in the last 7 days.</p>
+            <p className="text-foreground/55 text-sm">最近 7 天暂无工具调用。</p>
             <p className="text-foreground/45 text-xs">
-              Web search, RAG search, etc. show up here once the agent uses them.
+              AI 使用网页搜索、需求库检索等工具后会显示在这里。
             </p>
           </div>
         ) : (
@@ -104,12 +110,12 @@ export function ToolUsage() {
                         {humanize(tool.tool_name)}
                       </p>
                       <p className="text-foreground/55 text-xs tabular-nums">
-                        avg {formatDuration(tool.avg_duration_ms)}
+                        平均 {formatDuration(tool.avg_duration_ms)}
                         {hasFailures && (
                           <>
                             {" · "}
                             <span className="text-destructive">
-                              {tool.failed_calls} fail{tool.failed_calls === 1 ? "" : "s"}
+                              {tool.failed_calls} 次失败
                               {failRate >= 1 ? ` (${failRate.toFixed(0)}%)` : ""}
                             </span>
                           </>
@@ -126,7 +132,7 @@ export function ToolUsage() {
                         {tool.total_calls.toLocaleString()}
                       </p>
                       <p className="text-foreground/45 text-[10px] tracking-wider uppercase">
-                        call{tool.total_calls === 1 ? "" : "s"}
+                        次调用
                       </p>
                     </div>
                   </div>

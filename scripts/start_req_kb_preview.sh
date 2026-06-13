@@ -125,6 +125,7 @@ config = ProjectConfig(
     background_tasks=BackgroundTaskType.NONE,
     enable_redis=False,
     enable_docker=True,
+    enable_i18n=False,
     enable_teams=True,
     enable_websockets=True,
     rag_features=RAGFeatures(enable_rag=True, vector_store=VectorStoreType.PGVECTOR),

@@ -67,7 +67,7 @@ export function SubscriptionChip() {
         )}
       >
         <Sparkles className="h-3 w-3" />
-        Free · Upgrade
+        免费版 · 升级
         <ArrowUpRight className="h-2.5 w-2.5" />
       </Link>
     );
@@ -82,17 +82,17 @@ export function SubscriptionChip() {
   let icon = <Clock className="h-3 w-3" />;
 
   if (status === "trialing" && trialDays !== null) {
-    label = `Trial · ${trialDays}d left`;
+    label = `试用 · 剩余 ${trialDays} 天`;
   } else if (status === "active" && sub.cancel_at_period_end && renewDays !== null) {
-    label = `Ends in ${renewDays}d`;
+    label = `${renewDays} 天后结束`;
     icon = <XCircle className="h-3 w-3" />;
   } else if (status === "active" && renewDays !== null) {
-    label = `Active · renews in ${renewDays}d`;
+    label = `有效 · ${renewDays} 天后续费`;
   } else if (status === "canceled") {
-    label = renewDays !== null ? `Canceled · ${renewDays}d access` : "Canceled";
+    label = renewDays !== null ? `已取消 · 还可访问 ${renewDays} 天` : "已取消";
     icon = <XCircle className="h-3 w-3" />;
   } else if (status === "past_due") {
-    label = "Past due — update payment";
+    label = "付款逾期，请更新支付方式";
   } else {
     label = status.replace(/_/g, " ");
   }

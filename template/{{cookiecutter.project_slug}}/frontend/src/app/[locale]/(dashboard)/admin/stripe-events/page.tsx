@@ -58,7 +58,7 @@ type StatusFilter = "all" | "processed" | "failed" | "pending";
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("en-US", {
+  return d.toLocaleString("zh-CN", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -217,15 +217,15 @@ export default function StripeEventsPage() {
 
   const handleReplay = async (evt: StripeEvent) => {
     if (usingStub) {
-      toast.info("Demo mode — backend wiring required (POST /admin/stripe-events/{id}/replay)");
+      toast.info("演示数据暂不支持重放，需要后端接入 POST /admin/stripe-events/{id}/replay");
       return;
     }
     try {
       await apiClient.post(`/admin/stripe-events/${evt.id}/replay`);
-      toast.success(`Replayed ${evt.type}`);
+      toast.success(`已重放 ${evt.type}`);
       load();
     } catch {
-      toast.error("Replay failed");
+      toast.error("重放失败");
     }
   };
 
@@ -239,18 +239,18 @@ export default function StripeEventsPage() {
       <div className="mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Stripe events
+            支付事件
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            Webhook <em>event log.</em>
+            Webhook <em>事件日志</em>
           </h2>
           <p className="text-foreground/65 mt-1 text-sm">
-            Replay failed events to debug billing flows.
+            查看账单 Webhook 处理状态，并重放失败事件排查支付流程。
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={load} className="rounded-full">
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Refresh
+          刷新
         </Button>
       </div>
 
@@ -258,9 +258,9 @@ export default function StripeEventsPage() {
         <div className="border-foreground/10 bg-muted/40 mb-4 flex items-start gap-3 rounded-lg border p-3">
           <Filter className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1 text-xs">
-            <p className="text-foreground font-medium">Demo data</p>
+            <p className="text-foreground font-medium">演示数据</p>
             <p className="text-muted-foreground mt-0.5">
-              Backend wiring required. Expected: <code>GET /admin/stripe-events</code>,{" "}
+              需要后端接入：<code>GET /admin/stripe-events</code>,{" "}
               <code>POST /admin/stripe-events/&#123;id&#125;/replay</code>.
             </p>
           </div>
@@ -271,7 +271,7 @@ export default function StripeEventsPage() {
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Search id, type, customer…"
+            placeholder="搜索 ID、类型或客户..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -283,10 +283,10 @@ export default function StripeEventsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="processed">Processed</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="all">全部状态</SelectItem>
+            <SelectItem value="processed">已处理</SelectItem>
+            <SelectItem value="failed">失败</SelectItem>
+            <SelectItem value="pending">待处理</SelectItem>
           </SelectContent>
         </Select>
 
@@ -297,14 +297,14 @@ export default function StripeEventsPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                每页 {n}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{total} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">共 {total} 条</div>
 
       <Table>
         <TableHeader>
@@ -315,35 +315,35 @@ export default function StripeEventsPage() {
               dir={sort.dir}
               onClick={() => toggleSort("type")}
             >
-              Event
+              事件
             </SortableHead>
             <SortableHead
               active={sort.by === "customer_email"}
               dir={sort.dir}
               onClick={() => toggleSort("customer_email")}
             >
-              Customer
+              客户
             </SortableHead>
             <SortableHead
               active={sort.by === "amount_cents"}
               dir={sort.dir}
               onClick={() => toggleSort("amount_cents")}
             >
-              Amount
+              金额
             </SortableHead>
             <SortableHead
               active={sort.by === "status"}
               dir={sort.dir}
               onClick={() => toggleSort("status")}
             >
-              Status
+              状态
             </SortableHead>
             <SortableHead
               active={sort.by === "created_at"}
               dir={sort.dir}
               onClick={() => toggleSort("created_at")}
             >
-              Time
+              时间
             </SortableHead>
             <TableHead />
           </TableRow>
@@ -400,7 +400,7 @@ export default function StripeEventsPage() {
                             ev.stopPropagation();
                             handleReplay(e);
                           }}
-                          aria-label="Replay event"
+                          aria-label="重放事件"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                         </Button>
@@ -410,23 +410,23 @@ export default function StripeEventsPage() {
                       <TableRow className="bg-muted/30">
                         <TableCell colSpan={7}>
                           <dl className="grid gap-3 p-2 text-xs sm:grid-cols-2">
-                            <KV label="Event ID" value={e.id} mono />
-                            <KV label="Type" value={e.type} mono />
-                            <KV label="Mode" value={e.livemode ? "live" : "test"} />
-                            <KV label="Attempts" value={String(e.attempts)} />
-                            {e.customer_email && <KV label="Customer" value={e.customer_email} />}
+                            <KV label="事件 ID" value={e.id} mono />
+                            <KV label="类型" value={e.type} mono />
+                            <KV label="模式" value={e.livemode ? "生产" : "测试"} />
+                            <KV label="尝试次数" value={String(e.attempts)} />
+                            {e.customer_email && <KV label="客户" value={e.customer_email} />}
                             {typeof e.amount_cents === "number" && (
-                              <KV label="Amount" value={formatAmount(e.amount_cents, e.currency)} />
+                              <KV label="金额" value={formatAmount(e.amount_cents, e.currency)} />
                             )}
-                            <KV label="Created" value={new Date(e.created_at).toLocaleString()} />
+                            <KV label="创建时间" value={new Date(e.created_at).toLocaleString("zh-CN")} />
                             {e.last_error && (
-                              <KV label="Last error" value={e.last_error} accent="danger" />
+                              <KV label="最近错误" value={e.last_error} accent="danger" />
                             )}
                           </dl>
                           <div className="mt-2 flex flex-wrap items-center gap-2 px-2 pb-2">
                             <Button size="sm" variant="outline" onClick={() => handleReplay(e)}>
                               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                              Replay
+                              重放
                             </Button>
                             <a
                               href={`https://dashboard.stripe.com/${e.livemode ? "" : "test/"}events/${e.id}`}
@@ -434,7 +434,7 @@ export default function StripeEventsPage() {
                               rel="noopener noreferrer"
                               className="text-muted-foreground hover:text-foreground inline-flex items-center text-xs"
                             >
-                              Open in Stripe →
+                              在 Stripe 中打开
                             </a>
                           </div>
                         </TableCell>
@@ -446,7 +446,7 @@ export default function StripeEventsPage() {
           {!loading && total === 0 && (
             <TableRow>
               <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
-                No events match.
+                没有匹配的事件。
               </TableCell>
             </TableRow>
           )}
@@ -468,12 +468,12 @@ export default function StripeEventsPage() {
 
 function StatusBadge({ status, attempts }: { status: StripeEvent["status"]; attempts: number }) {
   if (status === "processed") {
-    return <Badge variant="default">Processed{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
+    return <Badge variant="default">已处理{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
   }
   if (status === "failed") {
-    return <Badge variant="destructive">Failed{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
+    return <Badge variant="destructive">失败{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
   }
-  return <Badge variant="secondary">Pending</Badge>;
+  return <Badge variant="secondary">待处理</Badge>;
 }
 
 function KV({
@@ -555,7 +555,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        {start}-{end} / {total}
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -563,7 +563,7 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label="上一页"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -575,7 +575,7 @@ function PaginationBar({
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label="下一页"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
   Database,
@@ -28,7 +28,6 @@ interface TabItem {
 
 export function MobileTabBar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user } = useAuth();
 
   const stripped = pathname.replace(/^\/[a-z]{2}/, "");
@@ -111,12 +110,6 @@ export function MobileTabBar() {
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
             className={cn(className, "relative")}
-            onClick={(e) => {
-              if (item.href === stripped) {
-                e.preventDefault();
-                router.refresh();
-              }
-            }}
           >
             {inner}
           </Link>

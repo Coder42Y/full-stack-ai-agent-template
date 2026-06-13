@@ -28,8 +28,8 @@ const PAGE_SIZE = 50;
 type RatingFilter = "all" | "positive" | "negative";
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
+  return new Date(iso).toLocaleDateString("zh-CN", {
+    month: "2-digit",
     day: "numeric",
     year: "numeric",
   });
@@ -91,13 +91,13 @@ export default function AdminRatingsPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Response ratings
+            回答评分
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            Message <em>quality.</em>
+            AI 回答<em>质量反馈</em>
           </h2>
           <p className="text-foreground/65 mt-1 text-sm">
-            User feedback on AI responses — last 30 days.
+            查看最近 30 天用户对需求问答回复的点赞、点踩和评论。
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function AdminRatingsPage() {
           </Select>
           <Button variant="outline" onClick={handleExport} className="rounded-full">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            导出
           </Button>
         </div>
       </header>
@@ -120,23 +120,23 @@ export default function AdminRatingsPage() {
       {/* Stat tiles */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
-          label="Total ratings"
+          label="评分总数"
           value={loading ? null : String(summary?.total_ratings ?? 0)}
         />
         <StatTile
-          label="Likes"
+          label="点赞"
           value={loading ? null : String(summary?.like_count ?? 0)}
           accent="green"
           icon={<ThumbsUp className="h-4 w-4" />}
         />
         <StatTile
-          label="Dislikes"
+          label="点踩"
           value={loading ? null : String(summary?.dislike_count ?? 0)}
           accent="red"
           icon={<ThumbsDown className="h-4 w-4" />}
         />
         <StatTile
-          label="Approval rate"
+          label="好评率"
           value={loading ? null : approvalRate !== null ? `${approvalRate}%` : "—"}
           icon={<TrendingUp className="h-4 w-4" />}
         />
@@ -146,10 +146,10 @@ export default function AdminRatingsPage() {
       {!loading && summary && summary.ratings_by_day.length > 0 && (
         <section className="border-foreground/10 bg-card rounded-2xl border p-6">
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Over time
+            趋势
           </p>
           <h2 className="font-display text-foreground mt-1 text-base font-semibold tracking-tight">
-            Ratings per day
+            每日评分
           </h2>
           <div className="mt-5 h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -192,14 +192,14 @@ export default function AdminRatingsPage() {
                 />
                 <Bar
                   dataKey="likes"
-                  name="Likes"
+                  name="点赞"
                   fill="#22c55e"
                   radius={[3, 3, 0, 0]}
                   maxBarSize={24}
                 />
                 <Bar
                   dataKey="dislikes"
-                  name="Dislikes"
+                  name="点踩"
                   fill="#ef4444"
                   radius={[3, 3, 0, 0]}
                   maxBarSize={24}
@@ -211,13 +211,13 @@ export default function AdminRatingsPage() {
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
               <span className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-                Likes
+                点赞
               </span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
               <span className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-                Dislikes
+                点踩
               </span>
             </span>
           </div>
@@ -239,9 +239,9 @@ export default function AdminRatingsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All ratings</SelectItem>
-                <SelectItem value="positive">Likes only</SelectItem>
-                <SelectItem value="negative">Dislikes only</SelectItem>
+                <SelectItem value="all">全部评分</SelectItem>
+                <SelectItem value="positive">仅点赞</SelectItem>
+                <SelectItem value="negative">仅点踩</SelectItem>
               </SelectContent>
             </Select>
             <label className="flex cursor-pointer items-center gap-2 text-xs">
@@ -252,12 +252,12 @@ export default function AdminRatingsPage() {
                   setPage(0);
                 }}
               />
-              <span className="text-foreground/65">With comments only</span>
+              <span className="text-foreground/65">仅看有评论</span>
             </label>
           </div>
           {ratings && !loading && (
             <span className="text-foreground/45 font-mono text-[11px] tracking-wider uppercase">
-              {ratings.total.toLocaleString()} result{ratings.total === 1 ? "" : "s"}
+              {ratings.total.toLocaleString()} 条结果
             </span>
           )}
         </div>
@@ -266,7 +266,7 @@ export default function AdminRatingsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-foreground/[0.07] border-b">
-                {["Date", "Rating", "Comment", "Message", "User", ""].map((h, i) => (
+                {["日期", "评分", "评论", "消息", "用户", ""].map((h, i) => (
                   <th
                     key={i}
                     className="text-foreground/40 px-5 py-3 text-left font-mono text-[10px] tracking-wider uppercase"
@@ -289,9 +289,9 @@ export default function AdminRatingsPage() {
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
                     <MessageSquare className="text-foreground/20 mx-auto mb-3 h-8 w-8" />
-                    <p className="text-foreground/45 text-sm">No ratings found.</p>
+                    <p className="text-foreground/45 text-sm">暂无评分。</p>
                     <p className="text-foreground/35 mt-1 text-xs">
-                      Try adjusting the filters above.
+                      可以调整上方筛选条件后再查看。
                     </p>
                   </td>
                 </tr>
@@ -305,12 +305,12 @@ export default function AdminRatingsPage() {
                       {rating.rating === 1 ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-green-600 uppercase dark:text-green-400">
                           <ThumbsUp className="h-3 w-3" />
-                          Like
+                          点赞
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-red-600 uppercase dark:text-red-400">
                           <ThumbsDown className="h-3 w-3" />
-                          Dislike
+                          点踩
                         </span>
                       )}
                     </td>
@@ -330,7 +330,7 @@ export default function AdminRatingsPage() {
                           className="text-foreground/40 hover:text-foreground inline-flex items-center gap-1 font-mono text-[11px] tracking-wider uppercase transition-colors"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          View
+                          查看
                         </Link>
                       )}
                     </td>
@@ -344,7 +344,7 @@ export default function AdminRatingsPage() {
         {totalPages > 1 && (
           <div className="border-foreground/10 flex items-center justify-between border-t px-5 py-3">
             <span className="text-foreground/40 font-mono text-[11px] tracking-wider uppercase">
-              Page {page + 1} of {totalPages} · {ratings?.total.toLocaleString()} total
+              第 {page + 1} / {totalPages} 页 · 共 {ratings?.total.toLocaleString()} 条
             </span>
             <div className="flex gap-2">
               <Button
@@ -354,7 +354,7 @@ export default function AdminRatingsPage() {
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 className="rounded-full"
               >
-                Previous
+                上一页
               </Button>
               <Button
                 variant="outline"
@@ -363,7 +363,7 @@ export default function AdminRatingsPage() {
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 className="rounded-full"
               >
-                Next
+                下一页
               </Button>
             </div>
           </div>

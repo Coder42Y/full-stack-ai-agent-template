@@ -34,7 +34,7 @@ export function LoginForm() {
       await login({ email, password });
       toast.success(t("loginSuccess"));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : "Login failed. Please try again.";
+      const message = err instanceof ApiError ? err.message : "登录失败，请重试。";
       setError(message);
       toast.error(message);
       setIsLoading(false);
@@ -46,7 +46,7 @@ export function LoginForm() {
       <div className="space-y-2">
         <span className="eyebrow text-foreground/55">{t("welcomeBack")}</span>
         <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Sign in to <em>your workspace.</em>
+          登录到<em>需求工作台</em>
         </h1>
         <p className="text-foreground/65 text-sm">
           {t("noAccount")}{" "}

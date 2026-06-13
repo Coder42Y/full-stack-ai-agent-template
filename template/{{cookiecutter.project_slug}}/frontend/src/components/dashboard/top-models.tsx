@@ -67,17 +67,17 @@ export function TopModels() {
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Top models · 7d
+          模型使用 · 7天
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            Where credits go
+            额度消耗去向
           </h2>
         </div>
         <Link
           href="/billing/usage"
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1 text-xs font-medium transition-colors"
         >
-          Full breakdown
+          查看明细
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       </header>
@@ -88,9 +88,9 @@ export function TopModels() {
         ) : error || top.length === 0 ? (
           <div className="border-foreground/10 bg-card flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center">
             <Cpu className="text-foreground/30 h-8 w-8" />
-            <p className="text-foreground/55 text-sm">No model usage in the last 7 days.</p>
+            <p className="text-foreground/55 text-sm">最近 7 天暂无模型用量。</p>
             <p className="text-foreground/45 text-xs">
-              Send a chat message to start tracking model spend.
+              发送需求对话后会开始统计模型消耗。
             </p>
           </div>
         ) : (
@@ -120,8 +120,7 @@ export function TopModels() {
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground truncate text-sm font-medium">{m.model}</p>
                       <p className="text-foreground/55 text-xs tabular-nums">
-                        {tokens.toLocaleString()} tokens · {m.total_calls.toLocaleString()} call
-                        {m.total_calls === 1 ? "" : "s"}
+                        {tokens.toLocaleString()} tokens · {m.total_calls.toLocaleString()} 次调用
                       </p>
                     </div>
                     <div className="text-right">

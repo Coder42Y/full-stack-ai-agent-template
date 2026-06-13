@@ -43,8 +43,8 @@ interface ConversationStub {
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("en-US", {
-    month: "short",
+  return d.toLocaleString("zh-CN", {
+    month: "2-digit",
     day: "numeric",
     year: "numeric",
     hour: "2-digit",
@@ -83,9 +83,9 @@ export function UserDetailDrawer({
     if (token) {
       try {
         await navigator.clipboard.writeText(token);
-        toast.success("Impersonation token copied (valid 1h)");
+        toast.success("调试令牌已复制（1 小时有效）");
       } catch {
-        toast.success("Impersonation token created (1h)");
+        toast.success("调试令牌已创建（1 小时有效）");
       }
     }
   };
@@ -93,9 +93,9 @@ export function UserDetailDrawer({
   const handleCopyId = async () => {
     try {
       await navigator.clipboard.writeText(user.id);
-      toast.success("User ID copied");
+      toast.success("用户 ID 已复制");
     } catch {
-      toast.error("Copy failed");
+      toast.error("复制失败");
     }
   };
 
@@ -131,7 +131,7 @@ export function UserDetailDrawer({
           {/* Status pills */}
           <div className="flex flex-wrap gap-1.5">
             <Badge variant={user.is_active ? "default" : "secondary"} className="text-[10px]">
-              {user.is_active ? "Active" : "Suspended"}
+              {user.is_active ? "启用" : "已停用"}
             </Badge>
             <Badge variant="outline" className="text-[10px]">
               <Shield className="mr-1 h-3 w-3" />
@@ -139,29 +139,29 @@ export function UserDetailDrawer({
             </Badge>
             {user.is_app_admin && (
               <Badge className="bg-brand text-brand-foreground border-transparent text-[10px]">
-                App admin
+                应用管理员
               </Badge>
             )}
           </div>
 
           {/* Profile fields */}
           <dl className="border-foreground/10 divide-foreground/10 mt-5 divide-y rounded-xl border">
-            <KV label="User ID" value={user.id} mono onCopy={handleCopyId} />
-            <KV label="Email" value={user.email} mono />
-            {user.full_name && <KV label="Display name" value={user.full_name} />}
-            <KV label="Joined" value={formatDateTime(user.created_at)} />
-            <KV label="Role" value={user.role} mono />
+            <KV label="用户 ID" value={user.id} mono onCopy={handleCopyId} />
+            <KV label="邮箱" value={user.email} mono />
+            {user.full_name && <KV label="显示名称" value={user.full_name} />}
+            <KV label="加入时间" value={formatDateTime(user.created_at)} />
+            <KV label="角色" value={user.role} mono />
           </dl>
 
           {/* Recent conversations */}
           <section className="mt-7">
             <h3 className="text-foreground/55 mb-3 font-mono text-[11px] tracking-wider uppercase">
-              Recent conversations
+              最近对话
             </h3>
             {convsLoading ? (
               <LoadingState variant="skeleton-list" rows={3} />
             ) : !conversations || conversations.length === 0 ? (
-              <p className="text-foreground/55 text-xs">No conversations.</p>
+              <p className="text-foreground/55 text-xs">暂无对话。</p>
             ) : (
               <ul className="space-y-1">
                 {conversations.map((c) => (
@@ -171,17 +171,17 @@ export function UserDetailDrawer({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground truncate text-xs font-medium">
-                        {c.title || "Untitled"}
+                        {c.title || "未命名对话"}
                       </p>
                       <p className="text-foreground/45 truncate font-mono text-[10px] tracking-wider uppercase">
                         {formatDateTime(c.created_at)}
-                        {typeof c.message_count === "number" && ` · ${c.message_count} msg`}
+                        {typeof c.message_count === "number" && ` · ${c.message_count} 条消息`}
                       </p>
                     </div>
                     <a
                       href={`/admin/conversations?id=${c.id}`}
                       className="text-foreground/55 hover:text-foreground inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors"
-                      title="Open conversation"
+                      title="打开对话"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                     </a>
@@ -203,12 +203,12 @@ export function UserDetailDrawer({
             {user.is_active ? (
               <>
                 <UserX className="mr-1.5 h-3.5 w-3.5" />
-                Suspend
+                停用
               </>
             ) : (
               <>
                 <Mail className="mr-1.5 h-3.5 w-3.5" />
-                Reactivate
+                重新启用
               </>
             )}
           </Button>
@@ -221,18 +221,18 @@ export function UserDetailDrawer({
             {user.is_app_admin ? (
               <>
                 <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                Demote
+                取消管理员
               </>
             ) : (
               <>
                 <Shield className="mr-1.5 h-3.5 w-3.5" />
-                Promote to admin
+                设为管理员
               </>
             )}
           </Button>
           <Button variant="outline" size="sm" onClick={handleImpersonate} className="rounded-full">
             <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-            Impersonate
+            生成调试令牌
           </Button>
 
           <AlertDialog>
@@ -243,19 +243,18 @@ export function UserDetailDrawer({
                 className="text-destructive hover:text-destructive ml-auto rounded-full"
               >
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Delete
+                删除
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete {user.email}?</AlertDialogTitle>
+                <AlertDialogTitle>删除 {user.email}？</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Permanently removes the user, their conversations, and credit balance. This
-                  can&apos;t be undone.
+                  这会永久删除该用户及其相关数据，操作无法撤销。
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>取消</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     onDelete(user.id);
@@ -263,7 +262,7 @@ export function UserDetailDrawer({
                   }}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  Delete user
+                  删除用户
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -297,7 +296,7 @@ function KV({
             type="button"
             onClick={onCopy}
             className="text-foreground/45 hover:text-foreground inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors"
-            title="Copy"
+            title="复制"
           >
             <Copy className="h-3 w-3" />
           </button>

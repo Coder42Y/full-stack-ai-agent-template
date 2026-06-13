@@ -100,7 +100,7 @@
   "embed_allowed_origins": "",
   "enable_embed_mode": false,
   "enable_brand_from_config": false,
-  "enable_i18n": true,
+  "enable_i18n": false,
   "include_example_crud": false,
   "enable_pytest": true,
   "enable_precommit": true,

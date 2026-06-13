@@ -5,7 +5,9 @@ import Link from "next/link";
 import {
   Activity,
   ArrowUpRight,
+{%- if cookiecutter.enable_billing %}
   CreditCard,
+{%- endif %}
   MessageSquare,
   RefreshCw,
   Star,
@@ -40,7 +42,11 @@ interface RecentEvent {
 const EVENT_ICON: Record<RecentEvent["type"], LucideIcon> = {
   user_signup: UserPlus,
   conversation_created: MessageSquare,
+{%- if cookiecutter.enable_billing %}
   subscription_renewed: CreditCard,
+{%- else %}
+  subscription_renewed: Activity,
+{%- endif %}
   rating_low: Star,
 };
 
@@ -48,10 +54,10 @@ function formatRelative(iso: string): string {
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return "";
   const diff = Math.round((Date.now() - t) / 1000);
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 60) return "刚刚";
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  return `${Math.floor(diff / 86400)} 天前`;
 }
 
 export default function AdminOverviewPage() {
@@ -103,8 +109,8 @@ export default function AdminOverviewPage() {
         convs.items.map((c) => ({
           id: c.id,
           type: "conversation_created" as const,
-          title: c.title || "New conversation",
-          description: c.user_email ? `by ${c.user_email}` : "",
+          title: c.title || "新的需求对话",
+          description: c.user_email ? `来自 ${c.user_email}` : "",
           timestamp: c.created_at,
         })),
       );
@@ -123,10 +129,10 @@ export default function AdminOverviewPage() {
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Overview
+            总览
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight {% raw %}[&_em]:font-accent [&_em]:font-normal [&_em]:italic{% endraw %}">
-            The view from <em>above.</em>
+            工作区运行<em>概览</em>
           </h2>
         </div>
         <Button
@@ -139,7 +145,7 @@ export default function AdminOverviewPage() {
           className="rounded-full"
         >
           <RefreshCw className={cn("mr-2 h-3.5 w-3.5", statsLoading && "animate-spin")} />
-          Refresh
+          刷新
         </Button>
       </div>
 
@@ -149,23 +155,24 @@ export default function AdminOverviewPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total users"
+            label="用户总数"
             value={(stats?.total_users ?? 0).toLocaleString()}
             icon={Users}
           />
           <StatCard
-            label="Active 24h"
+            label="24 小时活跃"
             value={(stats?.active_users_24h ?? 0).toLocaleString()}
             icon={Activity}
             featured
           />
 {%- if cookiecutter.use_ai %}
           <StatCard
-            label="Conversations"
+            label="需求对话"
             value={(stats?.total_conversations ?? 0).toLocaleString()}
             icon={MessageSquare}
           />
 {%- endif %}
+{%- if cookiecutter.enable_billing %}
           <StatCard
             label="MRR"
             value={
@@ -179,6 +186,7 @@ export default function AdminOverviewPage() {
             }
             icon={CreditCard}
           />
+{%- endif %}
         </div>
       )}
 
@@ -187,35 +195,37 @@ export default function AdminOverviewPage() {
         <QuickLink
           href="/admin/users"
           icon={Users}
-          title="Manage users"
-          description="Search, suspend, impersonate"
+          title="用户管理"
+          description="查看、停用、管理员调试"
         />
 {%- if cookiecutter.use_ai %}
         <QuickLink
           href="/admin/conversations"
           icon={MessageSquare}
-          title="Browse chats"
-          description="All conversations across users"
+          title="需求对话"
+          description="查看所有需求协作对话"
         />
 {%- endif %}
+{%- if cookiecutter.enable_billing %}
         <QuickLink
           href="/admin/stripe-events"
           icon={CreditCard}
-          title="Stripe events"
-          description="Replay webhooks, debug billing"
+          title="支付事件"
+          description="排查账单回调"
         />
+{%- endif %}
         <QuickLink
           href="/admin/system"
           icon={Activity}
-          title="System health"
-          description="Per-service status & uptime"
+          title="系统健康"
+          description="检查后端服务状态"
         />
 {%- if cookiecutter.use_ai %}
         <QuickLink
           href="/admin/ratings"
           icon={Star}
-          title="Response ratings"
-          description="Quality signals from users"
+          title="回答评分"
+          description="跟踪 AI 回答质量反馈"
         />
 {%- endif %}
       </section>
@@ -225,11 +235,11 @@ export default function AdminOverviewPage() {
         <div className="border-foreground/10 flex items-center justify-between border-b px-6 py-5">
           <div>
             <h2 className="font-display text-foreground text-base font-semibold tracking-tight">
-              Recent activity
+              最近活动
             </h2>
             <p className="text-foreground/55 text-xs">
-              Workspace-wide events. Backend wishlist:{" "}
-              <code className="font-mono">/admin/events</code> for first-class feed.
+              工作区内的需求对话与管理事件。后续可接入{" "}
+              <code className="font-mono">/admin/events</code> 形成完整审计流。
             </p>
           </div>
         </div>
@@ -239,7 +249,7 @@ export default function AdminOverviewPage() {
           </div>
         ) : events.length === 0 ? (
           <div className="border-foreground/10 m-6 rounded-xl border-2 border-dashed p-10 text-center">
-            <p className="text-foreground/65 text-sm">No recent events.</p>
+            <p className="text-foreground/65 text-sm">暂无最近活动。</p>
           </div>
         ) : (
           <ul className="divide-foreground/10 divide-y">

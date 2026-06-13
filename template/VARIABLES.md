@@ -197,7 +197,7 @@ These variables are set automatically by the generator.
 | `enable_webhooks` | bool | `false` | Enable webhook support | - |
 | `enable_conversation_persistence` | bool | `true` | Enable conversation persistence (derived from `use_ai`) | Computed from `use_ai` |
 | `include_example_crud` | bool | `false` | Include example CRUD endpoints (always disabled) | Always false |
-| `enable_i18n` | bool | `true` | Enable internationalization in frontend (always enabled) | Always true |
+| `enable_i18n` | bool | `false` | Enable optional internationalization in frontend | Requires `--i18n`; default frontend is single-language |
 | `seed_admin_email` | string | `""` | Email of a user to auto-promote to app-admin on first startup (via `FIRST_ADMIN_EMAIL` env var) | - |
 | `enable_seed_admin` | bool | `false` | Enable startup auto-promotion of `seed_admin_email` to app-admin | Computed from `seed_admin_email` |
 | `embed_allowed_origins` | string | `""` | Comma-separated origins allowed to embed the app in an iframe (e.g. `"https://parent.com"`). Sets CSP `frame-ancestors` and CORS origins | - |

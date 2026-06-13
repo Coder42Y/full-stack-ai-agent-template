@@ -55,8 +55,8 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
           events.push({
             id: `conv-${c.id}`,
             icon: MessageSquare,
-            title: c.title?.trim() || "New conversation",
-            description: "Conversation",
+            title: c.title?.trim() || "新对话",
+            description: "需求对话",
             timestamp: c.updated_at || c.created_at,
             href: `${ROUTES.CHAT}?id=${c.id}`,
           });
@@ -72,8 +72,8 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
             title:
               tx.description ||
               (isPositive
-                ? `+${tx.delta.toLocaleString()} credits`
-                : `${tx.delta.toLocaleString()} credits`),
+                ? `+${tx.delta.toLocaleString()} 点额度`
+                : `${tx.delta.toLocaleString()} 点额度`),
             description: humanizeTxType(tx.type),
             timestamp: tx.created_at,
             accent: isPositive ? "brand" : tx.delta < 0 ? "default" : "default",
@@ -84,7 +84,7 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
       events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setItems(events.slice(0, limit));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load activity");
+      setError(err instanceof Error ? err.message : "加载活动失败");
     }
   };
 
@@ -96,29 +96,29 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
   return (
     <div className="border-border bg-card flex h-full flex-col rounded-2xl border p-5 lg:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-display text-foreground text-base font-semibold">Recent activity</h2>
+        <h2 className="font-display text-foreground text-base font-semibold">最近活动</h2>
         <Link
           href={ROUTES.CHAT}
           className="text-foreground/55 hover:text-foreground font-mono text-[11px] uppercase tracking-wider"
         >
-          View all →
+          查看全部
         </Link>
       </div>
 
       {items === null && !error && <LoadingState variant="skeleton-list" rows={4} />}
       {error && (
         <ErrorState
-          title="Couldn't load activity"
+          title="无法加载活动"
           description={error}
-          cta={{ label: "Retry", onClick: load }}
+          cta={{ label: "重试", onClick: load }}
         />
       )}
       {items && items.length === 0 && !error && (
         <EmptyState
           icon={MessageSquare}
-          title="Nothing yet"
-          description="Start a chat or upload a document — recent events will appear here."
-          cta={{ label: "Start a chat", href: ROUTES.CHAT }}
+          title="暂无活动"
+          description="开始需求对话或上传 PRD 后，相关事件会显示在这里。"
+          cta={{ label: "开始对话", href: ROUTES.CHAT }}
           fill
         />
       )}
@@ -175,16 +175,20 @@ function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return "";
   const diffSec = Math.round((Date.now() - then) / 1000);
-  if (diffSec < 60) return "just now";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diffSec < 60) return "刚刚";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} 分钟前`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} 小时前`;
+  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)} 天前`;
+  return new Date(iso).toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
 
 function humanizeTxType(t: string): string {
-  return t
-    .replace(/_/g, " ")
-    .replace(/^./, (c) => c.toUpperCase());
+  const labels: Record<string, string> = {
+    subscription_renewal: "订阅续费",
+    topup: "额度充值",
+    usage: "额度消耗",
+    adjustment: "额度调整",
+  };
+  return labels[t] ?? t.replace(/_/g, " ");
 }
 {% endraw %}

@@ -25,7 +25,7 @@ const ROLE_TONE: Record<string, string> = {
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString("zh-CN", { month: "2-digit", day: "numeric", year: "numeric" });
 }
 
 export default function OrgMembersPage({ params }: PageProps) {
@@ -76,7 +76,7 @@ export default function OrgMembersPage({ params }: PageProps) {
     if (!file) return;
     e.target.value = "";
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Avatar too large. Maximum 2MB.");
+      toast.error("头像过大，最大支持 2MB。");
       return;
     }
     setAvatarUploading(true);
@@ -85,13 +85,13 @@ export default function OrgMembersPage({ params }: PageProps) {
       fd.append("file", file);
       const res = await fetch(`/api/orgs/${id}/avatar`, { method: "POST", body: fd });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-        throw new Error(err.detail || "Upload failed");
+        const err = await res.json().catch(() => ({ detail: "上传失败" }));
+        throw new Error(err.detail || "上传失败");
       }
-      toast.success("Workspace avatar updated");
+      toast.success("协作空间头像已更新");
       await fetchOrgs();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+      toast.error(err instanceof Error ? err.message : "上传头像失败");
     } finally {
       setAvatarUploading(false);
     }
@@ -106,7 +106,7 @@ export default function OrgMembersPage({ params }: PageProps) {
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1.5 text-xs font-medium transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to organizations
+          返回组织
         </button>
       </div>
 
@@ -118,7 +118,7 @@ export default function OrgMembersPage({ params }: PageProps) {
             onClick={() => avatarInputRef.current?.click()}
             disabled={!canManage || avatarUploading}
             className="bg-foreground/8 group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full disabled:cursor-default"
-            title={canManage ? "Change workspace avatar" : "Only owners and admins can edit"}
+            title={canManage ? "更换协作空间头像" : "仅所有者和管理员可编辑"}
           >
             {org.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -153,10 +153,10 @@ export default function OrgMembersPage({ params }: PageProps) {
           <div className="min-w-0 flex-1 space-y-3">
             <div>
               <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Workspace profile
+                协作空间资料
               </p>
               <p className="text-foreground/55 mt-0.5 text-xs">
-                Name and avatar shown across the app to everyone in this workspace.
+                名称和头像会展示给该协作空间内的所有成员。
               </p>
             </div>
 
@@ -167,7 +167,7 @@ export default function OrgMembersPage({ params }: PageProps) {
                 onChange={(e) => setName(e.target.value)}
                 disabled={!canManage || savingName}
                 className="border-foreground/15 focus:border-foreground/40 bg-background text-foreground min-w-0 flex-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors outline-none disabled:opacity-60"
-                placeholder="Workspace name"
+                placeholder="协作空间名称"
                 maxLength={255}
               />
               {canManage && name.trim() !== org.name && name.trim() !== "" && (
@@ -180,14 +180,14 @@ export default function OrgMembersPage({ params }: PageProps) {
                   {savingName ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    "Save"
+                    "保存"
                   )}
                 </button>
               )}
             </div>
             {!canManage && (
               <p className="text-foreground/45 text-[11px]">
-                Only owners and admins can edit workspace profile.
+                仅所有者和管理员可编辑协作空间资料。
               </p>
             )}
           </div>
@@ -197,14 +197,13 @@ export default function OrgMembersPage({ params }: PageProps) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Members
+            成员
           </p>
           <h1 className="font-display text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-            People in this workspace
+            协作空间成员
           </h1>
           <p className="text-foreground/65 max-w-xl text-sm">
-            {total} {total === 1 ? "person has" : "people have"} access. Owners and admins can
-            invite teammates and adjust roles.
+            当前共有 {total} 位成员。所有者和管理员可以邀请成员并调整角色。
           </p>
         </div>
         {canManage && (
@@ -214,7 +213,7 @@ export default function OrgMembersPage({ params }: PageProps) {
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             <UserPlus className="h-4 w-4" />
-            Invite teammate
+            邀请成员
           </button>
         )}
       </header>
@@ -224,10 +223,10 @@ export default function OrgMembersPage({ params }: PageProps) {
       ) : members.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No members yet"
-          description="Invite teammates by email to give them access to this workspace."
+          title="暂无成员"
+          description="通过邮箱邀请成员加入该协作空间。"
           cta={
-            canManage ? { label: "Invite teammate", onClick: () => setInviteOpen(true) } : undefined
+            canManage ? { label: "邀请成员", onClick: () => setInviteOpen(true) } : undefined
           }
         />
       ) : (
@@ -247,10 +246,10 @@ export default function OrgMembersPage({ params }: PageProps) {
           <div className="flex items-end justify-between gap-2">
             <div>
               <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Pending invitations
+                待接受邀请
               </p>
               <h2 className="font-display text-foreground text-xl font-semibold tracking-tight">
-                {pendingInvitations.length} waiting on a response
+                {pendingInvitations.length} 个邀请等待回应
               </h2>
             </div>
           </div>
@@ -266,8 +265,8 @@ export default function OrgMembersPage({ params }: PageProps) {
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground truncate text-sm font-semibold">{inv.email}</p>
                   <p className="text-foreground/55 mt-0.5 text-xs">
-                    Invited {formatDate(inv.created_at)}
-                    {inv.expires_at && <> · expires {formatDate(inv.expires_at)}</>}
+                    邀请于 {formatDate(inv.created_at)}
+                    {inv.expires_at && <> · 过期于 {formatDate(inv.expires_at)}</>}
                   </p>
                 </div>
                 <span
@@ -284,7 +283,7 @@ export default function OrgMembersPage({ params }: PageProps) {
                     onClick={() => revokeInvitation(inv.token)}
                     className="text-foreground/55 hover:text-destructive text-xs font-medium transition-colors"
                   >
-                    Revoke
+                    撤销
                   </button>
                 )}
               </li>

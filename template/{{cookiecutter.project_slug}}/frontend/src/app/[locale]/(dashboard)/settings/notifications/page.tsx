@@ -20,29 +20,29 @@ interface NotificationCategory {
 const CATEGORIES: NotificationCategory[] = [
   {
     key: "billing",
-    label: "Billing",
-    description: "Subscription renewals, payment failures, low credit warnings.",
+    label: "账单",
+    description: "订阅续费、支付失败、额度不足提醒。",
     icon: CreditCard,
     defaults: { email: true, inApp: true },
   },
   {
     key: "members",
-    label: "Team activity",
-    description: "Invitations accepted, members joining or leaving your workspace.",
+    label: "团队动态",
+    description: "邀请接受、成员加入或离开协作空间。",
     icon: Users,
     defaults: { email: true, inApp: true },
   },
   {
     key: "security",
-    label: "Security alerts",
-    description: "New device sign-ins, password changes, suspicious activity.",
+    label: "安全提醒",
+    description: "新设备登录、密码变更、异常活动提醒。",
     icon: MessageSquare,
     defaults: { email: true, inApp: true },
   },
   {
     key: "product",
-    label: "Product updates",
-    description: "New features, release notes, occasional how-to tips.",
+    label: "产品更新",
+    description: "新功能、版本说明和少量使用提示。",
     icon: Sparkles,
     defaults: { email: false, inApp: true },
   },
@@ -96,7 +96,7 @@ export default function NotificationsSettingsPage() {
 
   const handleSave = () => {
     savePrefs(prefs);
-    toast.success("Notification preferences saved");
+    toast.success("通知偏好已保存");
     setDirty(false);
   };
 
@@ -108,15 +108,15 @@ export default function NotificationsSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Notification preferences"
-        description="Pick which events we send by email versus only show in-app."
+        title="通知偏好"
+        description="选择哪些事件通过邮件提醒，哪些只在应用内提示。"
         action={
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleReset} className="rounded-full">
-              Reset to defaults
+              恢复默认
             </Button>
             <Button onClick={handleSave} disabled={!dirty} size="sm" className="rounded-full">
-              Save changes
+              保存变更
             </Button>
           </div>
         }
@@ -124,13 +124,13 @@ export default function NotificationsSettingsPage() {
         <div className="border-foreground/10 bg-background overflow-hidden rounded-2xl border">
           <div className="border-foreground/10 bg-foreground/[0.02] grid grid-cols-[1fr_70px_70px] items-center gap-2 border-b px-5 py-3 sm:grid-cols-[1.5fr_90px_90px]">
             <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-              Category
+              类型
             </span>
             <span className="text-foreground/55 text-center font-mono text-[11px] tracking-wider uppercase">
-              Email
+              邮件
             </span>
             <span className="text-foreground/55 text-center font-mono text-[11px] tracking-wider uppercase">
-              In-app
+              应用内
             </span>
           </div>
           <ul className="divide-foreground/10 divide-y">
@@ -169,8 +169,8 @@ export default function NotificationsSettingsPage() {
           </ul>
         </div>
         <p className="text-foreground/55 mt-4 text-xs leading-relaxed">
-          Preferences are stored locally for now. Backend wiring required (
-          <code className="font-mono">/users/me/notifications</code>) to sync across devices.
+          当前偏好先保存在本地。后续接入{" "}
+          <code className="font-mono">/users/me/notifications</code> 后可跨设备同步。
         </p>
       </SettingsSection>
     </div>

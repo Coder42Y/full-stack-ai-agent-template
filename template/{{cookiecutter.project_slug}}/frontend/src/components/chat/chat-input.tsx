@@ -145,7 +145,7 @@ export function ChatInput({
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.info("Voice input is only supported in Chrome. Use Chrome for speech-to-text.");
+      toast.info("当前浏览器不支持语音输入，请使用 Chrome 的语音转文字能力。");
       return;
     }
 
@@ -179,7 +179,7 @@ export function ChatInput({
 
     recognition.onerror = () => {
       setIsListening(false);
-      toast.error("Speech recognition error");
+      toast.error("语音识别失败");
     };
 
     recognitionRef.current = recognition;
@@ -197,7 +197,7 @@ export function ChatInput({
     const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
     for (const file of Array.from(files)) {
       if (file.size > maxMb * 1024 * 1024) {
-        toast.error(`${file.name}: File too large. Maximum ${maxMb}MB.`);
+        toast.error(`${file.name}: 文件过大，最大 ${maxMb}MB。`);
         continue;
       }
 

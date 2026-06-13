@@ -47,7 +47,7 @@ export function useAdminUsers() {
         setUsers(data.items);
         setTotal(data.total);
       } catch {
-        toast.error("Failed to load users");
+        toast.error("加载用户失败");
       } finally {
         setIsLoading(false);
       }
@@ -59,9 +59,9 @@ export function useAdminUsers() {
     try {
       const updated = await apiClient.patch<AdminUserRead>(`/admin/users/${userId}`, patch);
       setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
-      toast.success("User updated");
+      toast.success("用户已更新");
     } catch {
-      toast.error("Failed to update user");
+      toast.error("更新用户失败");
     }
   }, []);
 
@@ -70,9 +70,9 @@ export function useAdminUsers() {
       await apiClient.delete(`/admin/users/${userId}`);
       setUsers((prev) => prev.filter((u) => u.id !== userId));
       setTotal((t) => t - 1);
-      toast.success("User deleted");
+      toast.success("用户已删除");
     } catch {
-      toast.error("Failed to delete user");
+      toast.error("删除用户失败");
     }
   }, []);
 
@@ -84,7 +84,7 @@ export function useAdminUsers() {
       );
       return access_token;
     } catch {
-      toast.error("Failed to impersonate user");
+      toast.error("生成调试令牌失败");
       return null;
     } finally {
       setImpersonating(null);

@@ -32,7 +32,7 @@ export function Breadcrumb() {
   });
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1 text-sm">
+    <nav aria-label="面包屑导航" className="mb-4 flex items-center gap-1 text-sm">
       {crumbs.map((crumb, i) => (
         <span key={crumb.path} className="flex items-center gap-1">
           {i > 0 && <ChevronRight className="text-muted-foreground h-3 w-3" />}

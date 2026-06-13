@@ -35,6 +35,12 @@ const roleBadgeVariant: Record<OrgRole, "default" | "secondary" | "outline"> = {
   member: "outline",
 };
 
+const roleLabel: Record<OrgRole, string> = {
+  owner: "所有者",
+  admin: "管理员",
+  member: "成员",
+};
+
 export function MembersTable({
   members,
   currentUserId,
@@ -46,9 +52,9 @@ export function MembersTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Member</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Joined</TableHead>
+          <TableHead>成员</TableHead>
+          <TableHead>角色</TableHead>
+          <TableHead>加入时间</TableHead>
           {canManage && <TableHead className="w-12" />}
         </TableRow>
       </TableHeader>
@@ -68,7 +74,7 @@ export function MembersTable({
                   <div>
                     <p className="text-sm font-medium">{m.full_name ?? m.email}</p>
                     {m.full_name && <p className="text-muted-foreground text-xs">{m.email}</p>}
-                    {isSelf && <span className="text-muted-foreground text-xs">(you)</span>}
+                    {isSelf && <span className="text-muted-foreground text-xs">（你）</span>}
                   </div>
                 </div>
               </TableCell>
@@ -82,16 +88,16 @@ export function MembersTable({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">管理员</SelectItem>
+                      <SelectItem value="member">成员</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant={roleBadgeVariant[m.role]}>{m.role}</Badge>
+                  <Badge variant={roleBadgeVariant[m.role]}>{roleLabel[m.role]}</Badge>
                 )}
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {new Date(m.joined_at).toLocaleDateString()}
+                {new Date(m.joined_at).toLocaleDateString("zh-CN")}
               </TableCell>
               {canManage && (
                 <TableCell>

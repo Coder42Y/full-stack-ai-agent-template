@@ -39,8 +39,8 @@ const RANGES = [
 type Metric = "credits" | "calls" | "tokens";
 
 const METRIC_LABELS: Record<Metric, string> = {
-  credits: "Credits",
-  calls: "Calls",
+  credits: "额度",
+  calls: "调用",
   tokens: "Tokens",
 };
 
@@ -95,14 +95,14 @@ export function UsageTimeline() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Usage over time
+            用量趋势
           </p>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="font-display text-foreground text-2xl font-bold">
               {totalForMetric.toLocaleString()}
             </span>
             <span className="text-foreground/55 text-sm">
-              {METRIC_LABELS[metric].toLowerCase()}
+              {METRIC_LABELS[metric]}
             </span>
           </div>
         </div>
@@ -112,8 +112,8 @@ export function UsageTimeline() {
             value={metric}
             onChange={(v) => setMetric(v as Metric)}
             options={[
-              { label: "Credits", value: "credits" },
-              { label: "Calls", value: "calls" },
+              { label: "额度", value: "credits" },
+              { label: "调用", value: "calls" },
               { label: "Tokens", value: "tokens" },
             ]}
           />
@@ -127,19 +127,19 @@ export function UsageTimeline() {
 
       <div className="mt-5 h-56 w-full">
         {loading ? (
-          <LoadingState variant="dot-pulse" label="Loading usage…" />
+          <LoadingState variant="dot-pulse" label="加载用量中..." />
         ) : error ? (
           <ErrorState
-            title="Couldn't load usage"
+            title="无法加载用量"
             description={error}
-            cta={{ label: "Retry", onClick: () => fetchTimeline(days) }}
+            cta={{ label: "重试", onClick: () => fetchTimeline(days) }}
             className="h-full"
           />
         ) : !chartData || chartData.length === 0 ? (
           <EmptyState
             icon={Activity}
-            title="No usage yet"
-            description="Once you start sending messages, usage will appear here."
+            title="暂无用量"
+            description="发送需求对话后，用量会显示在这里。"
             fill
           />
         ) : (
@@ -210,7 +210,7 @@ function UsageTooltip({
     <div className="border-border bg-card text-foreground rounded-lg border px-3 py-2 text-xs shadow-lg">
       <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">{label}</p>
       <p className="mt-1 font-semibold">
-        {first.value.toLocaleString()} {METRIC_LABELS[metric].toLowerCase()}
+        {first.value.toLocaleString()} {METRIC_LABELS[metric]}
       </p>
     </div>
   );
@@ -219,7 +219,7 @@ function UsageTooltip({
 function formatDayLabel(day: string, _range: number): string {
   const d = new Date(day);
   if (Number.isNaN(d.getTime())) return day;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
 
 {% endraw %}

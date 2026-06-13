@@ -41,26 +41,26 @@ export default function AcceptInvitationPage({ params }: PageProps) {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>Team invitation</CardTitle>
-          <CardDescription>You&apos;ve been invited to join an organization.</CardDescription>
+          <CardTitle>团队邀请</CardTitle>
+          <CardDescription>你被邀请加入一个协作空间。</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           {status === "success" && (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500" />
-              <p className="text-sm font-medium">You joined the organization!</p>
-              <p className="text-muted-foreground text-xs">Redirecting to your organizations...</p>
+              <p className="text-sm font-medium">已加入协作空间</p>
+              <p className="text-muted-foreground text-xs">正在跳转到组织页面...</p>
             </>
           )}
           {status === "error" && (
             <>
               <XCircle className="text-destructive h-12 w-12" />
-              <p className="text-sm font-medium">Failed to accept invitation</p>
+              <p className="text-sm font-medium">接受邀请失败</p>
               <p className="text-muted-foreground text-xs">
-                The invitation may have expired or already been used.
+                邀请可能已过期或已被使用。
               </p>
               <Button variant="outline" onClick={() => router.push("/dashboard")}>
-                Go to dashboard
+                返回首页
               </Button>
             </>
           )}
@@ -68,10 +68,10 @@ export default function AcceptInvitationPage({ params }: PageProps) {
             <>
               {status === "loading" && <Loader2 className="text-primary h-8 w-8 animate-spin" />}
               <p className="text-muted-foreground text-sm">
-                Click below to accept this invitation and join the team.
+                点击下方按钮接受邀请并加入团队。
               </p>
               <Button onClick={handleAccept} disabled={status === "loading"} className="w-full">
-                {status === "loading" ? "Joining..." : "Accept invitation"}
+                {status === "loading" ? "加入中..." : "接受邀请"}
               </Button>
             </>
           )}

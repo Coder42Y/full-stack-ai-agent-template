@@ -22,8 +22,8 @@ interface Preset {
 const PRESETS: Preset[] = [
   {
     key: "blue",
-    label: "Blue",
-    description: "Stripe / Vercel — classic SaaS",
+    label: "蓝色",
+    description: "经典 SaaS 风格",
     h: 250,
     c: 0.2,
     l: 65,
@@ -31,8 +31,8 @@ const PRESETS: Preset[] = [
   },
   {
     key: "green",
-    label: "Green",
-    description: "Calm, fresh, healthtech",
+    label: "绿色",
+    description: "沉稳、清爽、适合健康或效率场景",
     h: 155,
     c: 0.18,
     l: 65,
@@ -40,8 +40,8 @@ const PRESETS: Preset[] = [
   },
   {
     key: "red",
-    label: "Red",
-    description: "Warm, energetic",
+    label: "红色",
+    description: "温暖、有行动感",
     h: 25,
     c: 0.2,
     l: 60,
@@ -49,8 +49,8 @@ const PRESETS: Preset[] = [
   },
   {
     key: "violet",
-    label: "Violet",
-    description: "Linear / Anthropic — modern AI",
+    label: "紫色",
+    description: "现代 AI 产品风格",
     h: 295,
     c: 0.22,
     l: 65,
@@ -58,8 +58,8 @@ const PRESETS: Preset[] = [
   },
   {
     key: "orange",
-    label: "Orange",
-    description: "Warm, friendly, B2C",
+    label: "橙色",
+    description: "亲和、轻量、偏消费场景",
     h: 55,
     c: 0.18,
     l: 72,

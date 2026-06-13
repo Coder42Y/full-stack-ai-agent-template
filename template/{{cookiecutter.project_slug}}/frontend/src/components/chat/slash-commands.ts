@@ -43,41 +43,41 @@ export interface SlashCommandContext {
 export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "clear",
-    description: "Clear the current chat (does not delete the conversation).",
+    description: "清空当前聊天内容，不删除对话记录。",
     aliases: ["reset"],
     action: { kind: "client", run: (ctx) => ctx.clearChat() },
     source: "builtin",
   },
   {
     name: "regen",
-    description: "Regenerate the last assistant response.",
+    description: "重新生成上一条 AI 回复。",
     aliases: ["regenerate", "retry"],
     action: { kind: "client", run: (ctx) => ctx.regenerateLast() },
     source: "builtin",
   },
   {
     name: "settings",
-    description: "Open chat settings (model, temperature, thinking).",
+    description: "打开对话设置，包括模型、温度和思考强度。",
     action: { kind: "client", run: (ctx) => ctx.openSettings() },
     source: "builtin",
   },
   {
     name: "summarize",
-    description: "Ask the agent to summarize the conversation so far.",
+    description: "让 AI 总结当前对话。",
     action: {
       kind: "send-as-message",
       replaceWith:
-        "Please give me a concise summary of our conversation so far — key topics, decisions, and any open questions.",
+        "请简要总结目前这段需求对话，包括关键主题、已确认结论和待澄清问题。",
     },
     source: "builtin",
   },
   {
     name: "explain",
-    description: "Ask the agent to explain its last response in simpler terms.",
+    description: "让 AI 用更简单的方式解释上一条回复。",
     action: {
       kind: "send-as-message",
       replaceWith:
-        "Explain your last response again, in simpler terms — assume I don't have technical background.",
+        "请用更简单的语言重新解释你上一条回复，假设读者没有技术背景。",
     },
     source: "builtin",
   },

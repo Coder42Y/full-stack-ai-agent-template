@@ -131,15 +131,15 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="view">View</SelectItem>
-                <SelectItem value="edit">Edit</SelectItem>
+                <SelectItem value="view">查看</SelectItem>
+                <SelectItem value="edit">编辑</SelectItem>
               </SelectContent>
             </Select>
             <Button
               onClick={handleShare}
               disabled={isLoading || isSharing}
               size="icon"
-              aria-label="Share conversation"
+              aria-label="分享对话"
             >
               {isSharing ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -169,7 +169,7 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
                 variant="secondary"
                 size="icon"
                 onClick={handleCopyLink}
-                aria-label="Copy share link"
+                aria-label="复制分享链接"
               >
                 <Copy className="h-4 w-4" aria-hidden />
               </Button>
@@ -177,7 +177,7 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
           </div>
           {shareLink && (
             <p className="text-muted-foreground text-xs break-all">
-              {copied ? "Copied!" : shareLink}
+              {copied ? "已复制" : shareLink}
             </p>
           )}
 
@@ -192,10 +192,10 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm">
-                      {share.shared_with_email || share.shared_with || "Link"}
+                      {share.shared_with_email || share.shared_with || "链接"}
                     </span>
-                    <Badge variant="secondary">{share.permission}</Badge>
-                    {share.share_token && <Badge variant="outline">Link</Badge>}
+                    <Badge variant="secondary">{share.permission === "edit" ? "编辑" : "查看"}</Badge>
+                    {share.share_token && <Badge variant="outline">链接</Badge>}
                   </div>
                   <Button
                     variant="ghost"

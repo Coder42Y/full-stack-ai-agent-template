@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
+import { requirementRoleHeaders } from "@/lib/requirement-role";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -29,7 +30,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const data = await backendFetch(`/api/v1/kb/${id}`, {
       method: "PATCH",
-      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        ...requirementRoleHeaders(request.headers.get("X-Requirement-Role")),
+      },
       body: JSON.stringify(body),
     });
     return NextResponse.json(data);
@@ -47,7 +52,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     await backendFetch(`/api/v1/kb/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...requirementRoleHeaders(request.headers.get("X-Requirement-Role")),
+      },
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

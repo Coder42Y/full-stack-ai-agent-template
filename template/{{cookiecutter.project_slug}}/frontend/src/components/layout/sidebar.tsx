@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { APP_NAME, ROUTES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -23,18 +23,18 @@ import { useSidebarStore, useAuthStore } from "@/stores";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui";
 
 const navigation = [
-  { name: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
-  { name: "Chat", href: ROUTES.CHAT, icon: MessageSquare },
+  { name: "首页", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+  { name: "对话", href: ROUTES.CHAT, icon: MessageSquare },
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
-  { name: "RAG", href: ROUTES.KB, icon: Database },
+  { name: "需求项目", href: ROUTES.KB, icon: Database },
 {%- endif %}
 {%- if cookiecutter.enable_teams %}
-  { name: "Organizations", href: ROUTES.ORGS, icon: Building2 },
+  { name: "组织", href: ROUTES.ORGS, icon: Building2 },
 {%- endif %}
 {%- if cookiecutter.enable_billing %}
-  { name: "Billing", href: ROUTES.BILLING, icon: CreditCard },
+  { name: "账单", href: ROUTES.BILLING, icon: CreditCard },
 {%- endif %}
-  { name: "Profile", href: ROUTES.PROFILE, icon: UserCircle },
+  { name: "个人资料", href: ROUTES.PROFILE, icon: UserCircle },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -76,7 +76,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           )}
         >
           <ShieldAlert className="h-5 w-5" />
-          Admin
+          管理后台
         </Link>
       )}
     </nav>
@@ -90,7 +90,7 @@ export function Sidebar() {
     <Sheet open={isOpen} onOpenChange={close}>
       <SheetContent side="left" className="w-72 p-0">
         <SheetHeader className="h-14 px-4">
-          <SheetTitle>{APP_NAME}</SheetTitle>
+          <SheetTitle>需求知识库</SheetTitle>
           <SheetClose onClick={close} />
         </SheetHeader>
         <NavLinks onNavigate={close} />

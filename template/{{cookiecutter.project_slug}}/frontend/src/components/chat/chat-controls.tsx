@@ -53,19 +53,19 @@ interface ChatControlsProps {
 
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
 const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
-  personal: { label: "Personal", icon: Lock },
-  org: { label: "Organization", icon: Users },
-  app: { label: "App-wide", icon: Sparkles },
+  personal: { label: "个人", icon: Lock },
+  org: { label: "组织", icon: Users },
+  app: { label: "全局", icon: Sparkles },
 };
 
 const SECTION_ORDER: KBScope[] = ["personal", "org", "app"];
 {%- endif %}
 
 const EFFORT_OPTIONS: { label: string; value: ThinkingEffort; hint: string }[] = [
-  { label: "Off", value: "off", hint: "Direct answer, no reasoning" },
-  { label: "Low", value: "low", hint: "Quick reasoning" },
-  { label: "Medium", value: "medium", hint: "Balanced" },
-  { label: "High", value: "high", hint: "Deep, slower" },
+  { label: "关闭", value: "off", hint: "直接回答，不额外推理" },
+  { label: "低", value: "low", hint: "快速推理" },
+  { label: "中", value: "medium", hint: "平衡速度和质量" },
+  { label: "高", value: "high", hint: "更深入，但会更慢" },
 ];
 
 /**
@@ -150,11 +150,11 @@ export function ChatControls({
 
   // ── Model state ─────────────────────────────────────────────────────────
   const [availableModels, setAvailableModels] = useState<{ value: string; label: string }[]>([
-    { value: "", label: "Default" },
+    { value: "", label: "默认模型" },
   ]);
   const [selectedModel, setSelectedModel] = useState<{ value: string; label: string }>({
     value: "",
-    label: "Default",
+    label: "默认模型",
   });
 
   useEffect(() => {
@@ -166,7 +166,7 @@ export function ChatControls({
       .then((data) => {
         if (data?.models) {
           const models = [
-            { value: "", label: `Default (${data.default})` },
+            { value: "", label: `默认 (${data.default})` },
             ...data.models.map((m: string) => ({ value: m, label: m })),
           ];
           setAvailableModels(models);
@@ -185,11 +185,11 @@ export function ChatControls({
   const triggerSummary = useMemo(() => {
     const parts: string[] = [];
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
-    if (activeCount > 0) parts.push(`${activeCount} KB${activeCount === 1 ? "" : "s"}`);
+    if (activeCount > 0) parts.push(`${activeCount} 个知识库`);
 {%- endif %}
     if (selectedModel.value) parts.push(selectedModel.value);
-    if (settingsOverridden) parts.push("Custom");
-    return parts.length ? parts.join(" · ") : "Controls";
+    if (settingsOverridden) parts.push("自定义");
+    return parts.length ? parts.join(" · ") : "控制";
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
   }, [activeCount, selectedModel, settingsOverridden]);
 {%- else %}
@@ -248,9 +248,9 @@ export function ChatControls({
           <TabButton icon={Database} label="KB" active={tab === "kb"} onClick={() => setTab("kb")} />
 {%- endif %}
           {onModelChange && (
-            <TabButton
+          <TabButton
               icon={Cpu}
-              label="Model"
+              label="模型"
               active={tab === "model"}
               onClick={() => setTab("model")}
             />
@@ -258,7 +258,7 @@ export function ChatControls({
           {onTemperatureChange && onThinkingEffortChange && (
             <TabButton
               icon={Settings2}
-              label="Settings"
+              label="设置"
               active={tab === "settings"}
               onClick={() => setTab("settings")}
             />
@@ -314,9 +314,9 @@ export function ChatControls({
               className="bg-brand inline-block h-1 w-1 animate-pulse rounded-full"
               {% raw %}style={{ boxShadow: "0 0 6px var(--color-brand)" }}{% endraw %}
             />
-            {currentConversationId ? "Saved for this chat" : "Saves on send"}
+            {currentConversationId ? "已保存到当前对话" : "发送后保存"}
           </span>
-          <span>esc to close</span>
+          <span>Esc 关闭</span>
         </div>
       </PopoverContent>
     </Popover>
@@ -375,23 +375,23 @@ function KBPanel({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between">
-        <p className="text-foreground text-sm font-semibold">Knowledge bases</p>
+        <p className="text-foreground text-sm font-semibold">知识库</p>
         <span className="text-foreground/55 font-mono text-[10px] tabular-nums">
-          {activeCount}/{kbs.length} active
+          已选 {activeCount}/{kbs.length}
         </span>
       </div>
       <p className="text-foreground/55 mb-4 text-xs leading-relaxed">
-        Picked KBs are searched on every message you send.
+        发送消息时会检索已选需求知识库，并把来源带入回答。
       </p>
 
       {isLoading && kbs.length === 0 ? (
-        <p className="text-foreground/55 py-3 text-xs">Loading…</p>
+        <p className="text-foreground/55 py-3 text-xs">加载中...</p>
       ) : kbs.length === 0 ? (
         <div className="border-foreground/10 bg-foreground/[0.02] rounded-xl border px-4 py-6 text-center">
           <Database className="text-foreground/30 mx-auto mb-2 h-6 w-6" />
-          <p className="text-foreground/65 text-xs">No knowledge bases yet.</p>
+          <p className="text-foreground/65 text-xs">还没有需求知识库。</p>
           <p className="text-foreground/45 mt-1 text-[11px]">
-            Create one on the Knowledge Bases page.
+            请先在需求项目页面创建一个项目。
           </p>
         </div>
       ) : (
@@ -445,7 +445,7 @@ function KBPanel({
 
       {!currentConversationId && kbs.length > 0 && (
         <p className="text-foreground/45 mt-4 font-mono text-[10px] tracking-wider uppercase">
-          Draft selection — saves when you send.
+          草稿选择会在发送后保存。
         </p>
       )}
     </div>
@@ -465,9 +465,9 @@ function ModelPanel({
 }) {
   return (
     <div>
-      <p className="text-foreground mb-1 text-sm font-semibold">Model</p>
+      <p className="text-foreground mb-1 text-sm font-semibold">模型</p>
       <p className="text-foreground/55 mb-4 text-xs leading-relaxed">
-        Pick the model that handles this conversation.
+        选择用于处理当前需求对话的模型。
       </p>
       <ul className="space-y-1">
         {models.map((m) => {
@@ -513,11 +513,11 @@ function SettingsPanel({
       <div className="space-y-2.5">
         <div className="flex items-baseline justify-between">
           <label htmlFor="chat-temp" className="text-foreground text-sm font-semibold">
-            Temperature
+            随机性
           </label>
           <span className="text-foreground font-mono text-xs tabular-nums">
             {temperature === null ? (
-              <span className="text-foreground/55">default</span>
+              <span className="text-foreground/55">默认</span>
             ) : (
               temperature.toFixed(2)
             )}
@@ -534,8 +534,8 @@ function SettingsPanel({
           className="bg-foreground/15 h-1.5 w-full cursor-pointer appearance-none rounded-full accent-[var(--color-brand)]"
         />
         <div className="text-foreground/45 flex justify-between font-mono text-[10px] tracking-wider uppercase">
-          <span>focused</span>
-          <span>creative</span>
+          <span>稳健</span>
+          <span>发散</span>
         </div>
         {temperature !== null && (
           <button
@@ -543,7 +543,7 @@ function SettingsPanel({
             onClick={() => onTemperatureChange(null)}
             className="text-foreground/55 hover:text-foreground text-[11px] underline-offset-2 hover:underline"
           >
-            Reset to server default
+            恢复服务端默认
           </button>
         )}
       </div>
@@ -551,8 +551,8 @@ function SettingsPanel({
       {/* Thinking effort */}
       <div className="space-y-2.5">
         <div className="flex items-baseline justify-between">
-          <span className="text-foreground text-sm font-semibold">Thinking effort</span>
-          <span className="text-foreground/45 text-[10px]">model-dependent</span>
+          <span className="text-foreground text-sm font-semibold">推理强度</span>
+          <span className="text-foreground/45 text-[10px]">取决于模型</span>
         </div>
         <div className="grid grid-cols-4 gap-1">
           {EFFORT_OPTIONS.map((opt) => (
@@ -577,8 +577,7 @@ function SettingsPanel({
       </div>
 
       <p className="text-foreground/45 text-[10px] leading-relaxed">
-        Settings persist for the current chat session. Some controls are no-ops on models that
-        don&apos;t support them.
+        设置仅在当前对话会话中生效。不支持对应参数的模型会忽略这些控制项。
       </p>
     </div>
   );

@@ -97,7 +97,7 @@ export function ChatInput({
 
     const fileIds = attachedFiles.length > 0 ? attachedFiles.map((f) => f.id) : undefined;
     const files = attachedFiles.length > 0 ? attachedFiles : undefined;
-    onSend(trimmed || "Analyze the attached file(s)", fileIds, files);
+    onSend(trimmed || "请分析我附加的需求文件。", fileIds, files);
     setMessage("");
     setAttachedFiles([]);
   };
@@ -206,7 +206,7 @@ export function ChatInput({
         const result = await uploadFile(file);
         setAttachedFiles((prev) => [...prev, result]);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Upload failed";
+        const msg = err instanceof Error ? err.message : "文件上传失败";
         toast.error(`${file.name}: ${msg}`);
       } finally {
         setIsUploading(false);
@@ -280,7 +280,7 @@ export function ChatInput({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder="输入需求问题、澄清回答或变更建议..."
           disabled={disabled}
           rows={1}
           className="placeholder:text-muted-foreground min-h-[40px] flex-1 resize-none scrollbar-thin bg-transparent py-2.5 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
@@ -295,7 +295,7 @@ export function ChatInput({
             onClick={toggleMic}
             disabled={disabled}
             className="h-9 w-9"
-            title={isListening ? "Stop recording" : "Voice input"}
+            title={isListening ? "停止录音" : "语音输入"}
           >
             {isListening ? (
               <MicOff className="h-4 w-4 animate-pulse text-red-500" />
@@ -312,7 +312,7 @@ export function ChatInput({
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploading}
             className="h-9 w-9"
-            title="Attach file"
+            title="附加文件"
           >
             {isUploading ? (
               <Spinner className="text-muted-foreground h-4 w-4" />
@@ -337,7 +337,7 @@ export function ChatInput({
             className="h-9 w-9 rounded-lg"
           >
             {isProcessing ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            <span className="sr-only">Send message</span>
+            <span className="sr-only">发送需求消息</span>
           </Button>
         </div>
       </div>

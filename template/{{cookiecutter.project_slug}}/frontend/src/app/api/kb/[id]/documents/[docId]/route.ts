@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BackendApiError, backendFetch } from "@/lib/server-api";
+import { requirementRoleHeaders } from "@/lib/requirement-role";
 
 interface RouteParams {
   params: Promise<{ id: string; docId: string }>;
@@ -15,7 +16,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     await backendFetch<null>(`/api/v1/kb/${id}/documents/${docId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...requirementRoleHeaders(request.headers.get("X-Requirement-Role")),
+      },
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

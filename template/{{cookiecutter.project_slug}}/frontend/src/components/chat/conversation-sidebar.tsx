@@ -1,7 +1,6 @@
 {% raw %}"use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import { useConversations } from "@/hooks";
 import { Button, Skeleton } from "@/components/ui";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui";
@@ -44,7 +43,6 @@ function ConversationItem({
   onRename,
   onShare,
 }: ConversationItemProps) {
-  const t = useTranslations("chat");
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(conversation.title || "");
@@ -56,7 +54,7 @@ function ConversationItem({
     setIsEditing(false);
   };
 
-  const displayTitle = conversation.title || t("newConversation");
+  const displayTitle = conversation.title || "新的需求对话";
 
   return (
     <div
@@ -131,7 +129,7 @@ function ConversationItem({
                 }}
               >
                 <Pencil className="h-4 w-4" />
-                {t("rename")}
+                重命名
               </button>
               <button
                 className="hover:bg-secondary flex min-h-[44px] w-full items-center gap-2 px-3 py-3 text-sm"
@@ -142,7 +140,7 @@ function ConversationItem({
                 }}
               >
                 <Share2 className="h-4 w-4" />
-                {t("share")}
+                分享
               </button>
               {conversation.is_archived ? (
                 <button
@@ -154,7 +152,7 @@ function ConversationItem({
                   }}
                 >
                   <ArchiveRestore className="h-4 w-4" />
-                  Restore
+                  恢复
                 </button>
               ) : (
                 <button
@@ -166,7 +164,7 @@ function ConversationItem({
                   }}
                 >
                   <Archive className="h-4 w-4" />
-                  {t("archive")}
+                  归档
                 </button>
               )}
               <button
@@ -178,7 +176,7 @@ function ConversationItem({
                 }}
               >
                 <Trash2 className="h-4 w-4" />
-                {t("delete")}
+                删除
               </button>
             </div>
           </>
@@ -217,7 +215,6 @@ function ConversationList({
   onNavigate,
   onLoadMore,
 }: ConversationListProps) {
-  const t = useTranslations("chat");
   const [view, setView] = useState<ConversationView>("active");
   const [shareConversationId, setShareConversationId] = useState<string | null>(null);
 
@@ -248,7 +245,7 @@ function ConversationList({
         >
           <span className="inline-flex items-center gap-2">
             <MessageSquarePlus className="h-4 w-4" />
-            {t("newChat")}
+            新建需求对话
           </span>
           <span className="bg-brand text-brand-foreground flex h-7 w-7 items-center justify-center rounded-full transition-transform group-hover:rotate-45">
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -259,13 +256,13 @@ function ConversationList({
       <div className="px-3 pb-2">
         <div className="border-foreground/10 bg-background flex rounded-full border p-0.5">
           <ViewTab
-            label="Active"
+            label="进行中"
             count={activeCount}
             active={view === "active"}
             onClick={() => setView("active")}
           />
           <ViewTab
-            label="Archived"
+            label="已归档"
             count={archivedCount}
             active={view === "archived"}
             onClick={() => setView("archived")}
@@ -302,10 +299,10 @@ function ConversationList({
               )}
             </span>
             <p className="text-foreground text-sm font-medium">
-              {isArchivedView ? "No archived conversations" : t("noConversations")}
+              {isArchivedView ? "暂无归档对话" : "暂无需求对话"}
             </p>
             <p className="text-muted-foreground mt-1 text-xs">
-              {isArchivedView ? "Conversations you archive will appear here." : t("startNewChat")}
+              {isArchivedView ? "归档的需求对话会显示在这里。" : "先新建对话，再围绕需求澄清、查询或拆解。"}
             </p>
           </div>
         ) : (
@@ -344,7 +341,6 @@ interface ConversationSidebarProps {
 }
 
 export function ConversationSidebar({ className }: ConversationSidebarProps) {
-  const t = useTranslations("chat");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { isOpen, close } = useChatSidebarStore();
   const {
@@ -391,7 +387,7 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           size="sm"
           className="mb-4 h-10 w-10 p-0"
           onClick={() => setIsCollapsed(false)}
-          aria-label="Expand conversations sidebar"
+          aria-label="展开需求对话侧栏"
         >
           <ChevronRight className="h-4 w-4" aria-hidden />
         </Button>
@@ -400,8 +396,8 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           size="sm"
           className="h-10 w-10 p-0"
           onClick={startNewChat}
-          title="New Chat"
-          aria-label="New chat"
+          title="新建需求对话"
+          aria-label="新建需求对话"
         >
           <MessageSquarePlus className="h-4 w-4" aria-hidden />
         </Button>
@@ -415,13 +411,13 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
         className={cn("bg-background hidden w-64 shrink-0 flex-col border-r md:flex", className)}
       >
         <div className="flex h-12 items-center justify-between border-b px-4 py-3">
-          <h2 className="text-sm font-semibold">{t("conversations")}</h2>
+          <h2 className="text-sm font-semibold">需求对话</h2>
           <Button
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => setIsCollapsed(true)}
-            aria-label="Collapse conversations sidebar"
+            aria-label="收起需求对话侧栏"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
           </Button>
@@ -432,7 +428,7 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
       <Sheet open={isOpen} onOpenChange={close}>
         <SheetContent side="left" className="w-80 p-0">
           <SheetHeader className="h-12 px-4">
-            <SheetTitle>{t("conversations")}</SheetTitle>
+            <SheetTitle>需求对话</SheetTitle>
             <SheetClose onClick={close} />
           </SheetHeader>
           <div className="flex h-[calc(100%-48px)] flex-col">

@@ -16,7 +16,20 @@ import type {
   KBDocumentList,
   KnowledgeBase,
   KnowledgeBaseList,
+  RequirementBreakdownResponse,
+  RequirementChangeInput,
+  RequirementChangeResponse,
+  RequirementDocumentDiffResponse,
+  RequirementDocumentVersionList,
+  RequirementIntakeInput,
+  RequirementIntakeResponse,
+  RequirementQueryResponse,
+  RequirementRole,
 } from "@/types";
+
+const requirementRoleHeader = (role: RequirementRole) => ({
+  "X-Requirement-Role": role,
+});
 
 export function useKnowledgeBases() {
   const [kbs, setKbs] = useState<KnowledgeBase[]>([]);
@@ -28,21 +41,26 @@ export function useKnowledgeBases() {
       const data = await apiClient.get<KnowledgeBaseList>("/kb");
       setKbs(data.items);
     } catch {
-      toast.error("Failed to load knowledge bases");
+      toast.error("加载需求项目失败");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const createKB = useCallback(
-    async (input: CreateKnowledgeBaseInput): Promise<KnowledgeBase | null> => {
+    async (
+      input: CreateKnowledgeBaseInput,
+      role: RequirementRole = "product",
+    ): Promise<KnowledgeBase | null> => {
       try {
-        const kb = await apiClient.post<KnowledgeBase>("/kb", input);
+        const kb = await apiClient.post<KnowledgeBase>("/kb", input, {
+          headers: requirementRoleHeader(role),
+        });
         setKbs((prev) => [kb, ...prev]);
-        toast.success("Knowledge base created");
+        toast.success("需求项目已创建");
         return kb;
       } catch {
-        toast.error("Failed to create knowledge base");
+        toast.error("创建需求项目失败");
         return null;
       }
     },
@@ -54,10 +72,10 @@ export function useKnowledgeBases() {
       try {
         const updated = await apiClient.patch<KnowledgeBase>(`/kb/${id}`, patch);
         setKbs((prev) => prev.map((k) => (k.id === id ? updated : k)));
-        toast.success("Knowledge base updated");
+        toast.success("需求项目已更新");
         return updated;
       } catch {
-        toast.error("Failed to update knowledge base");
+        toast.error("更新需求项目失败");
         return null;
       }
     },
@@ -68,9 +86,9 @@ export function useKnowledgeBases() {
     try {
       await apiClient.delete(`/kb/${id}`);
       setKbs((prev) => prev.filter((k) => k.id !== id));
-      toast.success("Knowledge base deleted");
+      toast.success("需求项目已删除");
     } catch {
-      toast.error("Failed to delete knowledge base");
+      toast.error("删除需求项目失败");
     }
   }, []);
 
@@ -112,14 +130,14 @@ export function useKBDetail(id: string | null) {
       setSyncSources(sourceList.items);
       setConnectors(connectorList.items);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load knowledge base");
+      setError(e instanceof Error ? e.message : "加载需求项目失败");
     } finally {
       setIsLoading(false);
     }
   }, [id]);
 
   const uploadDocument = useCallback(
-    async (file: File) => {
+    async (file: File, role: RequirementRole = "product") => {
       if (!id) return;
       setIsUploading(true);
       try {
@@ -131,15 +149,16 @@ export function useKBDetail(id: string | null) {
           method: "POST",
           body: formData,
           credentials: "include",
+          headers: requirementRoleHeader(role),
         });
         if (!response.ok) {
           const detail = await response.json().catch(() => ({}));
-          throw new ApiError(response.status, detail.detail || "Upload failed");
+          throw new ApiError(response.status, detail.detail || "上传失败");
         }
-        toast.success(`Uploaded ${file.name}`);
+        toast.success(`已上传 ${file.name}`);
         await refresh();
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Upload failed";
+        const msg = e instanceof Error ? e.message : "上传失败";
         toast.error(msg);
         throw e;
       } finally {
@@ -155,10 +174,110 @@ export function useKBDetail(id: string | null) {
       try {
         await apiClient.delete(`/kb/${id}/documents/${docId}`);
         setDocuments((prev) => prev.filter((d) => d.id !== docId));
-        toast.success("Document removed");
+        toast.success("文档已删除");
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Failed to delete document");
+        toast.error(e instanceof Error ? e.message : "删除文档失败");
       }
+    },
+    [id],
+  );
+
+  const createRequirementFromText = useCallback(
+    async (
+      input: RequirementIntakeInput,
+      role: RequirementRole = "product",
+    ): Promise<RequirementIntakeResponse | null> => {
+      if (!id) return null;
+      try {
+        const created = await apiClient.post<RequirementIntakeResponse>(
+          `/kb/${id}/requirements/from-text`,
+          input,
+          { headers: requirementRoleHeader(role) },
+        );
+        toast.success("需求已创建");
+        await refresh();
+        return created;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "创建需求失败");
+        throw e;
+      }
+    },
+    [id, refresh],
+  );
+
+  const queryRequirements = useCallback(
+    async (
+      query: string,
+      role: RequirementRole = "developer",
+    ): Promise<RequirementQueryResponse | null> => {
+      if (!id) return null;
+      return apiClient.post<RequirementQueryResponse>(
+        `/kb/${id}/query`,
+        { query, role },
+        { headers: requirementRoleHeader(role) },
+      );
+    },
+    [id],
+  );
+
+  const breakDownDocument = useCallback(
+    async (
+      docId: string,
+      role: RequirementRole = "developer",
+    ): Promise<RequirementBreakdownResponse | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementBreakdownResponse>(
+        `/kb/${id}/documents/${docId}/breakdown`,
+        { headers: requirementRoleHeader(role) },
+      );
+    },
+    [id],
+  );
+
+  const changeRequirementDocument = useCallback(
+    async (
+      docId: string,
+      input: RequirementChangeInput,
+      role: RequirementRole = "product",
+    ): Promise<RequirementChangeResponse | null> => {
+      if (!id) return null;
+      const response = await apiClient.post<RequirementChangeResponse>(
+        `/kb/${id}/documents/${docId}/change`,
+        input,
+        { headers: requirementRoleHeader(role) },
+      );
+      if (response.document_id) {
+        await refresh();
+      }
+      return response;
+    },
+    [id, refresh],
+  );
+
+  const fetchDocumentVersions = useCallback(
+    async (docId: string): Promise<RequirementDocumentVersionList | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementDocumentVersionList>(
+        `/kb/${id}/documents/${docId}/versions`,
+      );
+    },
+    [id],
+  );
+
+  const diffDocumentVersions = useCallback(
+    async (
+      docId: string,
+      fromVersion?: number,
+      toVersion?: number,
+    ): Promise<RequirementDocumentDiffResponse | null> => {
+      if (!id) return null;
+      const params: Record<string, string> = {};
+      if (fromVersion) params.from_version = String(fromVersion);
+      if (toVersion) params.to_version = String(toVersion);
+      return apiClient.get<RequirementDocumentDiffResponse>(
+        `/kb/${id}/documents/${docId}/diff`,
+        { params },
+      );
     },
     [id],
   );
@@ -169,10 +288,10 @@ export function useKBDetail(id: string | null) {
       try {
         const created = await apiClient.post<SyncSourceRead>(`/kb/${id}/sync-sources`, data);
         setSyncSources((prev) => [created, ...prev]);
-        toast.success("Sync source connected");
+        toast.success("同步来源已连接");
         return created;
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Failed to create sync source");
+        toast.error(e instanceof Error ? e.message : "创建同步来源失败");
         throw e;
       }
     },
@@ -184,11 +303,11 @@ export function useKBDetail(id: string | null) {
       if (!id) return;
       try {
         await apiClient.post(`/kb/${id}/sync-sources/${sourceId}/trigger`);
-        toast.success("Sync started — documents will appear as they ingest");
+        toast.success("同步已开始，文档处理完成后会显示");
         // Refresh later to pick up new docs that the worker pulls in.
         setTimeout(() => refresh(), 2000);
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Failed to trigger sync");
+        toast.error(e instanceof Error ? e.message : "触发同步失败");
       }
     },
     [id, refresh],
@@ -200,9 +319,9 @@ export function useKBDetail(id: string | null) {
       try {
         await apiClient.delete(`/kb/${id}/sync-sources/${sourceId}`);
         setSyncSources((prev) => prev.filter((s) => s.id !== sourceId));
-        toast.success("Sync source removed");
+        toast.success("同步来源已删除");
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Failed to remove sync source");
+        toast.error(e instanceof Error ? e.message : "删除同步来源失败");
       }
     },
     [id],
@@ -219,6 +338,12 @@ export function useKBDetail(id: string | null) {
     refresh,
     uploadDocument,
     deleteDocument,
+    createRequirementFromText,
+    queryRequirements,
+    breakDownDocument,
+    changeRequirementDocument,
+    fetchDocumentVersions,
+    diffDocumentVersions,
     createSyncSource,
     triggerSyncSource,
     deleteSyncSource,

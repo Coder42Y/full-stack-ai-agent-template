@@ -34,17 +34,17 @@ export function MobileTabBar() {
   const stripped = pathname.replace(/^\/[a-z]{2}/, "");
 
   const items: TabItem[] = [
-    { label: "Chat", href: ROUTES.CHAT, icon: MessageSquare, startsWith: true },
+    { label: "对话", href: ROUTES.CHAT, icon: MessageSquare, startsWith: true },
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
-    { label: "KB", href: ROUTES.KB, icon: Database, startsWith: true },
+    { label: "需求", href: ROUTES.KB, icon: Database, startsWith: true },
 {%- endif %}
     {
-      label: "Home",
+      label: "首页",
       href: user?.role === "admin" ? ROUTES.DASHBOARD : ROUTES.CHAT,
       icon: LayoutDashboard,
     },
     {
-      label: "Search",
+      label: "搜索",
       icon: Search,
       onClick: () => {
         // Trigger global ⌘K command palette via synthetic keyboard event.
@@ -56,7 +56,7 @@ export function MobileTabBar() {
         document.dispatchEvent(event);
       },
     },
-    { label: "Settings", href: ROUTES.SETTINGS, icon: Settings, startsWith: true },
+    { label: "设置", href: ROUTES.SETTINGS, icon: Settings, startsWith: true },
   ];
 
   const isActive = (item: TabItem) => {
@@ -68,7 +68,7 @@ export function MobileTabBar() {
   return (
     <nav
       role="navigation"
-      aria-label="Primary"
+      aria-label="主导航"
       className="border-foreground/10 bg-background/95 supports-[backdrop-filter]:bg-background/85 fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t backdrop-blur-md pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       {items.map((item) => {

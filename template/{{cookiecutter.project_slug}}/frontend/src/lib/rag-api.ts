@@ -109,6 +109,11 @@ export interface RAGTrackedDocument {
   vector_document_id: string | null;
   chunk_count: number;
   has_file: boolean;
+  has_markdown_content: boolean;
+  version: number;
+  is_latest: boolean;
+  previous_version_id: string | null;
+  modified_by: string | null;
   created_at: string | null;
   completed_at: string | null;
 }

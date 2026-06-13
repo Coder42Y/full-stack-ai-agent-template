@@ -227,7 +227,10 @@ async def ingest_path_async(
 {%- if cookiecutter.use_postgresql %}
                     async with get_db_context() as db:
                         await RAGDocumentService(db).complete_ingestion(
-                            doc_id, vector_document_id=result.document_id
+                            doc_id,
+                            vector_document_id=result.document_id,
+                            chunk_count=result.chunk_count,
+                            markdown_content=result.markdown_content,
                         )
 {%- endif %}
                 else:

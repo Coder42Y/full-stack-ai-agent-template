@@ -19,6 +19,7 @@ class KnowledgeBaseCreate(BaseSchema):
     """Schema for creating a Knowledge Base."""
 
     name: str = Field(..., min_length=1, max_length=128, description="KB display name")
+    project_name: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=500)
     scope: KBScopeLiteral = Field(default="personal", description="Visibility scope")
     # Optional — auto-derived from name + a short random suffix when missing.
@@ -31,6 +32,7 @@ class KnowledgeBaseUpdate(BaseSchema):
     """Schema for updating a Knowledge Base."""
 
     name: str | None = Field(default=None, min_length=1, max_length=128)
+    project_name: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=500)
 
 
@@ -47,6 +49,7 @@ class KnowledgeBaseRead(BaseSchema, TimestampSchema):
     organization_id: str | None = None
 {%- endif %}
     name: str
+    project_name: str | None = None
     description: str | None = None
     scope: KBScopeLiteral
     collection_name: str

@@ -455,6 +455,7 @@ export function useChat(options: UseChatOptions = {}) {
     () => (accessToken ? [`access_token.${accessToken}`, "chat"] : undefined),
     [accessToken],
   );
+  const canConnect = Boolean(accessToken);
 
   const { isConnected, connect, disconnect, sendMessage } = useWebSocket({
     url: wsUrl,
@@ -577,6 +578,7 @@ export function useChat(options: UseChatOptions = {}) {
 
   return {
     messages,
+    canConnect,
     isConnected,
     isProcessing,
     connect,

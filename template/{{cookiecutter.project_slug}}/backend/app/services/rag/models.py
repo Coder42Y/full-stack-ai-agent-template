@@ -70,6 +70,19 @@ class Document(BaseModel):
         for page in self.pages:
             page.parent_doc_id = self.id
         return self     
+
+    def to_markdown(self) -> str:
+        """Return the full parsed document as stable Markdown-like text."""
+        parts: list[str] = []
+        for page in sorted(self.pages, key=lambda p: p.page_num):
+            content = page.content.strip()
+            if not content:
+                continue
+            if len(self.pages) > 1:
+                parts.append(f"<!-- page: {page.page_num} -->\n\n{content}")
+            else:
+                parts.append(content)
+        return "\n\n".join(parts).strip()
          
     
 class SearchResult(BaseModel):
@@ -98,6 +111,8 @@ class IngestionResult(BaseModel):
     message: Optional[str] = None
     error_message: Optional[str] = None
     document_id: Optional[str] = None
+    markdown_content: Optional[str] = None
+    chunk_count: int = 0
     
     
 class CollectionInfo(BaseModel):

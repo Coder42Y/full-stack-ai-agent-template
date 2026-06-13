@@ -10,16 +10,15 @@
 
 import type { Metadata } from "next";
 
-import { APP_NAME } from "@/lib/constants";
 import { defaultLocale, locales } from "@/i18n";
 
 export const SITE = {
-  name: APP_NAME,
+  name: "需求知识库",
   /** Tagline used in title templates + OG defaults. */
-  tagline: "AI assistant for modern teams",
+  tagline: "需求知识库与 AI 协作工作台",
   /** One-paragraph default description (≤160 chars for SERP truncation). */
   description:
-    "Plug in your docs, your tools, and your data. Ask anything — get answers grounded in everything your team has ever shipped.",
+    "面向产品和开发的需求知识库：录入一句话需求、回答澄清问题，并基于来源完成查询、拆解和变更管理。",
   /** Canonical absolute origin. NO trailing slash. */
   url:
     (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") as string | undefined) ??
@@ -30,14 +29,14 @@ export const SITE = {
   themeColor: "#0E0E0C",
   /** Long-form keywords. Light SEO weight today; useful for clarity. */
   keywords: [
-    "AI assistant",
-    "team knowledge",
-    "AI agent",
+    "需求知识库",
+    "需求管理",
+    "PRD",
     "RAG",
-    "team productivity",
-    "knowledge base",
-    "internal search",
-    "B2B SaaS",
+    "AI 需求助手",
+    "产品协作",
+    "开发协作",
+    "需求变更",
   ],
   /** Locale defaults — pulls from your i18n config. */
   defaultLocale,

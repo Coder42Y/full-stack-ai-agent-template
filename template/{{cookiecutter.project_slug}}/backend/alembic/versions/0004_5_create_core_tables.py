@@ -182,12 +182,20 @@ def upgrade() -> None:
         sa.Column("error_message", sa.Text(), nullable=True),
         sa.Column("vector_document_id", sa.String(255), nullable=True),
         sa.Column("chunk_count", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("markdown_content", sa.Text(), nullable=True),
+        sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
+        sa.Column("is_latest", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("previous_version_id", _UUID, sa.ForeignKey("rag_documents.id", ondelete="SET NULL"), nullable=True),
+        sa.Column("modified_by", _UUID, sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_index("ix_rag_documents_collection_name", "rag_documents", ["collection_name"])
+    op.create_index("ix_rag_documents_is_latest", "rag_documents", ["is_latest"])
+    op.create_index("ix_rag_documents_previous_version_id", "rag_documents", ["previous_version_id"])
+    op.create_index("ix_rag_documents_modified_by", "rag_documents", ["modified_by"])
 
     op.create_table(
         "sync_sources",

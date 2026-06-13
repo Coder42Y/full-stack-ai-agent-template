@@ -6,11 +6,12 @@ import { ChevronRight } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 
 const ROUTE_LABELS: Record<string, string> = {
-  [ROUTES.DASHBOARD]: "Dashboard",
-  [ROUTES.CHAT]: "Chat",
-  [ROUTES.RAG]: "Knowledge Base",
-  [ROUTES.PROFILE]: "Profile",
-  "/settings": "Settings",
+  [ROUTES.DASHBOARD]: "首页",
+  [ROUTES.CHAT]: "对话",
+  [ROUTES.RAG]: "知识库",
+  [ROUTES.KB]: "需求项目",
+  [ROUTES.PROFILE]: "个人资料",
+  "/settings": "设置",
 };
 
 export function Breadcrumb() {

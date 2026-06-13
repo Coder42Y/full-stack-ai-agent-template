@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BackendApiError, backendFetch } from "@/lib/server-api";
+import { requirementRoleHeaders } from "@/lib/requirement-role";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -45,7 +46,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     `${BACKEND_URL}/api/v1/kb/${id}/documents${qs ? `?${qs}` : ""}`,
     {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...requirementRoleHeaders(request.headers.get("X-Requirement-Role")),
+      },
       body: formData,
     },
   );

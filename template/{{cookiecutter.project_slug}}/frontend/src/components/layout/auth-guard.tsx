@@ -11,30 +11,45 @@ import { Spinner } from "@/components/ui";
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, setUser } = useAuthStore();
-  const [checking, setChecking] = useState(!isAuthenticated);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated) return;
-
+    let cancelled = false;
     const verify = async () => {
       try {
-        const user = await apiClient.get<User>("/auth/me");
-        setUser(user);
+        const data = await apiClient.get<User & { access_token?: string }>("/auth/me");
+        const { access_token, ...user } = data;
+        if (cancelled) return;
+        setUser(user as User);
+        useAuthStore.getState().setAccessToken(access_token ?? null);
       } catch {
-        router.replace(ROUTES.LOGIN);
+        try {
+          const data = await apiClient.post<User & { access_token?: string }>("/auth/demo-admin");
+          const { access_token, ...demoUser } = data;
+          if (cancelled) return;
+          setUser(demoUser as User);
+          useAuthStore.getState().setAccessToken(access_token ?? null);
+        } catch {
+          if (cancelled) return;
+          useAuthStore.getState().setAccessToken(null);
+          router.replace(ROUTES.LOGIN);
+        }
       } finally {
-        setChecking(false);
+        if (!cancelled) setChecking(false);
       }
     };
 
     verify();
-  }, [isAuthenticated, router, setUser]);
+    return () => {
+      cancelled = true;
+    };
+  }, [router, setUser]);
 
-  if (checking && !isAuthenticated) {
+  if (checking || !isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center" role="status" aria-live="polite">
         <Spinner className="text-muted-foreground h-6 w-6" />
-        <span className="sr-only">Checking authentication...</span>
+        <span className="sr-only">正在建立演示会话...</span>
       </div>
     );
   }

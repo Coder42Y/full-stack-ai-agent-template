@@ -46,6 +46,11 @@ class RAGDocumentService:
                     filesize=d.filesize, filetype=d.filetype, status=d.status,
                     error_message=d.error_message, vector_document_id=d.vector_document_id,
                     chunk_count=d.chunk_count, has_file=bool(d.storage_path),
+                    has_markdown_content=bool(d.markdown_content),
+                    version=d.version,
+                    is_latest=d.is_latest,
+                    previous_version_id=str(d.previous_version_id) if d.previous_version_id else None,
+                    modified_by=str(d.modified_by) if d.modified_by else None,
                     created_at=d.created_at.isoformat() if d.created_at else None,
                     completed_at=d.completed_at.isoformat() if d.completed_at else None,
                 )
@@ -69,6 +74,11 @@ class RAGDocumentService:
                     filesize=d.filesize, filetype=d.filetype, status=d.status,
                     error_message=d.error_message, vector_document_id=d.vector_document_id,
                     chunk_count=d.chunk_count, has_file=bool(d.storage_path),
+                    has_markdown_content=bool(d.markdown_content),
+                    version=d.version,
+                    is_latest=d.is_latest,
+                    previous_version_id=str(d.previous_version_id) if d.previous_version_id else None,
+                    modified_by=str(d.modified_by) if d.modified_by else None,
                     created_at=d.created_at.isoformat() if d.created_at else None,
                     completed_at=d.completed_at.isoformat() if d.completed_at else None,
                 )
@@ -100,6 +110,11 @@ class RAGDocumentService:
         filesize: int,
         filetype: str,
         storage_path: str | None = None,
+        markdown_content: str | None = None,
+        version: int = 1,
+        is_latest: bool = True,
+        previous_version_id: UUID | None = None,
+        modified_by: UUID | None = None,
 {%- if cookiecutter.enable_teams %}
         organization_id: UUID | None = None,
 {%- endif %}
@@ -115,6 +130,11 @@ class RAGDocumentService:
             filesize=filesize,
             filetype=filetype,
             storage_path=storage_path or "",
+            markdown_content=markdown_content,
+            version=version,
+            is_latest=is_latest,
+            previous_version_id=previous_version_id,
+            modified_by=modified_by,
 {%- if cookiecutter.enable_teams %}
             organization_id=organization_id,
 {%- endif %}
@@ -137,6 +157,7 @@ class RAGDocumentService:
 {%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
         knowledge_base_id: UUID | None = None,
 {%- endif %}
+        modified_by: UUID | None = None,
     ) -> RAGIngestResponse:
         """Validate, persist, and queue an uploaded file for ingestion.
 
@@ -171,6 +192,7 @@ class RAGDocumentService:
             filesize=len(file_data),
             filetype=ext.lstrip("."),
             storage_path=storage_path,
+            modified_by=modified_by,
 {%- if cookiecutter.enable_teams %}
             organization_id=organization_id,
 {%- endif %}
@@ -241,6 +263,7 @@ class RAGDocumentService:
         doc_id: str,
         vector_document_id: str,
         chunk_count: int = 0,
+        markdown_content: str | None = None,
     ) -> None:
         """Mark a document as successfully ingested."""
         doc = await self.get_document(doc_id)
@@ -251,6 +274,7 @@ class RAGDocumentService:
             vector_document_id=vector_document_id,
             chunk_count=chunk_count,
             completed_at=datetime.now(UTC),
+            markdown_content=markdown_content,
         )
 
     async def fail_ingestion(self, doc_id: str, error_message: str) -> None:
@@ -396,6 +420,11 @@ class RAGDocumentService:
                     filesize=d.filesize, filetype=d.filetype, status=d.status,
                     error_message=d.error_message, vector_document_id=d.vector_document_id,
                     chunk_count=d.chunk_count, has_file=bool(d.storage_path),
+                    has_markdown_content=bool(d.markdown_content),
+                    version=d.version,
+                    is_latest=d.is_latest,
+                    previous_version_id=str(d.previous_version_id) if d.previous_version_id else None,
+                    modified_by=str(d.modified_by) if d.modified_by else None,
                     created_at=d.created_at.isoformat() if d.created_at else None,
                     completed_at=d.completed_at.isoformat() if d.completed_at else None,
                 )
@@ -426,6 +455,11 @@ class RAGDocumentService:
         filesize: int,
         filetype: str,
         storage_path: str | None = None,
+        markdown_content: str | None = None,
+        version: int = 1,
+        is_latest: bool = True,
+        previous_version_id: str | None = None,
+        modified_by: str | None = None,
     ) -> RAGDocument:
         """Create a new RAG document tracking record."""
         return rag_document_repo.create(
@@ -435,6 +469,11 @@ class RAGDocumentService:
             filesize=filesize,
             filetype=filetype,
             storage_path=storage_path or "",
+            markdown_content=markdown_content,
+            version=version,
+            is_latest=is_latest,
+            previous_version_id=previous_version_id,
+            modified_by=modified_by,
         )
 
     def complete_ingestion(
@@ -442,6 +481,7 @@ class RAGDocumentService:
         doc_id: str,
         vector_document_id: str,
         chunk_count: int = 0,
+        markdown_content: str | None = None,
     ) -> None:
         """Mark a document as successfully ingested."""
         doc = self.get_document(doc_id)
@@ -452,6 +492,7 @@ class RAGDocumentService:
             vector_document_id=vector_document_id,
             chunk_count=chunk_count,
             completed_at=datetime.now(UTC),
+            markdown_content=markdown_content,
         )
 
     def fail_ingestion(self, doc_id: str, error_message: str) -> None:

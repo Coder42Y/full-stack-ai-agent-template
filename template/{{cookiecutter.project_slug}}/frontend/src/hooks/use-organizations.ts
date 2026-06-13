@@ -19,7 +19,7 @@ export function useOrganizations() {
         if (personal) setActiveOrgId(personal.id);
       }
     } catch {
-      toast.error("Failed to load organizations");
+      toast.error("加载协作空间失败");
     }
   }, [activeOrgId, setOrgs, setActiveOrgId]);
 
@@ -28,10 +28,10 @@ export function useOrganizations() {
       try {
         const org = await apiClient.post<Organization>("/orgs", input);
         addOrg(org);
-        toast.success("Organization created");
+        toast.success("协作空间已创建");
         return org;
       } catch {
-        toast.error("Failed to create organization");
+        toast.error("创建协作空间失败");
         return null;
       }
     },
@@ -43,10 +43,10 @@ export function useOrganizations() {
       try {
         const updated = await apiClient.patch<Organization>(`/orgs/${id}`, patch);
         updateOrg(id, updated);
-        toast.success("Organization updated");
+        toast.success("协作空间已更新");
         return updated;
       } catch {
-        toast.error("Failed to update organization");
+        toast.error("更新协作空间失败");
         return null;
       }
     },
@@ -58,9 +58,9 @@ export function useOrganizations() {
       try {
         await apiClient.delete(`/orgs/${id}`);
         removeOrg(id);
-        toast.success("Organization deleted");
+        toast.success("协作空间已删除");
       } catch {
-        toast.error("Failed to delete organization");
+        toast.error("删除协作空间失败");
       }
     },
     [removeOrg],

@@ -371,11 +371,15 @@ class ToolCall(Base):
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.db.base import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.chat_file import ChatFile
 
 
 class Conversation(TimestampMixin, SQLModel, table=True):

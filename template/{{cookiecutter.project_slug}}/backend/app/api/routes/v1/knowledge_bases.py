@@ -14,9 +14,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, File, Query, UploadFile, status
 
-from app.api.deps import ActiveOrg, CurrentUser, KnowledgeBaseSvc
+from app.api.deps import (
+    ActiveOrg,
+    CurrentRequirementDemoWriter,
+    CurrentUser,
+    KnowledgeBaseSvc,
+    RequirementDemoRole,
+)
 {%- if cookiecutter.use_postgresql or cookiecutter.use_sqlite %}
 from app.api.deps import RAGDocumentSvc, SyncSourceSvc, VectorStoreSvc  # noqa: F401
+{%- endif %}
+{%- if cookiecutter.use_postgresql %}
+from app.api.deps import RequirementQuerySvc, RequirementWorkflowSvc
 {%- endif %}
 from app.core.exceptions import NotFoundError
 from app.schemas.knowledge_base import (
@@ -26,7 +35,22 @@ from app.schemas.knowledge_base import (
     KnowledgeBaseUpdate,
 )
 {%- if cookiecutter.use_postgresql or cookiecutter.use_sqlite %}
-from app.schemas.rag import RAGIngestResponse, RAGSyncResponse, RAGTrackedDocumentList
+from app.schemas.rag import (
+{%- if cookiecutter.use_postgresql %}
+    RequirementBreakdownResponse,
+    RequirementChangeRequest,
+    RequirementChangeResponse,
+    RequirementDocumentDiffResponse,
+    RequirementDocumentVersionList,
+    RequirementIntakeRequest,
+    RequirementIntakeResponse,
+    RequirementQueryRequest,
+    RequirementQueryResponse,
+{%- endif %}
+    RAGIngestResponse,
+    RAGSyncResponse,
+    RAGTrackedDocumentList,
+)
 from app.schemas.sync_source import (
     ConnectorList,
     SyncSourceCreate,
@@ -59,7 +83,7 @@ async def list_knowledge_bases(
 async def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Create a new Knowledge Base.
@@ -96,7 +120,7 @@ async def update_knowledge_base(
     kb_id: UUID,
     data: KnowledgeBaseUpdate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Update name or description of a Knowledge Base."""
@@ -113,7 +137,7 @@ async def update_knowledge_base(
 async def delete_knowledge_base(
     kb_id: UUID,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> None:
     """Delete a Knowledge Base. Default KBs cannot be deleted."""
@@ -150,7 +174,7 @@ async def upload_kb_document(
     service: KnowledgeBaseSvc,
     rag_doc_service: RAGDocumentSvc,
     vector_store: VectorStoreSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
     file: UploadFile = File(...),
     replace: bool = Query(False),
@@ -173,6 +197,156 @@ async def upload_kb_document(
         vector_store=vector_store,
         organization_id=active_org.id,
         knowledge_base_id=kb.id,
+        modified_by=current_user.id,
+    )
+
+
+@router.post("/{kb_id}/query", response_model=RequirementQueryResponse)
+async def query_kb_requirements(
+    kb_id: UUID,
+    data: RequirementQueryRequest,
+    service: KnowledgeBaseSvc,
+    requirement_query_service: RequirementQuerySvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Query a KB and return answers grounded in stored requirement Markdown."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await requirement_query_service.query_kb(
+        kb_id=kb.id,
+        collection_name=kb.collection_name,
+        query=data.query,
+        role=data.role or requirement_role,
+        limit=data.limit,
+        min_score=data.min_score,
+    )
+
+
+@router.post(
+    "/{kb_id}/requirements/from-text",
+    response_model=RequirementIntakeResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_requirement_from_text(
+    kb_id: UUID,
+    data: RequirementIntakeRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentRequirementDemoWriter,
+    active_org: ActiveOrg,
+) -> Any:
+    """Create a Markdown requirement document from a one-sentence description."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.create_from_text(
+        kb=kb,
+        description=data.description,
+        title=data.title,
+        filename=data.filename,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+
+
+@router.get(
+    "/{kb_id}/documents/{doc_id}/breakdown",
+    response_model=RequirementBreakdownResponse,
+)
+async def break_down_requirement_document(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Break down one requirement document with section-level citations."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.break_down_document(
+        kb_id=kb.id,
+        doc_id=doc_id,
+        role=requirement_role,
+    )
+
+
+@router.get(
+    "/{kb_id}/documents/{doc_id}/versions",
+    response_model=RequirementDocumentVersionList,
+)
+async def list_requirement_document_versions(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+) -> Any:
+    """List the version history for one requirement document chain."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.list_document_versions(kb_id=kb.id, doc_id=doc_id)
+
+
+@router.get(
+    "/{kb_id}/documents/{doc_id}/diff",
+    response_model=RequirementDocumentDiffResponse,
+)
+async def diff_requirement_document_versions(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    from_version: int | None = Query(None, ge=1),
+    to_version: int | None = Query(None, ge=1),
+) -> Any:
+    """Compare two versions in one requirement document chain."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.diff_document_versions(
+        kb_id=kb.id,
+        doc_id=doc_id,
+        from_version=from_version,
+        to_version=to_version,
+    )
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/change",
+    response_model=RequirementChangeResponse,
+)
+async def change_requirement_document(
+    kb_id: UUID,
+    doc_id: UUID,
+    data: RequirementChangeRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Suggest, draft, or apply a requirement document change by role."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.change_document(
+        kb_id=kb.id,
+        doc_id=doc_id,
+        instruction=data.instruction,
+        apply=data.apply,
+        user_id=current_user.id,
+        role=requirement_role,
+        is_app_admin=False,
     )
 
 
@@ -186,7 +360,7 @@ async def delete_kb_document(
     doc_id: UUID,
     service: KnowledgeBaseSvc,
     rag_doc_service: RAGDocumentSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Remove a document from the KB (cascades to vectors + file storage).
@@ -243,7 +417,7 @@ async def create_kb_sync_source(
     data: SyncSourceCreate,
     service: KnowledgeBaseSvc,
     sync_source_svc: SyncSourceSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Wire up a sync source (Google Drive, S3, …) feeding this KB.
@@ -267,7 +441,7 @@ async def trigger_kb_sync_source(
     source_id: UUID,
     service: KnowledgeBaseSvc,
     sync_source_svc: SyncSourceSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Manually trigger a sync run for one of this KB's sources."""
@@ -298,7 +472,7 @@ async def delete_kb_sync_source(
     source_id: UUID,
     service: KnowledgeBaseSvc,
     sync_source_svc: SyncSourceSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Remove a sync source from this KB."""
@@ -349,7 +523,7 @@ def list_knowledge_bases(
 def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Create a new Knowledge Base."""
@@ -381,7 +555,7 @@ def update_knowledge_base(
     kb_id: str,
     data: KnowledgeBaseUpdate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Update name or description of a Knowledge Base."""
@@ -398,7 +572,7 @@ def update_knowledge_base(
 def delete_knowledge_base(
     kb_id: str,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> None:
     """Delete a Knowledge Base. Default KBs cannot be deleted."""
@@ -446,7 +620,7 @@ async def list_knowledge_bases(
 async def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Create a new Knowledge Base."""
@@ -474,7 +648,7 @@ async def update_knowledge_base(
     kb_id: str,
     data: KnowledgeBaseUpdate,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> Any:
     """Update name or description of a Knowledge Base."""
@@ -490,7 +664,7 @@ async def update_knowledge_base(
 async def delete_knowledge_base(
     kb_id: str,
     service: KnowledgeBaseSvc,
-    current_user: CurrentUser,
+    current_user: CurrentRequirementDemoWriter,
     active_org: ActiveOrg,
 ) -> None:
     """Delete a Knowledge Base. Default KBs cannot be deleted."""

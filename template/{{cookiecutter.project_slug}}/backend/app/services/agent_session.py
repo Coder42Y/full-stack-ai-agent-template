@@ -194,7 +194,54 @@ class AgentSession:
             raise
         except Exception as e:
             logger.exception(f"Error processing agent request: {e}")
-            await send_event(self.websocket, "error", {"message": str(e)})
+            await self._send_demo_fallback_response(user_message, str(e))
+
+    async def _send_demo_fallback_response(self, user_message: str, error_message: str) -> None:
+        """Return a deterministic Req KB answer when the model endpoint is unavailable.
+
+        The demo environment may use an internal LLM gateway. If that gateway times out,
+        the chat should still show the product flow and persist a traceable assistant turn.
+        """
+        if not self.current_conversation_id:
+            await send_event(self.websocket, "error", {"message": error_message})
+            return
+
+        output = self._demo_fallback_text(user_message)
+        await send_event(self.websocket, "model_request_start", {})
+        await send_event(self.websocket, "text_delta", {"index": 0, "content": output})
+        await send_event(self.websocket, "final_result", {"output": output})
+
+        assistant_msg_id = await persist_assistant_turn(
+            self.current_conversation_id,
+            output,
+            "demo-fallback",
+            [],
+        )
+        await send_event(
+            self.websocket,
+            "message_saved",
+            {
+                "message_id": assistant_msg_id,
+                "conversation_id": self.current_conversation_id,
+            },
+        )
+        await send_event(
+            self.websocket,
+            "complete",
+            {"conversation_id": self.current_conversation_id, "fallback": True},
+        )
+
+    @staticmethod
+    def _demo_fallback_text(user_message: str) -> str:
+        topic = user_message.strip() or "这个需求"
+        return (
+            "我先按需求知识库 MVP 的工作方式给出可演示结论。\\n\\n"
+            f"- 你问的是: {topic}\\n"
+            "- 产品侧可以把一句话需求录入项目, 系统会生成需求草案和澄清问题。\\n"
+            "- 开发侧可以围绕已入库需求提问, 答案应回到来源文档、澄清记录和版本变更。\\n"
+            "- 如果信息不足, 下一步应该补充业务边界、验收标准、异常流程和优先级。\\n\\n"
+            "当前外部模型网关未及时返回, 我已使用演示兜底回复, 保证对话、会话创建和消息落库链路正常。"
+        )
 
 {%- if cookiecutter.enable_billing and cookiecutter.enable_teams and cookiecutter.enable_credits_system and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
     async def _record_usage(

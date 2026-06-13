@@ -129,10 +129,10 @@ class TextDocumentParser(BaseDocumentParser):
 {%- if cookiecutter.use_all_pdf_parsers %}
 
 class DocxDocumentParser(BaseDocumentParser):
-    """Parser for DOCX documents using python-docx.
+    """Parser for DOCX documents.
 
-    Extracts text content from Microsoft Word documents by reading
-    all paragraphs and joining them with newline characters.
+    Uses mammoth first to preserve requirement structure as Markdown, then
+    falls back to python-docx plain text if mammoth cannot parse the file.
     """
 
     def _parse_docx_file(self, filepath: Path) -> Document:
@@ -144,14 +144,50 @@ class DocxDocumentParser(BaseDocumentParser):
         Returns:
             Document object with the file content.
         """
+        metadata = self.get_document_metadata(filepath)
+        try:
+            import mammoth
+
+            with open(filepath, "rb") as file_obj:
+                result = mammoth.convert_to_markdown(file_obj)
+            markdown = (result.value or "").strip()
+            if markdown:
+                warnings = [
+                    message.message
+                    for message in result.messages
+                    if getattr(message, "message", None)
+                ]
+                metadata.additional_info = {
+                    **(metadata.additional_info or {}),
+                    "docx_parser": "mammoth",
+                    "docx_warnings": warnings[:20],
+                }
+                page = DocumentPage(page_num=1, content=markdown)
+                return Document(pages=[page], metadata=metadata)
+            logger.warning(
+                "mammoth returned empty Markdown for DOCX %s; falling back to python-docx",
+                filepath.name,
+            )
+        except Exception as e:
+            logger.warning(
+                "mammoth DOCX parse failed for %s; falling back to python-docx: %s",
+                filepath.name,
+                e,
+            )
+
         file: Any = DOCXDocument(str(filepath))
+        paragraphs = [p.text.strip() for p in file.paragraphs if p.text.strip()]
         page = DocumentPage(
             page_num=1,
-            content="\n".join([p.text for p in file.paragraphs])
+            content="\n\n".join(paragraphs)
         )
+        metadata.additional_info = {
+            **(metadata.additional_info or {}),
+            "docx_parser": "python-docx",
+        }
         return Document(
             pages=[page],
-            metadata=self.get_document_metadata(filepath)
+            metadata=metadata,
         )
 
     async def parse(self, filepath: Path) -> Document:
@@ -506,10 +542,10 @@ class PdfParserFactory:
 {%- elif not cookiecutter.use_llamaparse %}
 
 class DocxDocumentParser(BaseDocumentParser):
-    """Parser for DOCX documents using python-docx.
+    """Parser for DOCX documents.
 
-    Extracts text content from Microsoft Word documents by reading
-    all paragraphs and joining them with newline characters.
+    Uses mammoth first to preserve requirement structure as Markdown, then
+    falls back to python-docx plain text if mammoth cannot parse the file.
     """
 
     def _parse_docx_file(self, filepath: Path) -> Document:
@@ -521,14 +557,50 @@ class DocxDocumentParser(BaseDocumentParser):
         Returns:
             Document object with the file content.
         """
+        metadata = self.get_document_metadata(filepath)
+        try:
+            import mammoth
+
+            with open(filepath, "rb") as file_obj:
+                result = mammoth.convert_to_markdown(file_obj)
+            markdown = (result.value or "").strip()
+            if markdown:
+                warnings = [
+                    message.message
+                    for message in result.messages
+                    if getattr(message, "message", None)
+                ]
+                metadata.additional_info = {
+                    **(metadata.additional_info or {}),
+                    "docx_parser": "mammoth",
+                    "docx_warnings": warnings[:20],
+                }
+                page = DocumentPage(page_num=1, content=markdown)
+                return Document(pages=[page], metadata=metadata)
+            logger.warning(
+                "mammoth returned empty Markdown for DOCX %s; falling back to python-docx",
+                filepath.name,
+            )
+        except Exception as e:
+            logger.warning(
+                "mammoth DOCX parse failed for %s; falling back to python-docx: %s",
+                filepath.name,
+                e,
+            )
+
         file: Any = DOCXDocument(str(filepath))
+        paragraphs = [p.text.strip() for p in file.paragraphs if p.text.strip()]
         page = DocumentPage(
             page_num=1,
-            content="\n".join([p.text for p in file.paragraphs])
+            content="\n\n".join(paragraphs)
         )
+        metadata.additional_info = {
+            **(metadata.additional_info or {}),
+            "docx_parser": "python-docx",
+        }
         return Document(
             pages=[page],
-            metadata=self.get_document_metadata(filepath)
+            metadata=metadata,
         )
 
     async def parse(self, filepath: Path) -> Document:

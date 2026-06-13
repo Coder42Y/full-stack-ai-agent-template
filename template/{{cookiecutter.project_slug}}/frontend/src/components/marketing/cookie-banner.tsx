@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Cookie, X } from "lucide-react";
 
 const STORAGE_KEY = "cookie.consent";
+const APP_ROUTE_RE =
+  /^\/(?:(?:[a-z]{2}(?:-[A-Z]{2})?)\/)?(?:dashboard|chat|kb|orgs|settings|admin|rag|profile)(?:\/|$)/;
 
 interface CookieConsent {
   essential: true; // always required
@@ -31,7 +34,12 @@ function writeConsent(consent: CookieConsent) {
   window.dispatchEvent(new Event("cookie-consent-change"));
 }
 
+function isAppRoute(pathname: string | null) {
+  return APP_ROUTE_RE.test(pathname ?? "");
+}
+
 export function CookieBanner() {
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
   const [analytics, setAnalytics] = useState(true);
@@ -39,6 +47,10 @@ export function CookieBanner() {
 
   useEffect(() => {
     const decide = () => {
+      if (isAppRoute(pathname)) {
+        setShow(false);
+        return;
+      }
       const consent = readConsent();
       setShow(!consent);
     };
@@ -49,7 +61,7 @@ export function CookieBanner() {
       window.removeEventListener("storage", decide);
       window.removeEventListener("cookie-consent-change", decide);
     };
-  }, []);
+  }, [pathname]);
 
   const close = () => setShow(false);
 

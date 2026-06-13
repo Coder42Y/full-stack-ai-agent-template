@@ -19,6 +19,51 @@ async def get_by_id(db: AsyncSession, doc_id: UUID) -> RAGDocument | None:
     return await db.get(RAGDocument, doc_id)
 
 
+async def get_latest_by_vector_document_id(
+    db: AsyncSession,
+    *,
+    collection_name: str,
+    vector_document_id: str,
+{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
+    knowledge_base_id: UUID | None = None,
+{%- endif %}
+) -> RAGDocument | None:
+    """Get the latest SQL-tracked document matching a vector document ID."""
+    query = select(RAGDocument).where(
+        RAGDocument.collection_name == collection_name,
+        RAGDocument.vector_document_id == vector_document_id,
+        RAGDocument.is_latest.is_(True),
+    )
+{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
+    if knowledge_base_id is not None:
+        query = query.where(RAGDocument.knowledge_base_id == knowledge_base_id)
+{%- endif %}
+    query = query.order_by(RAGDocument.version.desc(), RAGDocument.created_at.desc())
+    result = await db.execute(query)
+    return result.scalars().first()
+
+
+async def get_latest_markdown_for_kb(
+    db: AsyncSession,
+    *,
+    knowledge_base_id: UUID,
+    collection_name: str,
+) -> list[RAGDocument]:
+    """Return latest KB documents that have stored Markdown originals."""
+    query = (
+        select(RAGDocument)
+        .where(
+            RAGDocument.knowledge_base_id == knowledge_base_id,
+            RAGDocument.collection_name == collection_name,
+            RAGDocument.is_latest.is_(True),
+            RAGDocument.markdown_content.is_not(None),
+        )
+        .order_by(RAGDocument.created_at.desc())
+    )
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
 async def get_all(
     db: AsyncSession,
     collection_name: str | None = None,
@@ -63,6 +108,57 @@ async def get_for_kb(
 {%- endif %}
 
 
+{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
+async def get_version_chain_for_document(
+    db: AsyncSession,
+    *,
+    knowledge_base_id: UUID,
+    document_id: UUID,
+) -> list[RAGDocument]:
+    """Return all versions connected to a requirement document."""
+    doc = await db.get(RAGDocument, document_id)
+    if doc is None or doc.knowledge_base_id != knowledge_base_id:
+        return []
+
+    root = doc
+    seen_ids = {root.id}
+    while root.previous_version_id is not None:
+        previous = await db.get(RAGDocument, root.previous_version_id)
+        if (
+            previous is None
+            or previous.knowledge_base_id != knowledge_base_id
+            or previous.id in seen_ids
+        ):
+            break
+        root = previous
+        seen_ids.add(root.id)
+
+    query = (
+        select(RAGDocument)
+        .where(
+            RAGDocument.knowledge_base_id == knowledge_base_id,
+            RAGDocument.filename == root.filename,
+        )
+        .order_by(RAGDocument.version.desc(), RAGDocument.created_at.desc())
+    )
+    result = await db.execute(query)
+    chain = list(result.scalars().all())
+
+    linked_ids = {root.id}
+    changed = True
+    while changed:
+        changed = False
+        for item in chain:
+            if item.id in linked_ids:
+                continue
+            if item.previous_version_id in linked_ids:
+                linked_ids.add(item.id)
+                changed = True
+
+    return [item for item in chain if item.id in linked_ids]
+{%- endif %}
+
+
 async def create(
     db: AsyncSession,
     *,
@@ -72,6 +168,13 @@ async def create(
     filetype: str,
     storage_path: str,
     status: str = "processing",
+    markdown_content: str | None = None,
+    chunk_count: int = 0,
+    version: int = 1,
+    is_latest: bool = True,
+    previous_version_id: UUID | None = None,
+    modified_by: UUID | None = None,
+    completed_at: Any = None,
 {%- if cookiecutter.enable_teams %}
     organization_id: UUID | None = None,
 {%- endif %}
@@ -87,6 +190,13 @@ async def create(
         filetype=filetype,
         storage_path=storage_path,
         status=status,
+        markdown_content=markdown_content,
+        chunk_count=chunk_count,
+        version=version,
+        is_latest=is_latest,
+        previous_version_id=previous_version_id,
+        modified_by=modified_by,
+        completed_at=completed_at,
 {%- if cookiecutter.enable_teams %}
         organization_id=organization_id,
 {%- endif %}
@@ -95,6 +205,16 @@ async def create(
 {%- endif %}
     )
     db.add(doc)
+    await db.flush()
+    return doc
+
+
+async def mark_not_latest(db: AsyncSession, doc_id: UUID) -> RAGDocument | None:
+    """Mark a document version as historical."""
+    doc = await db.get(RAGDocument, doc_id)
+    if doc is None:
+        return None
+    doc.is_latest = False
     await db.flush()
     return doc
 
@@ -108,6 +228,7 @@ async def update_status(
     vector_document_id: str | None = None,
     chunk_count: int | None = None,
     completed_at: Any = None,
+    markdown_content: str | None = None,
 ) -> RAGDocument | None:
     """Update the processing status of a RAG document."""
     doc = await db.get(RAGDocument, doc_id)
@@ -122,6 +243,8 @@ async def update_status(
         doc.chunk_count = chunk_count
     if completed_at is not None:
         doc.completed_at = completed_at
+    if markdown_content is not None:
+        doc.markdown_content = markdown_content
     await db.flush()
     return doc
 
@@ -166,6 +289,22 @@ def get_by_id(db: Session, doc_id: str) -> RAGDocument | None:
     return db.get(RAGDocument, doc_id)
 
 
+def get_latest_by_vector_document_id(
+    db: Session,
+    *,
+    collection_name: str,
+    vector_document_id: str,
+) -> RAGDocument | None:
+    """Get the latest SQL-tracked document matching a vector document ID."""
+    query = select(RAGDocument).where(
+        RAGDocument.collection_name == collection_name,
+        RAGDocument.vector_document_id == vector_document_id,
+        RAGDocument.is_latest.is_(True),
+    ).order_by(RAGDocument.version.desc(), RAGDocument.created_at.desc())
+    result = db.execute(query)
+    return result.scalars().first()
+
+
 def get_all(
     db: Session,
     collection_name: str | None = None,
@@ -195,6 +334,11 @@ def create(
     filetype: str,
     storage_path: str,
     status: str = "processing",
+    markdown_content: str | None = None,
+    version: int = 1,
+    is_latest: bool = True,
+    previous_version_id: str | None = None,
+    modified_by: str | None = None,
 {%- if cookiecutter.enable_teams %}
     organization_id: str | None = None,
 {%- endif %}
@@ -207,6 +351,11 @@ def create(
         filetype=filetype,
         storage_path=storage_path,
         status=status,
+        markdown_content=markdown_content,
+        version=version,
+        is_latest=is_latest,
+        previous_version_id=previous_version_id,
+        modified_by=modified_by,
 {%- if cookiecutter.enable_teams %}
         organization_id=organization_id,
 {%- endif %}
@@ -225,6 +374,7 @@ def update_status(
     vector_document_id: str | None = None,
     chunk_count: int | None = None,
     completed_at: Any = None,
+    markdown_content: str | None = None,
 ) -> RAGDocument | None:
     """Update the processing status of a RAG document."""
     doc = db.get(RAGDocument, doc_id)
@@ -239,6 +389,8 @@ def update_status(
         doc.chunk_count = chunk_count
     if completed_at is not None:
         doc.completed_at = completed_at
+    if markdown_content is not None:
+        doc.markdown_content = markdown_content
     db.flush()
     return doc
 

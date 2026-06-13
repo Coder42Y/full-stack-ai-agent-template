@@ -137,6 +137,38 @@ class TestCurrentAppAdmin:
             await _require_app_admin(user=mock_user)
 
 
+class TestRequirementWriter:
+    """Requirement KB writes are limited to admin/product roles."""
+
+    @pytest.mark.parametrize(
+        "role,is_app_admin,should_pass",
+        [
+            ("admin", False, True),
+            ("product", False, True),
+            ("developer", False, False),
+            ("tester", False, False),
+            ("user", False, False),
+            ("user", True, True),
+        ],
+    )
+    @pytest.mark.anyio
+    async def test_requirement_writer_matrix(
+        self, role: str, is_app_admin: bool, should_pass: bool
+    ):
+        from app.api.deps import require_requirement_writer
+        from app.core.exceptions import AuthorizationError
+
+        mock_user = MagicMock()
+        mock_user.role = role
+        mock_user.is_app_admin = is_app_admin
+
+        if should_pass:
+            assert await require_requirement_writer(mock_user) is mock_user
+        else:
+            with pytest.raises(AuthorizationError):
+                await require_requirement_writer(mock_user)
+
+
 class TestOrgRolePermissionMatrix:
     """Parametrised tests covering the full role x action permission matrix."""
 

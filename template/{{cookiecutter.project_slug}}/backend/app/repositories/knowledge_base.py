@@ -64,6 +64,7 @@ async def create(
     collection_name: str,
     scope: str,
     description: str | None = None,
+    project_name: str | None = None,
     owner_user_id: UUID | None = None,
     organization_id: UUID | None = None,
     is_default: bool = False,
@@ -73,6 +74,7 @@ async def create(
         collection_name=collection_name,
         scope=scope,
         description=description,
+        project_name=project_name,
         owner_user_id=owner_user_id,
         organization_id=organization_id,
         is_default=is_default,
@@ -88,10 +90,13 @@ async def update(
     *,
     db_kb: KnowledgeBase,
     name: str | None = None,
+    project_name: str | None = None,
     description: str | None = None,
 ) -> KnowledgeBase:
     if name is not None:
         db_kb.name = name
+    if project_name is not None:
+        db_kb.project_name = project_name
     if description is not None:
         db_kb.description = description
     await db.flush()
@@ -168,6 +173,7 @@ def create(
     collection_name: str,
     scope: str,
     description: str | None = None,
+    project_name: str | None = None,
     owner_user_id: str | None = None,
     organization_id: str | None = None,
     is_default: bool = False,
@@ -177,6 +183,7 @@ def create(
         collection_name=collection_name,
         scope=scope,
         description=description,
+        project_name=project_name,
         owner_user_id=owner_user_id,
         organization_id=organization_id,
         is_default=is_default,
@@ -192,10 +199,13 @@ def update(
     *,
     db_kb: KnowledgeBase,
     name: str | None = None,
+    project_name: str | None = None,
     description: str | None = None,
 ) -> KnowledgeBase:
     if name is not None:
         db_kb.name = name
+    if project_name is not None:
+        db_kb.project_name = project_name
     if description is not None:
         db_kb.description = description
     db.flush()
@@ -249,6 +259,7 @@ async def create(
     collection_name: str,
     scope: str,
     description: str | None = None,
+    project_name: str | None = None,
     owner_user_id: str | None = None,
     organization_id: str | None = None,
     is_default: bool = False,
@@ -258,6 +269,7 @@ async def create(
         collection_name=collection_name,
         scope=scope,
         description=description,
+        project_name=project_name,
         owner_user_id=owner_user_id,
         organization_id=organization_id,
         is_default=is_default,
@@ -270,11 +282,14 @@ async def update(
     *,
     db_kb: KnowledgeBase,
     name: str | None = None,
+    project_name: str | None = None,
     description: str | None = None,
 ) -> KnowledgeBase:
     from datetime import UTC, datetime
     if name is not None:
         db_kb.name = name
+    if project_name is not None:
+        db_kb.project_name = project_name
     if description is not None:
         db_kb.description = description
     db_kb.updated_at = datetime.now(UTC)

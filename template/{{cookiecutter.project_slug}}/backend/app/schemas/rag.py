@@ -62,7 +62,7 @@ class RAGMessageResponse(BaseModel):
     """Simple message response."""
     message: str
 
-{%- if cookiecutter.use_postgresql %}
+{%- if cookiecutter.use_postgresql or cookiecutter.use_sqlite %}
 
 
 class RAGTrackedDocumentItem(BaseModel):
@@ -77,6 +77,11 @@ class RAGTrackedDocumentItem(BaseModel):
     vector_document_id: str | None = None
     chunk_count: int = 0
     has_file: bool = False
+    has_markdown_content: bool = False
+    version: int = 1
+    is_latest: bool = True
+    previous_version_id: str | None = None
+    modified_by: str | None = None
     created_at: str | None = None
     completed_at: str | None = None
 
@@ -95,6 +100,137 @@ class RAGIngestResponse(BaseModel):
     collection: str
     message: str
     document_id: str | None = None
+
+
+class RequirementQueryRequest(BaseModel):
+    """Grounded requirement query against one or more KB documents."""
+    query: str = Field(..., min_length=1, description="Natural language requirement question")
+    limit: int = Field(default=5, ge=1, le=10, description="Maximum source chunks to inspect")
+    min_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    role: str | None = Field(default=None, description="MVP selected role: product or developer")
+
+
+class RequirementQuerySource(BaseModel):
+    """A source section used for a grounded requirement answer."""
+    document_id: str
+    vector_document_id: str | None = None
+    filename: str
+    label: str
+    score: float
+    page_num: int | None = None
+    chunk_num: int | None = None
+    excerpt: str
+
+
+class RequirementQueryResponse(BaseModel):
+    """Requirement query response with explicit original-document sources."""
+    answer: str
+    sources: list[RequirementQuerySource] = Field(default_factory=list)
+    is_grounded: bool = False
+    message: str | None = None
+    ai_used: bool = False
+    ai_model: str | None = None
+    ai_error: str | None = None
+
+
+class RequirementNotificationEvent(BaseModel):
+    """Lightweight requirement event payload for demo notifications."""
+    event_type: str
+    kb_id: str
+    document_id: str
+    filename: str
+    message: str
+
+
+class RequirementIntakeRequest(BaseModel):
+    """Create a requirement document from a short natural-language description."""
+    description: str = Field(..., min_length=1)
+    title: str | None = Field(default=None, max_length=120)
+    filename: str | None = Field(default=None, max_length=255)
+
+
+class RequirementIntakeResponse(BaseModel):
+    """Response for one-sentence requirement intake."""
+    document_id: str
+    filename: str
+    markdown_content: str
+    clarification_questions: list[str] = Field(default_factory=list)
+    notification_event: RequirementNotificationEvent | None = None
+    ai_used: bool = False
+    ai_model: str | None = None
+    ai_error: str | None = None
+
+
+class RequirementBreakdownItem(BaseModel):
+    """One requirement breakdown item with source citation."""
+    title: str
+    summary: str
+    source_label: str
+    excerpt: str
+    test_focus: list[str] = Field(default_factory=list)
+
+
+class RequirementBreakdownResponse(BaseModel):
+    """Requirement breakdown grounded in a stored Markdown document."""
+    document_id: str
+    filename: str
+    answer: str
+    items: list[RequirementBreakdownItem] = Field(default_factory=list)
+    ai_used: bool = False
+    ai_model: str | None = None
+    ai_error: str | None = None
+
+
+class RequirementChangeRequest(BaseModel):
+    """Request to suggest, draft, or apply a requirement document change."""
+    instruction: str = Field(..., min_length=1)
+    apply: bool = Field(default=False, description="Apply immediately instead of creating a draft")
+
+
+class RequirementChangeResponse(BaseModel):
+    """Response for requirement change workflow."""
+    action: str
+    message: str
+    previous_document_id: str | None = None
+    document_id: str | None = None
+    filename: str | None = None
+    diff_summary: str | None = None
+    markdown_preview: str | None = None
+    notification_event: RequirementNotificationEvent | None = None
+    ai_used: bool = False
+    ai_model: str | None = None
+    ai_error: str | None = None
+
+
+class RequirementDocumentVersionItem(BaseModel):
+    """One version in a requirement document version chain."""
+    document_id: str
+    filename: str
+    version: int
+    status: str
+    is_latest: bool
+    previous_version_id: str | None = None
+    modified_by: str | None = None
+    has_markdown_content: bool = False
+    created_at: str | None = None
+    completed_at: str | None = None
+
+
+class RequirementDocumentVersionList(BaseModel):
+    """Version history for one requirement document chain."""
+    items: list[RequirementDocumentVersionItem] = Field(default_factory=list)
+    total: int = 0
+
+
+class RequirementDocumentDiffResponse(BaseModel):
+    """Markdown diff between two requirement document versions."""
+    filename: str
+    from_document_id: str
+    to_document_id: str
+    from_version: int
+    to_version: int
+    summary: str
+    diff_lines: list[str] = Field(default_factory=list)
 
 
 class RAGRetryResponse(BaseModel):

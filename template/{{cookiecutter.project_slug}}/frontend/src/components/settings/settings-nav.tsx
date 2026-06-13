@@ -24,36 +24,36 @@ interface NavItem {
 
 const ITEMS: NavItem[] = [
   {
-    label: "Profile",
+    label: "个人资料",
     href: "/settings/profile",
     icon: UserCircle,
-    description: "Avatar, name, email, sessions",
+    description: "头像、名称、演示身份",
   },
   {
-    label: "Account",
+    label: "账号安全",
     href: "/settings/account",
     icon: Shield,
-    description: "Password, two-factor, danger zone",
+    description: "密码和安全设置",
   },
 {%- if cookiecutter.use_auth and cookiecutter.use_ai %}
   {
-    label: "Slash commands",
+    label: "快捷指令",
     href: "/settings/slash-commands",
     icon: Slash,
-    description: "Custom shortcuts + built-in toggles",
+    description: "需求对话常用提示词",
   },
 {%- endif %}
   {
-    label: "Notifications",
+    label: "通知",
     href: "/settings/notifications",
     icon: Bell,
-    description: "What we email you about",
+    description: "需求事件提醒",
   },
   {
-    label: "Appearance",
+    label: "外观",
     href: "/settings/appearance",
     icon: Palette,
-    description: "Theme, density, brand color",
+    description: "主题和颜色",
   },
 ];
 

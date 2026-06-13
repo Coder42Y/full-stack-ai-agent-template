@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
+import { requirementRoleHeaders } from "@/lib/requirement-role";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +24,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = await backendFetch("/api/v1/kb", {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        ...requirementRoleHeaders(request.headers.get("X-Requirement-Role")),
+      },
       body: JSON.stringify(body),
     });
     return NextResponse.json(data, { status: 201 });

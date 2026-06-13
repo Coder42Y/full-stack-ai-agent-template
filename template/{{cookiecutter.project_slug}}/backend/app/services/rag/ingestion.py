@@ -160,6 +160,8 @@ class IngestionService:
             return IngestionResult(
                 status=IngestionStatus.DONE,
                 document_id=document.id,
+                markdown_content=document.to_markdown(),
+                chunk_count=len(document.chunked_pages or []),
                 message=f"Successfully {action} '{filepath.name}'",
             )
 

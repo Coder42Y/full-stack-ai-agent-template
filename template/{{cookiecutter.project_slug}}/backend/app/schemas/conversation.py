@@ -209,10 +209,17 @@ class ConversationUpdate(BaseSchema):
     title: str | None = Field(default=None, max_length=255)
     is_archived: bool | None = None
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}
+{%- if cookiecutter.use_postgresql %}
     active_knowledge_base_ids: list[UUID] | None = Field(
         default=None,
         description="null=no change, []=RAG disabled, [id,...]=explicit KB selection",
     )
+{%- else %}
+    active_knowledge_base_ids: list[str] | None = Field(
+        default=None,
+        description="null=no change, []=RAG disabled, [id,...]=explicit KB selection",
+    )
+{%- endif %}
 {%- endif %}
 
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}

@@ -38,7 +38,10 @@ async def ingest_document_in_background(
         )
         async with get_db_context() as db:
             await RAGDocumentService(db).complete_ingestion(
-                rag_document_id, vector_document_id=result.document_id
+                rag_document_id,
+                vector_document_id=result.document_id,
+                chunk_count=result.chunk_count,
+                markdown_content=result.markdown_content,
             )
     except Exception as exc:
         logger.error("background_ingestion_failed: %s", exc)

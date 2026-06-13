@@ -662,6 +662,52 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentSuperuser = Annotated[User, Depends(get_current_active_superuser)]
 CurrentAdmin = Annotated[User, Depends(RoleChecker(UserRole.ADMIN))]
 
+
+async def require_requirement_writer(current_user: CurrentUser) -> User:
+    """Allow only product/admin users to mutate requirement knowledge bases."""
+    allowed_roles = {UserRole.ADMIN.value, UserRole.PRODUCT.value}
+    if getattr(current_user, "is_app_admin", False) or current_user.role in allowed_roles:
+        return current_user
+    raise AuthorizationError(
+        message="Product or admin role required for requirement knowledge base writes",
+        details={"role": current_user.role},
+    )
+
+
+CurrentRequirementWriter = Annotated[User, Depends(require_requirement_writer)]
+
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}
+def get_requirement_demo_role(
+    current_user: CurrentUser,
+    x_requirement_role: str | None = Header(None),
+) -> str:
+    """Resolve MVP role selected by the frontend without changing auth state."""
+    role = (x_requirement_role or current_user.role or "").strip().lower()
+    if role in {UserRole.PRODUCT.value, UserRole.DEVELOPER.value}:
+        return role
+    if getattr(current_user, "is_app_admin", False) or current_user.role == UserRole.ADMIN.value:
+        return UserRole.PRODUCT.value
+    return current_user.role
+
+
+async def require_requirement_demo_writer(
+    current_user: CurrentUser,
+    role: Annotated[str, Depends(get_requirement_demo_role)],
+) -> User:
+    """Allow product-selected MVP role to mutate requirement KB data."""
+    if role == UserRole.PRODUCT.value:
+        return current_user
+    raise AuthorizationError(
+        message="Product role required for requirement knowledge base writes",
+        details={"role": role},
+    )
+
+
+RequirementDemoRole = Annotated[str, Depends(get_requirement_demo_role)]
+CurrentRequirementDemoWriter = Annotated[User, Depends(require_requirement_demo_writer)]
+
+{%- endif %}
+
 {%- if cookiecutter.enable_teams %}
 {%- if cookiecutter.use_postgresql %}
 from uuid import UUID
@@ -1059,6 +1105,29 @@ def get_retrieval_service(vector_store: VectorStoreSvc) -> RetrievalService:
     {%- endif %}
 
 RetrievalSvc = Annotated[RetrievalService, Depends(get_retrieval_service)]
+
+{%- if cookiecutter.enable_teams and cookiecutter.use_jwt and cookiecutter.use_postgresql %}
+from app.services.requirement_ai import RequirementAIService
+from app.services.requirement_query import RequirementQueryService
+from app.services.requirement_workflow import RequirementWorkflowService
+
+
+def get_requirement_query_service(db: DBSession) -> RequirementQueryService:
+    """Create RequirementQueryService instance."""
+    return RequirementQueryService(db=db, ai_service=RequirementAIService())
+
+
+def get_requirement_workflow_service(db: DBSession) -> RequirementWorkflowService:
+    """Create RequirementWorkflowService instance."""
+    return RequirementWorkflowService(db=db, ai_service=RequirementAIService())
+
+
+RequirementQuerySvc = Annotated[RequirementQueryService, Depends(get_requirement_query_service)]
+RequirementWorkflowSvc = Annotated[
+    RequirementWorkflowService,
+    Depends(get_requirement_workflow_service),
+]
+{%- endif %}
 
 def get_document_processor() -> DocumentProcessor:
     """Create DocumentProcessor instance."""

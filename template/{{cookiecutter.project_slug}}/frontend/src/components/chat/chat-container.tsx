@@ -36,6 +36,7 @@ function AuthenticatedChatContainer() {
 
   const {
     messages,
+    canConnect,
     isConnected,
     isProcessing,
     connect,
@@ -161,9 +162,13 @@ function AuthenticatedChatContainer() {
   }, [currentMessages, addChatMessage, clearMessages]);
 
   useEffect(() => {
+    if (!canConnect) {
+      disconnect();
+      return;
+    }
     connect();
     return () => disconnect();
-  }, [connect, disconnect]);
+  }, [canConnect, connect, disconnect]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -341,7 +346,7 @@ function ChatUI({
                       isConnected ? "bg-brand" : "bg-destructive"
                     } ${isConnected ? "animate-pulse" : ""}`}
                   />
-                  {isConnected ? "Live" : "Offline"}
+                  {isConnected ? "在线" : "离线"}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -354,7 +359,7 @@ function ChatUI({
             </div>
           </div>
           <p className="text-foreground/40 mt-2 text-center font-mono text-[10px] tracking-wider uppercase">
-            AI can make mistakes. Verify important information.
+            AI 可能出错，请以需求来源和验收标准为准。
           </p>
         </div>
       </div>

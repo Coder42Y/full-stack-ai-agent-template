@@ -13,6 +13,9 @@ class UserRole(StrEnum):
     """User role enumeration for API schemas."""
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 

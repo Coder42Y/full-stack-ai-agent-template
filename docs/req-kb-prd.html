@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>需求知识库系统 — 需求规格文档</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --text-secondary: #78716c;
+    --accent: #d97706;
+    --accent-light: #fef3c7;
+    --green: #059669;
+    --green-light: #d1fae5;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --code-bg: #f5f5f4;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0a09;
+      --surface: #1c1917;
+      --border: #292524;
+      --text: #e7e5e4;
+      --text-secondary: #a8a29e;
+      --accent: #f59e0b;
+      --accent-light: #451a03;
+      --green: #34d399;
+      --green-light: #064e3b;
+      --red: #f87171;
+      --red-light: #450a0a;
+      --blue: #60a5fa;
+      --blue-light: #1e3a5f;
+      --purple: #a78bfa;
+      --purple-light: #2e1065;
+      --code-bg: #292524;
+      --shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .container {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 48px 64px;
+  }
+  @media (max-width: 768px) {
+    .container { padding: 24px 20px; }
+  }
+
+  /* Header */
+  .doc-header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 24px;
+    margin-bottom: 48px;
+  }
+  .doc-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .doc-header .meta {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .doc-header .meta span { margin-right: 16px; }
+
+  /* Sections */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-number {
+    background: var(--accent);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section p { margin-bottom: 12px; }
+  .section ul { margin: 8px 0 16px 20px; }
+  .section li { margin-bottom: 4px; }
+
+  /* Sub headings */
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--text);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .value-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .value-card .role-label {
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    color: var(--accent);
+  }
+  .value-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Scenario cards */
+  .scenario {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .scenario-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .scenario-num {
+    background: var(--blue);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .scenario ol {
+    margin: 0 0 0 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .scenario li { margin-bottom: 6px; }
+  .scenario code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+  }
+  .scenario .branch {
+    margin-top: 6px;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    background: var(--surface);
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: var(--code-bg); }
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: var(--red); font-weight: 700; }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+    margin: 12px 0 20px;
+  }
+  code {
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+  }
+  p code, li code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .comment { color: var(--text-secondary); }
+
+  /* Flow diagrams */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    box-shadow: var(--shadow);
+  }
+  .flow pre {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .tag-green { background: var(--green-light); color: var(--green); }
+  .tag-red { background: var(--red-light); color: var(--red); }
+  .tag-blue { background: var(--blue-light); color: var(--blue); }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+  .tag-amber { background: var(--accent-light); color: var(--accent); }
+
+  /* Checklist */
+  .checklist { list-style: none; margin: 8px 0; padding: 0; }
+  .checklist li {
+    padding: 6px 0;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .checklist li::before {
+    content: "☐";
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* MVP grid */
+  .mvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .mvp-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .mvp-item .mvp-id {
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .mvp-item p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Component reuse list */
+  .reuse-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .reuse-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+  }
+  .reuse-item .component-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .reuse-item .component-path {
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="doc-header">
+    <h1>需求知识库系统 — 需求规格文档</h1>
+    <div class="meta">
+      <span>📅 2026-06-10</span>
+      <span>🔀 分支：<code>feature/new-project</code></span>
+      <span>📋 基于 grill-me 会话锁定</span>
+    </div>
+  </header>
+
+  <!-- 1. 产品定位 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">1</span>产品定位</div>
+    <p>公司内部<strong>需求知识库系统</strong>。产品经理上传 PRD 文档或一句话描述需求，系统自动入库；开发人员和测试人员通过 AI 对话查询需求、获取拆解、提出修改建议。</p>
+
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="role-label">🎯 产品经理</div>
+        <p>一句话或一个文档丢进对话框，AI 帮你澄清模糊点，自动入库</p>
+      </div>
+      <div class="value-card">
+        <div class="role-label">💻 开发 / 测试</div>
+        <p>问 AI 拿需求拆解，引用原文，杜绝幻觉</p>
+      </div>
+      <div class="value-card">
+        <div class="role-label">👥 团队协作</div>
+        <p>需求变更实时通知，版本可追溯</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 核心场景 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">2</span>核心场景</div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">1</span>产品上传 PRD 文档入库</div>
+      <ol>
+        <li>产品上传 <code>V2.3_订单模块需求.docx</code></li>
+        <li>系统用 mammoth 转换为 markdown（保留原始结构），同时保留源文件</li>
+        <li><code>markdown_content</code> 存入 <code>RAGDocument</code> 表，RAG chunk 入 Milvus</li>
+        <li>AI 自动分析文档，识别模糊点，主动追问产品澄清</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">2</span>产品一句话创建需求</div>
+      <ol>
+        <li>产品输入"用户收货地址要支持海外地址"</li>
+        <li>AI 追问：支持哪些国家？运费怎么算？地址格式用什么？</li>
+        <li>产品回答后，AI 生成结构化 markdown 文档</li>
+        <li>产品确认后入库</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">3</span>开发查询需求</div>
+      <ol>
+        <li>开发输入"用户收货地址海外地址这个需求，具体支持哪些国家？"</li>
+        <li>AI 先 RAG 检索 chunk 定位文档 → 再读完整 <code>markdown_content</code> 精确定位章节</li>
+        <li>AI 引用原文回答，标注 <code>[来源：文档名 > 章节名]</code></li>
+        <li>找不到精确原文时，返回模糊提示："可能在 [文档名] 中相关"</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">4</span>开发要求拆解需求</div>
+      <ol>
+        <li>开发输入"帮我拆解订单模块的需求"</li>
+        <li>AI 读完整文档，按章节输出拆解结果</li>
+        <li>每个拆解点引用原文，不编造</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">5</span>产品修改需求文档</div>
+      <ol>
+        <li>产品输入"把用户收货地址改成支持海外地址"</li>
+        <li>AI 判断改动范围：
+          <div class="branch">
+            <strong>小改动</strong>（≤ 1 段落）→ 对话内展示 diff，产品点确认后更新<br>
+            <strong>大改动</strong>（≥ 1 章节）→ 生成草稿，产品去文档列表审批
+          </div>
+        </li>
+        <li>更新后：旧版标记 <code>is_latest=false</code> 保留，新版 <code>is_latest=true</code> 入库</li>
+        <li>WebSocket 推送变更通知给项目成员</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">6</span>开发建议修改需求</div>
+      <ol>
+        <li>开发输入"我觉得收货地址这个字段应该改成 xxx"</li>
+        <li>AI 识别当前用户是 developer 角色，<strong>不直接改文档</strong></li>
+        <li>AI 回复"这个建议已记录，建议联系产品经理确认修改"</li>
+      </ol>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title"><span class="scenario-num">7</span>需求变更通知</div>
+      <ol>
+        <li>产品修改文档后，系统推送通知："产品经理 [姓名] 更新了 [文档名]，变更内容：[diff 摘要]"</li>
+        <li>开发/测试在系统内看到通知</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 3. 关键决策 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">3</span>关键决策</div>
+    <table>
+      <thead><tr><th>#</th><th>决策点</th><th>结论</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>数据模型</td><td>文档为中心，命令为辅</td></tr>
+        <tr><td>2</td><td>一句话需求</td><td>AI 追问澄清 → 自动生成 md 文档 → 入库</td></tr>
+        <tr><td>3</td><td>文档版本</td><td>版本快照：旧版保留，RAG 只索引最新</td></tr>
+        <tr><td>4</td><td>修改确认</td><td>小改对话内 diff 确认；大改草稿审批</td></tr>
+        <tr><td>5</td><td>大小改动分界</td><td>AI 自判定，宁保守勿冒进</td></tr>
+        <tr><td>6</td><td>Markdown 存储</td><td><code>markdown_content TEXT</code> 存 PostgreSQL</td></tr>
+        <tr><td>7</td><td>DOCX 转 MD</td><td>mammoth 为主 + LlamaParse 兜底</td></tr>
+        <tr><td>8</td><td>反幻觉</td><td>强制引用原文 + 完整文档精确定位 + 模糊提示</td></tr>
+        <tr><td>9</td><td>角色权限</td><td>角色控制权限边界 + AI 判断意图</td></tr>
+        <tr><td>10</td><td>角色定义</td><td>admin / product / developer / tester</td></tr>
+        <tr><td>11</td><td>变更通知</td><td>WebSocket 轻量推送</td></tr>
+        <tr><td>12</td><td>LLM</td><td><span class="tag tag-amber">DeepSeek</span> 1M 上下文</td></tr>
+        <tr><td>13</td><td>KB 组织</td><td>按项目切分</td></tr>
+        <tr><td>14</td><td>文档模板</td><td>不设模板，保留原始结构</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. 角色权限 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">4</span>角色权限模型</div>
+
+    <h3>权限矩阵</h3>
+    <table>
+      <thead><tr><th>操作</th><th>admin</th><th>product</th><th>developer</th><th>tester</th></tr></thead>
+      <tbody>
+        <tr><td>上传文档</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>创建需求（一句话）</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>修改需求文档</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>审批草稿</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>查询需求</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td></tr>
+        <tr><td>AI 需求拆解</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td></tr>
+        <tr><td>下载源文件</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td></tr>
+        <tr><td>查看历史版本</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td><td class="check">✅</td></tr>
+        <tr><td>管理 KB</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>管理用户</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+      </tbody>
+    </table>
+
+    <h3>AI 行为差异</h3>
+    <table>
+      <thead><tr><th>角色</th><th>AI 行为模式</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amber">product</span></td><td>写入优先：识别文档修改意图 → 追问澄清 → 生成 diff/草稿</td></tr>
+        <tr><td><span class="tag tag-blue">developer</span></td><td>读取优先：RAG 检索 → 引用原文拆解 → 建议修改不直接改</td></tr>
+        <tr><td><span class="tag tag-green">tester</span></td><td>读取优先：同 developer，拆解时顺带提醒测试关注点</td></tr>
+        <tr><td><span class="tag tag-purple">admin</span></td><td>全部能力</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5. 数据模型 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">5</span>数据模型变更</div>
+
+    <h3>RAGDocument 表扩展</h3>
+    <pre><code><span class="comment"># 新增字段</span>
+markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+<span class="comment"># AI 转换后的完整 markdown 内容</span>
+
+version: Mapped[int] = mapped_column(Integer, default=1)
+<span class="comment"># 文档版本号，每次修改 +1</span>
+
+is_latest: Mapped[bool] = mapped_column(Boolean, default=True)
+<span class="comment"># 是否为最新版本，旧版本标记为 False</span>
+
+previous_version_id: Mapped[UUID | None] = mapped_column(UUID, ForeignKey("rag_documents.id"))
+<span class="comment"># 指向上一个版本的 ID</span>
+
+status: Mapped[str] = mapped_column(String(20), default="processing")
+<span class="comment"># 扩展状态：processing / done / error / draft</span>
+
+modified_by: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+<span class="comment"># 最后修改人</span></code></pre>
+
+    <h3>UserRole 枚举扩展</h3>
+    <pre><code>class UserRole(str, Enum):
+    USER = "user"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
+    ADMIN = "admin"</code></pre>
+  </section>
+
+  <!-- 6. 技术方案 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">6</span>技术方案</div>
+
+    <h3>LLM 配置</h3>
+    <pre><code>AI_MODEL=deepseek-chat              <span class="comment"># DeepSeek 对话模型</span>
+AI_BASE_URL=https://api.deepseek.com <span class="comment"># DeepSeek API</span>
+EMBEDDING_MODEL=embedding-3          <span class="comment"># 向量模型</span>
+PDF_PARSER=mammoth                   <span class="comment"># DOCX 默认用 mammoth</span>
+LLAMAPARSE_API_KEY=xxx               <span class="comment"># 兜底用 LlamaParse</span></code></pre>
+
+    <h3>DOCX → Markdown 转换链路</h3>
+    <div class="flow"><pre>
+docx 上传
+  ↓ mammoth 转换（本地，免费）
+  ↓ 质量检查：表格数量对比、标题层级检测
+  ↓ 质量合格？
+  ├── ✅ 是 → 存 markdown_content + RAG chunk
+  └── ❌ 否 → LlamaParse 转换（云端，~$0.003/页）
+             → 存 markdown_content + RAG chunk</pre></div>
+
+    <h3>反幻觉检索链路</h3>
+    <div class="flow"><pre>
+用户提问
+  ↓ search_documents（RAG chunk 检索）
+  ↓ 获得 chunk + parent_doc_id
+  ↓ 根据 parent_doc_id 读取完整 markdown_content
+  ↓ 在完整文档中精确定位章节
+  ↓ 引用原文回答 + 标注来源
+  ↓ 找不到？→ 模糊提示（可能相关的文档列表）</pre></div>
+
+    <h3>文档修改链路</h3>
+    <div class="flow"><pre>
+product 说"改成 xxx"
+  ↓ AI 判断改动范围
+  ├── 小改动（≤ 1 段落）
+  │   ↓ 生成 diff（新增绿色/删除红色）
+  │   ↓ 对话内展示 + 确认按钮
+  │   ↓ 用户确认 → 旧版 is_latest=false → 新版入库
+  └── 大改动（≥ 1 章节）
+      ↓ 生成草稿（status=draft）
+      ↓ 提示产品去文档列表审批
+      ↓ 产品审批 → 旧版 is_latest=false → 新版入库
+  ↓ WebSocket 推送变更通知</pre></div>
+  </section>
+
+  <!-- 7. MVP 范围 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">7</span>MVP 范围</div>
+
+    <h3>包含（M1–M8）</h3>
+    <div class="mvp-grid">
+      <div class="mvp-item"><div class="mvp-id">M1</div><p>文档上传入库（docx/pdf → md + 源文件）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M2</div><p>一句话需求 → AI 追问 → 生成 md 入库</p></div>
+      <div class="mvp-item"><div class="mvp-id">M3</div><p>开发/测试查询需求（RAG + 引用原文）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M4</div><p>AI 需求拆解（引用原文，按章节）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M5</div><p>文档修改（diff 确认 + 草稿审批）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M6</div><p>文档版本管理（旧版保留，索引最新）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M7</div><p>角色权限（4 个角色）</p></div>
+      <div class="mvp-item"><div class="mvp-id">M8</div><p>变更通知（WebSocket 推送）</p></div>
+    </div>
+
+    <h3>不包含（后续迭代）</h3>
+    <table>
+      <thead><tr><th>功能</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>IM 集成（钉钉/飞书）</td><td>先走 WebSocket</td></tr>
+        <tr><td>自动生成测试用例</td><td>需要额外 prompt 工程</td></tr>
+        <tr><td>需求关联关系</td><td>文档为中心靠 RAG 模糊匹配够用</td></tr>
+        <tr><td>原型图解析入库</td><td>需 OCR + 语义理解，成本高</td></tr>
+        <tr><td>外部文档同步</td><td>内部系统大概率手动上传</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8. 可复用组件 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">8</span>可复用框架组件</div>
+    <div class="reuse-list">
+      <div class="reuse-item"><div class="component-name">文档上传管道</div><div class="component-path">app/services/rag_document.py</div></div>
+      <div class="reuse-item"><div class="component-name">文档解析</div><div class="component-path">app/services/rag/documents.py</div></div>
+      <div class="reuse-item"><div class="component-name">Chunking</div><div class="component-path">app/services/rag/documents.py</div></div>
+      <div class="reuse-item"><div class="component-name">Embedding</div><div class="component-path">app/services/rag/embeddings.py</div></div>
+      <div class="reuse-item"><div class="component-name">向量存储</div><div class="component-path">app/services/rag/vectorstore.py</div></div>
+      <div class="reuse-item"><div class="component-name">检索 + 按文档检索</div><div class="component-path">app/services/rag/retrieval.py</div></div>
+      <div class="reuse-item"><div class="component-name">KB 管理 + RBAC</div><div class="component-path">app/services/knowledge_base.py</div></div>
+      <div class="reuse-item"><div class="component-name">Agent RAG tool</div><div class="component-path">app/agents/tools/rag_tool.py</div></div>
+      <div class="reuse-item"><div class="component-name">WebSocket 通道</div><div class="component-path">已有，加通知事件</div></div>
+      <div class="reuse-item"><div class="component-name">角色检查</div><div class="component-path">app/core/security.py</div></div>
+      <div class="reuse-item"><div class="component-name">Celery worker</div><div class="component-path">app/worker/tasks/rag_tasks.py</div></div>
+    </div>
+  </section>
+
+  <!-- 9. 验收标准 -->
+  <section class="section">
+    <div class="section-title"><span class="section-number">9</span>验收标准</div>
+
+    <h3>文档上传</h3>
+    <ul class="checklist">
+      <li>上传 docx → 系统存储源文件 + markdown_content</li>
+      <li>md 转换保留标题层级和表格</li>
+      <li>mammoth 质量不足时自动降级 LlamaParse</li>
+    </ul>
+
+    <h3>一句话需求</h3>
+    <ul class="checklist">
+      <li>产品输入一句话 → AI 追问 2-3 个澄清问题</li>
+      <li>产品回答后 → AI 生成 md 文档</li>
+      <li>产品确认后 → 文档入库 + RAG 可检索</li>
+    </ul>
+
+    <h3>需求查询</h3>
+    <ul class="checklist">
+      <li>开发问需求问题 → AI 引用原文回答</li>
+      <li>回答标注 [来源：文档名 > 章节名]</li>
+      <li>找不到精确原文 → 返回模糊提示</li>
+    </ul>
+
+    <h3>需求拆解</h3>
+    <ul class="checklist">
+      <li>AI 按章节拆解需求，每点引用原文</li>
+      <li>不编造内容（无幻觉）</li>
+    </ul>
+
+    <h3>文档修改</h3>
+    <ul class="checklist">
+      <li>产品说小改动 → 对话内展示 diff → 确认后更新</li>
+      <li>产品说大改动 → 生成草稿 → 审批后更新</li>
+      <li>开发建议修改 → AI 不直接改，提示联系产品</li>
+    </ul>
+
+    <h3>版本管理</h3>
+    <ul class="checklist">
+      <li>修改后旧版保留，新版 RAG 可检索</li>
+      <li>开发可问"这个需求和上次比改了什么"</li>
+    </ul>
+
+    <h3>权限 & 通知</h3>
+    <ul class="checklist">
+      <li>product 可上传/修改，developer/tester 只读</li>
+      <li>developer/tester 建议修改不触发文档变更</li>
+      <li>文档变更后 WebSocket 推送通知给项目成员</li>
+    </ul>
+  </section>
+
+  <footer class="doc-footer">
+    需求知识库系统 PRD · 基于 Full-Stack AI Agent Template 构建 · 2026-06-10
+  </footer>
+
+</div>
+</body>
+</html>

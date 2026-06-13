@@ -134,6 +134,7 @@ class KnowledgeBaseService:
             collection_name=data.collection_name or _derive_collection_name(data.name),
             scope=data.scope,
             description=data.description,
+            project_name=data.project_name,
             owner_user_id=owner_user_id,
             organization_id=org_id,
         )
@@ -173,6 +174,7 @@ class KnowledgeBaseService:
             self.db,
             db_kb=kb,
             name=data.name,
+            project_name=data.project_name,
             description=data.description,
         )
 
@@ -344,6 +346,7 @@ class KnowledgeBaseService:
             collection_name=data.collection_name or _derive_collection_name(data.name),
             scope=data.scope,
             description=data.description,
+            project_name=data.project_name,
             owner_user_id=owner_user_id,
             organization_id=org_id,
         )
@@ -379,7 +382,13 @@ class KnowledgeBaseService:
         if not kb:
             raise NotFoundError(message="Knowledge base not found", details={"kb_id": kb_id})
         self._check_write_access(kb, user_id=user_id, organization_id=organization_id, is_app_admin=is_app_admin)
-        return knowledge_base_repo.update(self.db, db_kb=kb, name=data.name, description=data.description)
+        return knowledge_base_repo.update(
+            self.db,
+            db_kb=kb,
+            name=data.name,
+            project_name=data.project_name,
+            description=data.description,
+        )
 
     def delete(
         self,
@@ -541,6 +550,7 @@ class KnowledgeBaseService:
             collection_name=data.collection_name or _derive_collection_name(data.name),
             scope=data.scope,
             description=data.description,
+            project_name=data.project_name,
             owner_user_id=owner_user_id,
             organization_id=org_id,
         )
@@ -575,7 +585,12 @@ class KnowledgeBaseService:
         if not kb:
             raise NotFoundError(message="Knowledge base not found", details={"kb_id": kb_id})
         self._check_write_access(kb, user_id=user_id, organization_id=organization_id, is_app_admin=is_app_admin)
-        return await knowledge_base_repo.update(db_kb=kb, name=data.name, description=data.description)
+        return await knowledge_base_repo.update(
+            db_kb=kb,
+            name=data.name,
+            project_name=data.project_name,
+            description=data.description,
+        )
 
     async def delete(
         self,

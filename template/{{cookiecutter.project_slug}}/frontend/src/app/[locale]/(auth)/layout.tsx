@@ -4,9 +4,9 @@ import { Sparkles } from "lucide-react";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 
 const HIGHLIGHTS = [
-  "Streaming chat with tool calls",
-  "Knowledge base over your docs",
-  "Stripe billing & teams in a click",
+  "一句话需求录入与澄清",
+  "基于来源的需求问答",
+  "开发拆解与变更确认",
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -50,18 +50,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="relative z-10">
             <span className="eyebrow-badge inline-flex items-center gap-2">
               <Sparkles className="h-3 w-3" aria-hidden />
-              An AI assistant that knows your team&apos;s work
+              面向产品和开发的需求知识库
             </span>
           </div>
 
           {/* MIDDLE — headline + highlights */}
           <div className="relative z-10 max-w-[28rem]">
             <h2 className="text-display-lg text-foreground mb-6 leading-[1.05] [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-              Ship the AI feature <em>your team</em> actually wants.
+              把零散需求沉淀成<em>可追溯</em>的协作资产。
             </h2>
             <p className="text-foreground/65 max-w-md text-base leading-relaxed">
-              Auth, billing, vector search, agents — already wired. You ship the product, not the
-              plumbing.
+              产品录入需求，AI 生成澄清问题；开发基于来源查询、拆解任务并确认变更。
             </p>
 
             <ul className="mt-10 space-y-3">
@@ -77,7 +76,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* BOTTOM — glass testimonial card */}
           <figure className="border-foreground/10 bg-card/40 relative z-10 max-w-md rounded-2xl border p-5 backdrop-blur-xl">
             <blockquote className="text-foreground/90 text-sm leading-relaxed">
-              &ldquo;Replaced four SaaS tools and shipped our first AI feature in two weeks.&rdquo;
+              &ldquo;一句话需求可以被追问、归档、查询和拆解，产品和开发终于对齐在同一份上下文里。&rdquo;
             </blockquote>
             <figcaption className="mt-4 flex items-center gap-3">
               <span
@@ -87,8 +86,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 EP
               </span>
               <div>
-                <p className="text-foreground text-sm font-semibold">Eli Park</p>
-                <p className="text-foreground/55 text-xs">Founder · Vellum Labs</p>
+                <p className="text-foreground text-sm font-semibold">需求知识库 MVP</p>
+                <p className="text-foreground/55 text-xs">产品 · 开发协作</p>
               </div>
             </figcaption>
           </figure>

@@ -5,7 +5,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlmodel import Field, SQLModel
 
@@ -30,6 +30,30 @@ class RAGDocument(TimestampMixin, SQLModel, table=True):
     error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
     vector_document_id: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
     chunk_count: int = Field(default=0, sa_column=Column(Integer, nullable=False, default=0))
+    markdown_content: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    version: int = Field(default=1, sa_column=Column(Integer, nullable=False, default=1))
+    is_latest: bool = Field(
+        default=True,
+        sa_column=Column(Boolean, nullable=False, default=True, index=True),
+    )
+    previous_version_id: uuid.UUID | None = Field(
+        default=None,
+        sa_column=Column(
+            PG_UUID(as_uuid=True),
+            ForeignKey("rag_documents.id", ondelete="SET NULL"),
+            nullable=True,
+            index=True,
+        ),
+    )
+    modified_by: uuid.UUID | None = Field(
+        default=None,
+        sa_column=Column(
+            PG_UUID(as_uuid=True),
+            ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+            index=True,
+        ),
+    )
     started_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     )
@@ -64,7 +88,7 @@ class RAGDocument(TimestampMixin, SQLModel, table=True):
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -86,6 +110,21 @@ class RAGDocument(TimestampMixin, Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     vector_document_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    is_latest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
+    previous_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("rag_documents.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    modified_by: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 {%- if cookiecutter.enable_teams %}
@@ -110,7 +149,7 @@ class RAGDocument(TimestampMixin, Base):
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, func
 from sqlmodel import Field, SQLModel
 
 from app.db.base import TimestampMixin
@@ -131,6 +170,30 @@ class RAGDocument(TimestampMixin, SQLModel, table=True):
     error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
     vector_document_id: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
     chunk_count: int = Field(default=0, sa_column=Column(Integer, nullable=False, default=0))
+    markdown_content: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    version: int = Field(default=1, sa_column=Column(Integer, nullable=False, default=1))
+    is_latest: bool = Field(
+        default=True,
+        sa_column=Column(Boolean, nullable=False, default=True, index=True),
+    )
+    previous_version_id: str | None = Field(
+        default=None,
+        sa_column=Column(
+            String(36),
+            ForeignKey("rag_documents.id", ondelete="SET NULL"),
+            nullable=True,
+            index=True,
+        ),
+    )
+    modified_by: str | None = Field(
+        default=None,
+        sa_column=Column(
+            String(36),
+            ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+            index=True,
+        ),
+    )
     started_at: datetime = Field(
         sa_column=Column(DateTime, server_default=func.now(), nullable=False)
     )
@@ -165,7 +228,7 @@ class RAGDocument(TimestampMixin, SQLModel, table=True):
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin
@@ -186,6 +249,21 @@ class RAGDocument(TimestampMixin, Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     vector_document_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    is_latest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
+    previous_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("rag_documents.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    modified_by: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 {%- if cookiecutter.enable_teams %}

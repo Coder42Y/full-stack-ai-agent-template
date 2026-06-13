@@ -237,6 +237,7 @@ dependencies = [
     "pymupdf>=1.25.0",
     "pillow>=10.0.0",
     "python-docx>=1.1.0",
+    "mammoth>=1.9.0",
     "llama-cloud>=1.0.0",
     "liteparse>=0.1.0",
 {%- elif cookiecutter.use_llamaparse %}
@@ -244,10 +245,12 @@ dependencies = [
 {%- elif cookiecutter.use_liteparse %}
     "liteparse>=0.1.0",
     "python-docx>=1.1.0",
+    "mammoth>=1.9.0",
 {%- else %}
     "pymupdf>=1.25.0",
     "pillow>=10.0.0",
     "python-docx>=1.1.0",
+    "mammoth>=1.9.0",
 {%- endif %}
 {%- if cookiecutter.enable_google_drive_ingestion %}
     "google-api-python-client>=2.0.0",

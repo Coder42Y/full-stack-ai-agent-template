@@ -7,8 +7,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
 
-/** Default Open Graph image. Black background, oversized brand title with a lime
- *  highlight on a key word, plus eyebrow + tagline. Mirrors the hero treatment. */
+/** Default Open Graph image for the requirement knowledge base MVP. */
 export default function OpengraphImage() {
   return new ImageResponse(
     (
@@ -67,7 +66,7 @@ export default function OpengraphImage() {
               flexWrap: "wrap",
             }}
           >
-            <span>AI&nbsp;that&nbsp;</span>
+            <span>需求&nbsp;</span>
             <span
               style={{
                 background: "linear-gradient(transparent 50%, #C5F94A 50%, #C5F94A 90%, transparent 90%)",
@@ -75,9 +74,9 @@ export default function OpengraphImage() {
                 paddingRight: 8,
               }}
             >
-              knows
+              可追溯
             </span>
-            <span>&nbsp;your work.</span>
+            <span>&nbsp;可协作</span>
           </div>
         </div>
 
@@ -99,7 +98,7 @@ export default function OpengraphImage() {
               gap: 10,
             }}
           >
-            Get started →
+            进入工作台 →
           </div>
         </div>
       </div>

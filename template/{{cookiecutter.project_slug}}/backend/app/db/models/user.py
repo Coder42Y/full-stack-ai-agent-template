@@ -25,10 +25,16 @@ class UserRole(StrEnum):
 
     Roles hierarchy (higher includes lower permissions):
     - ADMIN: Full system access, can manage users and settings
+    - PRODUCT: Product manager, can create and modify requirements
+    - DEVELOPER: Developer, can query requirements and suggest changes
+    - TESTER: Tester, can query requirements and review test concerns
     - USER: Standard user access
     """
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 
@@ -120,10 +126,16 @@ class UserRole(StrEnum):
 
     Roles hierarchy (higher includes lower permissions):
     - ADMIN: Full system access, can manage users and settings
+    - PRODUCT: Product manager, can create and modify requirements
+    - DEVELOPER: Developer, can query requirements and suggest changes
+    - TESTER: Tester, can query requirements and review test concerns
     - USER: Standard user access
     """
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 
@@ -196,10 +208,16 @@ class UserRole(StrEnum):
 
     Roles hierarchy (higher includes lower permissions):
     - ADMIN: Full system access, can manage users and settings
+    - PRODUCT: Product manager, can create and modify requirements
+    - DEVELOPER: Developer, can query requirements and suggest changes
+    - TESTER: Tester, can query requirements and review test concerns
     - USER: Standard user access
     """
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 
@@ -275,10 +293,16 @@ class UserRole(StrEnum):
 
     Roles hierarchy (higher includes lower permissions):
     - ADMIN: Full system access, can manage users and settings
+    - PRODUCT: Product manager, can create and modify requirements
+    - DEVELOPER: Developer, can query requirements and suggest changes
+    - TESTER: Tester, can query requirements and review test concerns
     - USER: Standard user access
     """
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 
@@ -339,10 +363,16 @@ class UserRole(StrEnum):
 
     Roles hierarchy (higher includes lower permissions):
     - ADMIN: Full system access, can manage users and settings
+    - PRODUCT: Product manager, can create and modify requirements
+    - DEVELOPER: Developer, can query requirements and suggest changes
+    - TESTER: Tester, can query requirements and review test concerns
     - USER: Standard user access
     """
 
     ADMIN = "admin"
+    PRODUCT = "product"
+    DEVELOPER = "developer"
+    TESTER = "tester"
     USER = "user"
 
 

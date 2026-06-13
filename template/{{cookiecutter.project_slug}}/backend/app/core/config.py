@@ -323,6 +323,21 @@ class Settings(BaseSettings):
 {%- if cookiecutter.use_anthropic %}
     ANTHROPIC_API_KEY: str = ""
 {%- endif %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and cookiecutter.use_postgresql %}
+    # Req KB MVP can call an Anthropic Messages-compatible endpoint directly.
+    # ANTHROPIC_AUTH_TOKEN is accepted for internal gateways; ANTHROPIC_API_KEY
+    # remains supported for the official Anthropic API.
+    ANTHROPIC_AUTH_TOKEN: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_BASE_URL: str = "https://api.anthropic.com"
+    ANTHROPIC_MODEL: str = ""
+    ANTHROPIC_REASONING_MODEL: str = ""
+    ANTHROPIC_DEFAULT_OPUS_MODEL: str = ""
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: str = ""
+    ANTHROPIC_DEFAULT_SONNET_MODEL: str = ""
+    REQUIREMENT_AI_ENABLED: bool = True
+    REQUIREMENT_AI_TIMEOUT_SECONDS: int = 45
+{%- endif %}
 {%- if cookiecutter.use_google %}
     GOOGLE_API_KEY: str = ""
 {%- endif %}

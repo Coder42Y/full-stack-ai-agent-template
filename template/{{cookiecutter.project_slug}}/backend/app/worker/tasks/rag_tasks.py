@@ -196,7 +196,12 @@ async def _run_ingestion(rag_document_id: str, collection_name: str, filepath: s
     try:
         result = await ingestion_service.ingest_file(filepath=file_path, collection_name=collection_name, replace=replace, source_path=source_path)
         async with get_worker_db_context() as db:
-            await RAGDocumentService(db).complete_ingestion(rag_document_id, vector_document_id=result.document_id)
+            await RAGDocumentService(db).complete_ingestion(
+                rag_document_id,
+                vector_document_id=result.document_id,
+                chunk_count=result.chunk_count,
+                markdown_content=result.markdown_content,
+            )
         await _notify_ws(rag_document_id, "done", source_path)
         logger.info(f"Ingestion complete: {source_path}")
         return {"status": "done", "document_id": result.document_id, "filename": source_path}
@@ -291,7 +296,10 @@ async def _run_sync(sync_log_id: str, source: str, collection_name: str, mode: s
                         filetype=filepath.suffix.lstrip(".").lower(),
                     )
                     await RAGDocumentService(db).complete_ingestion(
-                        str(doc.id), vector_document_id=result.document_id
+                        str(doc.id),
+                        vector_document_id=result.document_id,
+                        chunk_count=result.chunk_count,
+                        markdown_content=result.markdown_content,
                     )
             else:
                 failed += 1

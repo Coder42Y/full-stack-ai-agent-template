@@ -41,25 +41,25 @@ export function CreateOrgDialog({ open, onOpenChange, onCreated }: CreateOrgDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create organization</DialogTitle>
+          <DialogTitle>新建协作空间</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="org-name">Organization name</Label>
+            <Label htmlFor="org-name">空间名称</Label>
             <Input
               id="org-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Team"
+              placeholder="需求协作空间"
               autoFocus
             />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              取消
             </Button>
             <Button type="submit" disabled={!name.trim() || isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting ? "创建中..." : "创建"}
             </Button>
           </DialogFooter>
         </form>

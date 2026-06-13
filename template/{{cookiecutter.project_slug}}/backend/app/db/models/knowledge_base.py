@@ -28,6 +28,7 @@ class KnowledgeBase(TimestampMixin, SQLModel, table=True):
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     name: str = Field(sa_column=Column(String(128), nullable=False))
+    project_name: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
     description: str | None = Field(default=None, sa_column=Column(String(500), nullable=True))
     scope: str = Field(
         default=KBScope.PERSONAL.value,
@@ -86,6 +87,7 @@ class KnowledgeBase(TimestampMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
+    project_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     scope: Mapped[str] = mapped_column(String(16), nullable=False, default=KBScope.PERSONAL.value, index=True)
     collection_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -131,6 +133,7 @@ class KnowledgeBase(TimestampMixin, SQLModel, table=True):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str = Field(sa_column=Column(String(128), nullable=False))
+    project_name: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
     description: str | None = Field(default=None, sa_column=Column(String(500), nullable=True))
     scope: str = Field(
         default=KBScope.PERSONAL.value,
@@ -188,6 +191,7 @@ class KnowledgeBase(TimestampMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(128), nullable=False)
+    project_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     scope: Mapped[str] = mapped_column(String(16), nullable=False, default=KBScope.PERSONAL.value, index=True)
     collection_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -230,6 +234,7 @@ class KnowledgeBase(TimestampMixin, Document):
     """Named, scoped wrapper around a vector-store collection."""
 
     name: str = Field(..., max_length=128)
+    project_name: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = Field(default=None, max_length=500)
     scope: str = Field(default=KBScope.PERSONAL.value)
     collection_name: str = Field(...)

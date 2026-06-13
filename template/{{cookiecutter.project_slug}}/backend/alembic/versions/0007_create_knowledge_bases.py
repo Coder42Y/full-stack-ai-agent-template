@@ -31,6 +31,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(36), primary_key=True),
 {%- endif %}
         sa.Column("name", sa.String(128), nullable=False),
+        sa.Column("project_name", sa.String(255), nullable=True),
         sa.Column("description", sa.String(500), nullable=True),
         sa.Column("scope", sa.String(16), nullable=False, server_default="personal"),
         sa.Column("collection_name", sa.String(255), nullable=False),

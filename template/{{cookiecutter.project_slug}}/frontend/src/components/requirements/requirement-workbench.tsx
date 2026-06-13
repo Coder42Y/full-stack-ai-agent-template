@@ -1,6 +1,6 @@
 {% raw %}"use client";
 
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BookOpenCheck,
@@ -19,7 +19,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useWebSocket } from "@/hooks/use-websocket";
+import { WS_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores";
 import type {
   KBDocument,
   KnowledgeBase,
@@ -55,6 +58,7 @@ interface RequirementWorkbenchProps {
     input: { instruction: string; apply?: boolean },
     role: RequirementRole,
   ) => Promise<RequirementChangeResponse | null>;
+  onApplyDraft: (docId: string, role: RequirementRole) => Promise<RequirementChangeResponse | null>;
   onFetchVersions: (docId: string) => Promise<RequirementDocumentVersionList | null>;
   onDiffVersions: (
     docId: string,
@@ -73,6 +77,7 @@ export function RequirementWorkbench({
   onQuery,
   onBreakdown,
   onChange,
+  onApplyDraft,
   onFetchVersions,
   onDiffVersions,
   onRefresh,
@@ -87,6 +92,7 @@ export function RequirementWorkbench({
   const [clarificationResult, setClarificationResult] =
     useState<RequirementChangeResponse | null>(null);
   const [events, setEvents] = useState<RequirementNotificationEvent[]>([]);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const selectedDocument = useMemo(
     () => documents.find((doc) => doc.id === selectedDocId) ?? documents[0] ?? null,
@@ -97,10 +103,36 @@ export function RequirementWorkbench({
   const markdownDocs = documents.filter((doc) => doc.has_markdown_content);
   const projectTitle = kb.project_name || kb.name;
 
-  const pushEvent = (event: RequirementNotificationEvent | null | undefined) => {
+  const pushEvent = useCallback((event: RequirementNotificationEvent | null | undefined) => {
     if (!event) return;
-    setEvents((prev) => [event, ...prev].slice(0, 8));
-  };
+    const eventKey = requirementEventKey(event);
+    setEvents((prev) => [
+      event,
+      ...prev.filter((item) => requirementEventKey(item) !== eventKey),
+    ].slice(0, 8));
+  }, []);
+  const wsProtocols = useMemo(
+    () => (accessToken ? [`access_token.${accessToken}`, "chat"] : undefined),
+    [accessToken],
+  );
+  const { isConnected: notificationsConnected, connect: connectNotifications } = useWebSocket({
+    url: `${WS_URL}/api/v1/ws/agent`,
+    protocols: wsProtocols,
+    onMessage: (event) => {
+      const payload = JSON.parse(event.data) as {
+        type?: string;
+        data?: RequirementNotificationEvent;
+      };
+      if (payload.type === "requirement_notification" && payload.data?.kb_id === kb.id) {
+        pushEvent(payload.data);
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (!accessToken) return;
+    connectNotifications();
+  }, [accessToken, connectNotifications]);
 
   return (
     <div className="space-y-5">
@@ -209,7 +241,15 @@ export function RequirementWorkbench({
             )}
             {mode === "history" && (
               <HistoryPanel
+                role={role}
                 selectedDocument={selectedDocument}
+                onApplyDraft={async (docId) => {
+                  const result = await onApplyDraft(docId, role);
+                  setChangeResult(result);
+                  pushEvent(result?.notification_event);
+                  if (result?.document_id) setSelectedDocId(result.document_id);
+                  return result;
+                }}
                 onFetchVersions={onFetchVersions}
                 onDiffVersions={onDiffVersions}
               />
@@ -224,6 +264,7 @@ export function RequirementWorkbench({
             changeResult={changeResult}
           />
           <EventPanel events={events} />
+          <NotificationStatus connected={notificationsConnected} />
         </aside>
       </div>
     </div>
@@ -846,11 +887,15 @@ function ChangePanel({
 }
 
 function HistoryPanel({
+  role,
   selectedDocument,
+  onApplyDraft,
   onFetchVersions,
   onDiffVersions,
 }: {
+  role: RequirementRole;
   selectedDocument: KBDocument | null;
+  onApplyDraft: (docId: string) => Promise<RequirementChangeResponse | null>;
   onFetchVersions: (docId: string) => Promise<RequirementDocumentVersionList | null>;
   onDiffVersions: (
     docId: string,
@@ -860,8 +905,10 @@ function HistoryPanel({
 }) {
   const [versions, setVersions] = useState<RequirementDocumentVersionList | null>(null);
   const [diffResult, setDiffResult] = useState<RequirementDocumentDiffResponse | null>(null);
+  const [applyResult, setApplyResult] = useState<RequirementChangeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [diffing, setDiffing] = useState(false);
+  const [applyingDraftId, setApplyingDraftId] = useState<string | null>(null);
 
   const loadVersions = async () => {
     if (!selectedDocument) return;
@@ -888,6 +935,7 @@ function HistoryPanel({
   useEffect(() => {
     setVersions(null);
     setDiffResult(null);
+    setApplyResult(null);
   }, [selectedDocument?.id]);
 
   return (
@@ -930,17 +978,43 @@ function HistoryPanel({
                   )}
                   <Badge className="bg-background">{item.status}</Badge>
                 </div>
-                {item.version > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={diffing}
-                    onClick={() => loadDiff(item.version - 1, item.version)}
-                  >
-                    对比上一版
-                  </Button>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {item.status === "draft" && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={role !== "product" || applyingDraftId === item.document_id}
+                      onClick={async () => {
+                        setApplyingDraftId(item.document_id);
+                        try {
+                          const result = await onApplyDraft(item.document_id);
+                          setApplyResult(result);
+                          await loadVersions();
+                        } finally {
+                          setApplyingDraftId(null);
+                        }
+                      }}
+                    >
+                      {applyingDraftId === item.document_id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      )}
+                      应用草稿
+                    </Button>
+                  )}
+                  {item.version > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={diffing}
+                      onClick={() => loadDiff(item.version - 1, item.version)}
+                    >
+                      对比上一版
+                    </Button>
+                  )}
+                </div>
               </div>
               <p className="mt-2 text-sm text-foreground/70">{item.filename}</p>
               <p className="mt-1 text-xs text-foreground/45">
@@ -948,6 +1022,19 @@ function HistoryPanel({
               </p>
             </div>
           ))}
+        </div>
+      )}
+
+      {applyResult && (
+        <div className="mt-5 rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>{changeActionLabel(applyResult.action)}</Badge>
+            <AIStatusBadge result={applyResult} />
+          </div>
+          <p className="mt-2 text-sm text-foreground/70">{applyResult.message}</p>
+          {applyResult.diff_summary && (
+            <p className="mt-2 text-sm text-foreground/55">{applyResult.diff_summary}</p>
+          )}
         </div>
       )}
 
@@ -1081,10 +1168,46 @@ function EventPanel({ events }: { events: RequirementNotificationEvent[] }) {
                 {eventTypeLabel(event.event_type)}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-foreground/70">{event.message}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {event.version && (
+                  <Badge className="rounded-sm bg-background px-1.5 py-0 font-mono text-[9px] uppercase">
+                    v{event.version}
+                  </Badge>
+                )}
+                {event.status && (
+                  <Badge className="rounded-sm bg-background px-1.5 py-0 font-mono text-[9px] uppercase">
+                    {event.status}
+                  </Badge>
+                )}
+              </div>
+              {event.diff_summary && (
+                <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-foreground/50">
+                  {event.diff_summary}
+                </p>
+              )}
             </div>
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+function NotificationStatus({ connected }: { connected: boolean }) {
+  return (
+    <section className="rounded-lg border border-foreground/10 bg-card p-4">
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "h-2.5 w-2.5 rounded-full",
+            connected ? "bg-green-500" : "bg-amber-500",
+          )}
+        />
+        <h2 className="text-sm font-semibold text-foreground">通知连接</h2>
+      </div>
+      <p className="mt-3 text-sm text-foreground/55">
+        {connected ? "已连接，需求变更会实时推送到当前工作台。" : "正在连接需求变更通知。"}
+      </p>
     </section>
   );
 }
@@ -1135,6 +1258,9 @@ function changeActionLabel(action: string) {
     suggestion_recorded: "已记录修改建议",
     draft_created: "已生成变更草稿",
     version_created: "已创建新版本",
+    draft_applied: "草稿已应用",
+    approval_denied: "草稿审批被拒绝",
+    not_a_draft: "不是草稿",
   };
   return labels[action] ?? action;
 }
@@ -1145,7 +1271,20 @@ function eventTypeLabel(eventType: string) {
     "requirement.change_suggested": "修改建议已记录",
     "requirement.draft_created": "变更草稿已创建",
     "requirement.version_created": "新版本已创建",
+    "requirement.draft_applied": "草稿已应用",
+    "requirement.draft_review_denied": "草稿审批被拒绝",
   };
   return labels[eventType] ?? eventType;
+}
+
+function requirementEventKey(event: RequirementNotificationEvent) {
+  return [
+    event.event_type,
+    event.kb_id,
+    event.document_id,
+    event.version ?? "",
+    event.status ?? "",
+    event.message,
+  ].join(":");
 }
 {% endraw %}

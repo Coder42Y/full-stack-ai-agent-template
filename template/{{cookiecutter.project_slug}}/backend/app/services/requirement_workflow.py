@@ -176,6 +176,7 @@ class RequirementWorkflowService:
                 doc=doc,
                 event_type="requirement.created",
                 message=f"需求文档 {doc.filename} 已由一句话创建并入库.",
+                diff_summary="一句话需求已生成 Markdown 草案.",
             ),
         )
 
@@ -381,6 +382,7 @@ class RequirementWorkflowService:
                     doc=doc,
                     event_type="requirement.change_suggested",
                     message=f"{doc.filename} 收到一条修改建议.",
+                    diff_summary=f"建议修改: {instruction.strip()}",
                 ),
             )
 
@@ -435,6 +437,7 @@ class RequirementWorkflowService:
                     doc=draft,
                     event_type="requirement.draft_created",
                     message=f"{draft.filename} 已生成变更草稿.",
+                    diff_summary=diff_summary,
                 ),
             )
 
@@ -473,6 +476,79 @@ class RequirementWorkflowService:
                 doc=new_doc,
                 event_type="requirement.version_created",
                 message=f"{new_doc.filename} 已更新到 v{new_doc.version}.",
+                diff_summary=diff_summary,
+            ),
+        )
+
+    async def apply_draft(
+        self,
+        *,
+        kb_id: UUID,
+        draft_doc_id: UUID,
+        user_id: UUID,
+        role: str,
+        is_app_admin: bool,
+    ) -> RequirementChangeResponse:
+        """Approve a draft requirement document and make it the latest version."""
+        draft = await self._get_doc(kb_id=kb_id, doc_id=draft_doc_id)
+        previous_doc_id = (
+            str(draft.previous_version_id) if draft.previous_version_id else None
+        )
+
+        if not self._can_write(role=role, is_app_admin=is_app_admin):
+            return RequirementChangeResponse(
+                action="approval_denied",
+                message="当前角色不能审批变更草稿, 请产品确认.",
+                previous_document_id=previous_doc_id,
+                document_id=str(draft.id),
+                filename=draft.filename,
+                diff_summary="开发身份只能查看草稿并提交建议, 不能审批应用.",
+                markdown_preview=draft.markdown_content,
+                ai_used=False,
+                notification_event=self._event(
+                    kb_id=kb_id,
+                    doc=draft,
+                    event_type="requirement.draft_review_denied",
+                    message=f"{draft.filename} 草稿审批被拒绝: 当前角色无写入权限.",
+                    diff_summary="开发身份不能审批草稿.",
+                ),
+            )
+
+        if draft.status != "draft":
+            return RequirementChangeResponse(
+                action="not_a_draft",
+                message="选中的文档不是待审批草稿, 无需应用.",
+                previous_document_id=previous_doc_id,
+                document_id=str(draft.id),
+                filename=draft.filename,
+                diff_summary="仅 status=draft 的需求版本可以审批应用.",
+                markdown_preview=draft.markdown_content,
+                ai_used=False,
+            )
+
+        if draft.previous_version_id is not None:
+            await rag_document_repo.mark_not_latest(self.db, draft.previous_version_id)
+        draft.status = "done"
+        draft.is_latest = True
+        draft.modified_by = user_id
+        draft.completed_at = datetime.now(UTC)
+        await self.db.flush()
+
+        return RequirementChangeResponse(
+            action="draft_applied",
+            message="已审批并应用变更草稿, 草稿现在成为最新需求版本.",
+            previous_document_id=previous_doc_id,
+            document_id=str(draft.id),
+            filename=draft.filename,
+            diff_summary=f"{draft.filename} 已应用为 v{draft.version}.",
+            markdown_preview=draft.markdown_content,
+            ai_used=False,
+            notification_event=self._event(
+                kb_id=kb_id,
+                doc=draft,
+                event_type="requirement.draft_applied",
+                message=f"{draft.filename} 草稿已审批并应用为 v{draft.version}.",
+                diff_summary=f"{draft.filename} 已应用为 v{draft.version}.",
             ),
         )
 
@@ -496,13 +572,23 @@ class RequirementWorkflowService:
         doc: RAGDocument,
         event_type: str,
         message: str,
+        diff_summary: str | None = None,
     ) -> RequirementNotificationEvent:
+        version = getattr(doc, "version", None)
+        if not isinstance(version, int):
+            version = None
+        status = getattr(doc, "status", None)
+        if not isinstance(status, str):
+            status = None
         return RequirementNotificationEvent(
             event_type=event_type,
             kb_id=str(kb_id),
             document_id=str(doc.id),
             filename=doc.filename,
             message=message,
+            version=version,
+            status=status,
+            diff_summary=diff_summary,
         )
 {%- else %}
 """Requirement workflow service - not configured."""

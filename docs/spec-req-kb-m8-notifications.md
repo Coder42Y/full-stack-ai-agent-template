@@ -2,7 +2,7 @@
 type: spec
 source: req-kb-prd.md
 created: 2026-06-11
-status: in_progress
+status: implemented
 scope: 需求知识库 — M8 WebSocket 变更通知
 priority: P1
 depends_on:
@@ -43,16 +43,18 @@ depends_on:
 
 ## 当前实现状态
 
-已完成离线 demo 层的轻量事件 payload：
+已完成 demo fan-out：
 
 - 一句话入库、变更草稿、应用新版本、开发建议都会返回 `notification_event`。
-- 事件包含 `event_type/kb_id/document_id/filename/message`，可直接被前端或 WebSocket fan-out 使用。
+- 事件包含 `event_type/kb_id/document_id/filename/message/version/status/diff_summary`。
+- 后端复用现有 `/api/v1/ws/agent` 连接管理器广播 `requirement_notification`。
+- 前端需求工作台建立 WebSocket 连接，收到同 KB 事件后写入“事件回执”并展示通知连接状态。
 
 待实现增强：
 
-- 将 `notification_event` 发布到现有 WebSocket/Redis 通道。
-- 前端通知列表和 toast。
-- 通知已读状态和组织成员广播。
+- Redis/pubsub 跨进程广播。
+- 独立通知中心、toast、已读状态。
+- 按组织成员过滤，避免当前修改人重复收到自己触发的提示。
 
 ## 验收标准
 

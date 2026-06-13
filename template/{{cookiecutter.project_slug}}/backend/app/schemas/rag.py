@@ -140,6 +140,9 @@ class RequirementNotificationEvent(BaseModel):
     document_id: str
     filename: str
     message: str
+    version: int | None = None
+    status: str | None = None
+    diff_summary: str | None = None
 
 
 class RequirementIntakeRequest(BaseModel):

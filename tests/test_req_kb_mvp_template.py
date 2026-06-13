@@ -73,6 +73,9 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "RequirementDemoRole" in routes
         assert "RequirementQuerySvc" in routes
         assert "RequirementWorkflowSvc" in routes
+        assert "/{kb_id}/documents/{doc_id}/apply-draft" in routes
+        assert "_broadcast_requirement_event" in routes
+        assert "agent_connection_manager.broadcast_event" in routes
 
     def test_pg_backend_persists_markdown_and_version_metadata(
         self, pg_req_kb_project: Path
@@ -114,10 +117,12 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "break_down_document" in workflow
         assert "list_document_versions" in workflow
         assert "diff_document_versions" in workflow
+        assert "apply_draft" in workflow
         assert "difflib.unified_diff" in workflow
         assert "suggestion_recorded" in workflow
         assert "draft_created" in workflow
         assert "version_created" in workflow
+        assert "draft_applied" in workflow
         assert "RequirementNotificationEvent" in workflow
 
         assert "class RequirementQueryService" in query
@@ -134,6 +139,8 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "test_create_from_text_persists_markdown_and_questions" in tests
         assert "test_developer_change_records_suggestion_without_new_version" in tests
         assert "test_product_apply_change_creates_latest_version" in tests
+        assert "test_product_applies_draft_as_latest_version" in tests
+        assert "test_requirement_notification_helper_broadcasts_payload" in tests
         assert "test_diff_document_versions_returns_unified_diff" in tests
 
     def test_sqlite_combo_does_not_expose_pg_only_workflow_routes(
@@ -160,6 +167,7 @@ class TestRequirementKbMvpFrontendTemplate:
             "app/api/kb/[id]/query/route.ts",
             "app/api/kb/[id]/documents/[docId]/breakdown/route.ts",
             "app/api/kb/[id]/documents/[docId]/change/route.ts",
+            "app/api/kb/[id]/documents/[docId]/apply-draft/route.ts",
             "app/api/kb/[id]/documents/[docId]/versions/route.ts",
             "app/api/kb/[id]/documents/[docId]/diff/route.ts",
         ]
@@ -181,6 +189,7 @@ class TestRequirementKbMvpFrontendTemplate:
             "queryRequirements",
             "breakDownDocument",
             "changeRequirementDocument",
+            "applyRequirementDraft",
             "fetchDocumentVersions",
             "diffDocumentVersions",
         ):
@@ -259,8 +268,14 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "onCreateRequirement" in workbench
         assert "onBreakdown" in workbench
         assert "onChange" in workbench
+        assert "onApplyDraft" in workbench
         assert "onFetchVersions" in workbench
         assert "onDiffVersions" in workbench
+        assert "useWebSocket" in workbench
+        assert "requirement_notification" in workbench
+        assert "通知连接" in workbench
+        assert "应用草稿" in workbench
+        assert "草稿已应用" in workbench
         assert "export { RequirementProjectList }" in component_index
         assert "export { RequirementWorkbench }" in component_index
 

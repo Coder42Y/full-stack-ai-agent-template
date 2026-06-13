@@ -254,6 +254,23 @@ export function useKBDetail(id: string | null) {
     [id, refresh],
   );
 
+  const applyRequirementDraft = useCallback(
+    async (
+      docId: string,
+      role: RequirementRole = "product",
+    ): Promise<RequirementChangeResponse | null> => {
+      if (!id) return null;
+      const response = await apiClient.post<RequirementChangeResponse>(
+        `/kb/${id}/documents/${docId}/apply-draft`,
+        {},
+        { headers: requirementRoleHeader(role) },
+      );
+      await refresh();
+      return response;
+    },
+    [id, refresh],
+  );
+
   const fetchDocumentVersions = useCallback(
     async (docId: string): Promise<RequirementDocumentVersionList | null> => {
       if (!id) return null;
@@ -342,6 +359,7 @@ export function useKBDetail(id: string | null) {
     queryRequirements,
     breakDownDocument,
     changeRequirementDocument,
+    applyRequirementDraft,
     fetchDocumentVersions,
     diffDocumentVersions,
     createSyncSource,

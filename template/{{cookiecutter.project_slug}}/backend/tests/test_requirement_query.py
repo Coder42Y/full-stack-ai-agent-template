@@ -383,6 +383,77 @@ class TestRequirementWorkflowService:
         assert result.previous_document_id == str(old_doc.id)
 
     @pytest.mark.anyio
+    async def test_product_applies_draft_as_latest_version(self):
+        import uuid
+
+        from app.services.requirement_workflow import RequirementWorkflowService
+
+        kb_id = uuid.uuid4()
+        previous_id = uuid.uuid4()
+        draft = MagicMock()
+        draft.id = uuid.uuid4()
+        draft.knowledge_base_id = kb_id
+        draft.previous_version_id = previous_id
+        draft.filename = "orders.md"
+        draft.status = "draft"
+        draft.version = 2
+        draft.markdown_content = "# Orders\n\n- 海外地址"
+
+        db = MagicMock()
+        db.flush = AsyncMock()
+
+        with (
+            patch("app.repositories.rag_document_repo.get_by_id", new=AsyncMock(return_value=draft)),
+            patch("app.repositories.rag_document_repo.mark_not_latest", new=AsyncMock()) as mark_old,
+        ):
+            service = RequirementWorkflowService(db=db)
+            result = await service.apply_draft(
+                kb_id=kb_id,
+                draft_doc_id=draft.id,
+                user_id=uuid.uuid4(),
+                role="product",
+                is_app_admin=False,
+            )
+
+        assert result.action == "draft_applied"
+        assert result.document_id == str(draft.id)
+        assert draft.status == "done"
+        assert draft.is_latest is True
+        mark_old.assert_awaited_once()
+        db.flush.assert_awaited_once()
+
+    @pytest.mark.anyio
+    async def test_requirement_notification_helper_broadcasts_payload(self):
+        import uuid
+
+        from app.api.routes.v1.knowledge_bases import _broadcast_requirement_event
+        from app.schemas.rag import RequirementChangeResponse, RequirementNotificationEvent
+
+        event = RequirementNotificationEvent(
+            event_type="requirement.version_created",
+            kb_id=str(uuid.uuid4()),
+            document_id=str(uuid.uuid4()),
+            filename="orders.md",
+            message="orders.md 已更新到 v2.",
+            version=2,
+            status="done",
+            diff_summary="新增海外地址规则.",
+        )
+        response = RequirementChangeResponse(
+            action="version_created",
+            message="done",
+            notification_event=event,
+        )
+
+        with patch(
+            "app.api.routes.v1.knowledge_bases.agent_connection_manager.broadcast_event",
+            new=AsyncMock(return_value=1),
+        ) as broadcast:
+            await _broadcast_requirement_event(response)
+
+        broadcast.assert_awaited_once_with("requirement_notification", event.model_dump())
+
+    @pytest.mark.anyio
     async def test_diff_document_versions_returns_unified_diff(self):
         import uuid
 

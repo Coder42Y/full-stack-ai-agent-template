@@ -26,6 +26,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
     queryRequirements,
     breakDownDocument,
     changeRequirementDocument,
+    applyRequirementDraft,
     fetchDocumentVersions,
     diffDocumentVersions,
   } = useKBDetail(id);
@@ -75,6 +76,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
         onQuery={queryRequirements}
         onBreakdown={breakDownDocument}
         onChange={changeRequirementDocument}
+        onApplyDraft={applyRequirementDraft}
         onFetchVersions={fetchDocumentVersions}
         onDiffVersions={diffDocumentVersions}
         onRefresh={refresh}

@@ -15,7 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect{%- if cookiecutter.websocket_auth_jwt %}, Depends{%- endif %}{%- if cookiecutter.websocket_auth_api_key %}, Query{%- endif %}
 
 from app.core.config import settings
-from app.services.agent import AgentConnectionManager, send_event
+from app.services.agent import agent_connection_manager as manager, send_event
 from app.services.agent_session import AgentSession
 {%- if cookiecutter.websocket_auth_jwt %}
 from app.api.deps import get_current_user_ws
@@ -41,9 +41,6 @@ from pydantic_ai_backends import StateBackend
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-manager = AgentConnectionManager()
-
 
 @router.get("/agent/models")
 async def list_models() -> dict[str, Any]:

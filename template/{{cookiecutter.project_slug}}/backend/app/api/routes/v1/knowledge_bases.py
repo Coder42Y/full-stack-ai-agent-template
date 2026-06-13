@@ -51,6 +51,9 @@ from app.schemas.rag import (
     RAGSyncResponse,
     RAGTrackedDocumentList,
 )
+{%- if cookiecutter.use_postgresql %}
+from app.services.agent import agent_connection_manager
+{%- endif %}
 from app.schemas.sync_source import (
     ConnectorList,
     SyncSourceCreate,
@@ -63,6 +66,18 @@ router = APIRouter()
 
 
 {%- if cookiecutter.use_postgresql %}
+
+
+async def _broadcast_requirement_event(
+    response: RequirementIntakeResponse | RequirementChangeResponse,
+) -> None:
+    """Fan out requirement workflow notifications to connected WS clients."""
+    if response.notification_event is None:
+        return
+    await agent_connection_manager.broadcast_event(
+        "requirement_notification",
+        response.notification_event.model_dump(),
+    )
 
 
 @router.get("", response_model=KnowledgeBaseList)
@@ -242,7 +257,7 @@ async def create_requirement_from_text(
     kb = await service.get(
         kb_id, user_id=current_user.id, organization_id=active_org.id
     )
-    return await workflow_service.create_from_text(
+    response = await workflow_service.create_from_text(
         kb=kb,
         description=data.description,
         title=data.title,
@@ -250,6 +265,8 @@ async def create_requirement_from_text(
         user_id=current_user.id,
         organization_id=active_org.id,
     )
+    await _broadcast_requirement_event(response)
+    return response
 
 
 @router.get(
@@ -339,7 +356,7 @@ async def change_requirement_document(
     kb = await service.get(
         kb_id, user_id=current_user.id, organization_id=active_org.id
     )
-    return await workflow_service.change_document(
+    response = await workflow_service.change_document(
         kb_id=kb.id,
         doc_id=doc_id,
         instruction=data.instruction,
@@ -348,6 +365,36 @@ async def change_requirement_document(
         role=requirement_role,
         is_app_admin=False,
     )
+    await _broadcast_requirement_event(response)
+    return response
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/apply-draft",
+    response_model=RequirementChangeResponse,
+)
+async def apply_requirement_draft(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Approve a draft requirement document and make it the latest version."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    response = await workflow_service.apply_draft(
+        kb_id=kb.id,
+        draft_doc_id=doc_id,
+        user_id=current_user.id,
+        role=requirement_role,
+        is_app_admin=False,
+    )
+    await _broadcast_requirement_event(response)
+    return response
 
 
 @router.delete(

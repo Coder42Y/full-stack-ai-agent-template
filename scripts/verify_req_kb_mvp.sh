@@ -138,9 +138,9 @@ tmux log: $LOG
 - M2: one-sentence requirement intake is AI-first through an Anthropic Messages-compatible adapter with primary/fallback model routing, creates a tracked Markdown document, returns clarification questions, and the frontend can apply clarification answers as a new version.
 - M3: grounded query returns source-labelled excerpts, prioritizes clarified answer sections, can ask the requirement AI to answer from those sources, and falls back to stored Markdown when vector retrieval is unavailable.
 - M4: requirement breakdown returns section-level citations and tester-focused notes.
-- M5/M6: change workflow records developer suggestions, creates drafts, or applies product version snapshots.
+- M5/M6: change workflow records developer suggestions, creates drafts, applies product version snapshots, and lets product apply draft versions from history.
 - M7: MVP role selection uses X-Requirement-Role; product can write, developer can query/break down/suggest but not directly mutate documents.
-- M8: intake/change flows return lightweight notification_event payloads for later WebSocket fan-out.
+- M8: intake/change/draft-approval flows return notification_event payloads and broadcast them over the existing WebSocket manager as requirement_notification.
 - Frontend BFF route templates, hooks/types, Chinese requirement project list/workbench, product/developer role selector, and MVP demo-admin auto-auth are present for the demo workflow.
 
 ## Verification
@@ -158,8 +158,8 @@ tmux log: $LOG
 
 - Full generated-project pytest is intentionally outside this fast verifier; the generated core Req KB/RBAC tests are included.
 - Live FastAPI startup and HTTP demo flow are separate from this static verifier; see docs/req-kb-mvp-demo.md.
-- WebSocket broadcast is represented by notification_event payload contracts; fan-out wiring remains follow-up.
-- Persistent multi-turn clarification state and rich diff approval UI remain follow-up.
+- Redis/pubsub cross-process notification fan-out, read receipts, and toast notification center remain follow-up.
+- Persistent multi-turn clarification state and structured red/green diff approval UI remain follow-up.
 
 Overall exit status: $status
 EOF

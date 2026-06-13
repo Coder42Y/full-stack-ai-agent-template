@@ -16,7 +16,7 @@ This demo path is AI-first for requirement drafting/query wording and keeps a de
 - Product applies a versioned requirement change.
 - Backend reads `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, and `ANTHROPIC_MODEL` for an Anthropic Messages-compatible requirement AI adapter.
 - Responses expose `ai_used`, `ai_model`, and `ai_error`; the frontend shows AI 已响应 or 本地兜底.
-- Responses include lightweight `notification_event` payloads that can later be published over WebSocket.
+- Responses include `notification_event` payloads and the backend broadcasts them over the existing WebSocket connection as `requirement_notification`.
 - Frontend `/kb` is a requirement-project entry point; `/kb/{id}` is a four-mode workbench: 录入、查询、拆解、变更.
 
 ## Generate A Demo Project
@@ -180,6 +180,6 @@ X-Requirement-Role: product
 ## Current Limits
 
 - The automated verifier runs generated-project core tests, not the full generated-project pytest suite.
-- WebSocket fan-out is represented by `notification_event` payloads only.
+- WebSocket fan-out is wired to the existing agent socket for the demo; Redis/pubsub cross-process fan-out and read receipts remain production follow-up.
 - Persistent multi-turn clarification state and production diff approval UI are still follow-up work.
 - The configured primary model currently returns 503 because no upstream accounts are available; the requirement AI automatically falls back to `deepseek-v4-flash`.

@@ -120,6 +120,7 @@ export type WSEventType =
   | "error"
   | "conversation_created"
   | "message_saved"
+  | "requirement_notification"
   // DeepAgents Human-in-the-Loop event
   | "tool_approval_required"
   // CrewAI-specific events

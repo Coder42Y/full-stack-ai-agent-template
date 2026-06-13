@@ -59,6 +59,9 @@ export interface RequirementNotificationEvent {
   document_id: string;
   filename: string;
   message: string;
+  version: number | null;
+  status: string | null;
+  diff_summary: string | null;
 }
 
 export interface RequirementIntakeInput {

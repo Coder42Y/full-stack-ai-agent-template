@@ -51,12 +51,14 @@ POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes/{change_id}/reject
 - 新增 `POST /api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/change`。
 - developer/tester 调用时只返回 `suggestion_recorded`，不创建新版本。
 - product/admin 可创建 `draft` 版本，或 `apply=true` 时直接创建 `done` 新版本并把旧版标为 `is_latest=false`。
+- 新增 `POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft`，产品可把 `status=draft` 的版本审批为最新 `done` 版本。
+- 前端历史页可加载版本链，对草稿版本执行“应用草稿”。
 - 响应返回 diff 摘要、Markdown preview 和轻量通知 payload。
 
 待实现增强：
 
 - 小改 diff 的结构化红绿对比。
-- 大改草稿审批列表和确认接口。
+- 草稿审批的拒绝/评论/批量列表。
 - RAG 向量索引只保留最新版的真实重建逻辑。
 
 ## 验收标准

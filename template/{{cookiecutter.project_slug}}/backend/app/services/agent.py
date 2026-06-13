@@ -95,6 +95,28 @@ class AgentConnectionManager:
         """Forward to the module-level :func:`send_event`."""
         return await send_event(websocket, event_type, data)
 
+    async def broadcast_event(self, event_type: str, data: Any) -> int:
+        """Send an event to every connected WebSocket client.
+
+        Returns the number of clients that accepted the event. Closed sockets are
+        pruned so future broadcasts do not keep retrying dead connections.
+        """
+        delivered = 0
+        disconnected: list[WebSocket] = []
+        for websocket in list(self.active_connections):
+            if await send_event(websocket, event_type, data):
+                delivered += 1
+            else:
+                disconnected.append(websocket)
+
+        for websocket in disconnected:
+            self.disconnect(websocket)
+
+        return delivered
+
+
+agent_connection_manager = AgentConnectionManager()
+
 
 {%- if cookiecutter.use_pydantic_ai %}
 

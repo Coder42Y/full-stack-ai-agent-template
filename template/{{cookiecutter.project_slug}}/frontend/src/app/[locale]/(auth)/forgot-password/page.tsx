@@ -11,8 +11,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return pageMetadata({
-    title: "Reset password",
-    description: "Reset your account password.",
+    title: "重置密码",
+    description: "重置账号登录密码。",
     path: "/forgot-password",
     locale,
     noindex: true,

@@ -23,7 +23,7 @@ router = APIRouter()
 {%- if cookiecutter.use_postgresql %}
 
 
-@router.get("", response_model=MessageRatingList)
+@router.get("/", response_model=MessageRatingList)
 async def list_ratings_admin(
     rating_service: MessageRatingSvc,
     _: CurrentAdmin,
@@ -101,7 +101,7 @@ async def export_ratings(
 {%- elif cookiecutter.use_sqlite %}
 
 
-@router.get("", response_model=MessageRatingList)
+@router.get("/", response_model=MessageRatingList)
 def list_ratings_admin(
     rating_service: MessageRatingSvc,
     _: CurrentAdmin,
@@ -179,7 +179,7 @@ def export_ratings(
 {%- elif cookiecutter.use_mongodb %}
 
 
-@router.get("", response_model=MessageRatingList)
+@router.get("/", response_model=MessageRatingList)
 async def list_ratings_admin(
     rating_service: MessageRatingSvc,
     _: CurrentAdmin,

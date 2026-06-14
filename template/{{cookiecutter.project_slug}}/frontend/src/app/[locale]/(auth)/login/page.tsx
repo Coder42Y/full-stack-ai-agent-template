@@ -14,8 +14,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return pageMetadata({
-    title: "Sign in",
-    description: "Sign in to your workspace.",
+    title: "登录",
+    description: "登录需求协作工作台。",
     path: "/login",
     locale,
     noindex: true,

@@ -13,8 +13,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return pageMetadata({
-    title: "Check your email",
-    description: "We sent you a sign-in link.",
+    title: "检查邮箱",
+    description: "我们已发送登录链接。",
     path: "/magic-link-sent",
     locale,
     noindex: true,
@@ -29,41 +29,39 @@ export default async function MagicLinkSentPage({ searchParams }: PageProps) {
   const { email } = await searchParams;
 
   return (
-    <div className="space-y-8 text-center">
-      <div
-        className="bg-brand/15 mx-auto flex h-16 w-16 items-center justify-center rounded-full"
-        style={{ boxShadow: "0 0 40px oklch(from var(--color-brand) l c h / 0.4)" }}
-      >
+    <div className="space-y-6 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md border border-foreground/10 bg-foreground/[0.04]">
         <Mail className="text-foreground h-7 w-7" />
       </div>
 
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">Magic link</span>
-        <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Inbox, <em>incoming.</em>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+          邮箱登录
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          登录链接已发送
         </h1>
         <p className="text-foreground/70 text-sm">
-          We sent a sign-in link
+          我们已发送登录链接
           {email ? (
             <>
-              {" "}
-              to <span className="text-foreground font-medium">{email}</span>
+              到 <span className="text-foreground font-medium">{email}</span>
             </>
           ) : null}
-          . Click it to continue — expires in 15 minutes.
+          。请在 15 分钟内打开链接继续。
         </p>
       </div>
 
-      <div className="border-foreground/10 bg-foreground/[0.03] rounded-2xl border px-5 py-4 text-left">
+      <div className="rounded-md border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-left">
         <p className="text-foreground/70 text-xs leading-relaxed">
-          Don&apos;t see it? Check your spam folder, or{" "}
+          没收到邮件？请检查垃圾邮件，或{" "}
           <Link
             href={ROUTES.LOGIN}
             className="text-foreground hover:text-foreground/80 font-medium underline-offset-4 hover:underline"
           >
-            try again
+            重新发送
           </Link>
-          .
+          。
         </p>
       </div>
 
@@ -72,7 +70,7 @@ export default async function MagicLinkSentPage({ searchParams }: PageProps) {
         className="text-foreground/55 hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to sign in
+        返回登录
       </Link>
     </div>
   );

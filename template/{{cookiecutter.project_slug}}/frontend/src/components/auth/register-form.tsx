@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ArrowRight, Check, X } from "lucide-react";
 
@@ -31,7 +30,6 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
 }
 
 export function RegisterForm() {
-  const t = useTranslations("auth");
   const router = useRouter();
   const { register } = useAuth();
   const [email, setEmail] = useState("");
@@ -68,7 +66,7 @@ export function RegisterForm() {
     setIsLoading(true);
     try {
       await register({ email, password, full_name: name || undefined });
-      toast.success(t("registerSuccess"));
+      toast.success("账号创建成功");
       router.push(ROUTES.LOGIN + "?registered=true");
     } catch (err) {
       const message =
@@ -81,19 +79,21 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">{t("getStarted")}</span>
-        <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          创建<em>需求工作台</em>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+          创建演示账号
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          创建需求工作台账号
         </h1>
         <p className="text-foreground/65 text-sm">
-          {t("hasAccount")}{" "}
+          已有账号？{" "}
           <Link
             href={ROUTES.LOGIN}
             className="text-foreground hover:text-foreground/80 font-medium underline-offset-4 hover:underline"
           >
-            {t("login")}
+            登录
           </Link>
         </p>
       </div>
@@ -104,17 +104,17 @@ export function RegisterForm() {
             htmlFor="name"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("nameOptional")}
+            姓名（可选）
           </Label>
           <Input
             id="name"
             type="text"
-            placeholder={t("namePlaceholder")}
+            placeholder="希望如何称呼你？"
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isLoading}
             autoComplete="name"
-            className="h-12 rounded-xl"
+            className="h-10 rounded-md"
           />
         </div>
 
@@ -123,22 +123,22 @@ export function RegisterForm() {
             htmlFor="email"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("email")}
+            邮箱
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder={t("emailPlaceholder")}
+            placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setEmailTouched(true)}
             required
             disabled={isLoading}
             autoComplete="email"
-            className={`h-12 rounded-xl ${emailTouched && email && !emailValid ? "border-destructive" : ""}`}
+            className={`h-10 rounded-md ${emailTouched && email && !emailValid ? "border-destructive" : ""}`}
           />
           {emailTouched && email && !emailValid && (
-            <p className="text-destructive text-xs">{t("emailRequired")}</p>
+            <p className="text-destructive text-xs">请输入有效邮箱地址</p>
           )}
         </div>
 
@@ -147,7 +147,7 @@ export function RegisterForm() {
             htmlFor="password"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("password")}
+            密码
           </Label>
           <Input
             id="password"
@@ -158,7 +158,7 @@ export function RegisterForm() {
             required
             disabled={isLoading}
             autoComplete="new-password"
-            className={`h-12 rounded-xl ${password && !passwordLongEnough ? "border-destructive" : ""}`}
+            className={`h-10 rounded-md ${password && !passwordLongEnough ? "border-destructive" : ""}`}
           />
           {password && (
             <div className="space-y-1.5 pt-1">
@@ -199,7 +199,7 @@ export function RegisterForm() {
             htmlFor="confirmPassword"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("confirmPassword")}
+            确认密码
           </Label>
           <Input
             id="confirmPassword"
@@ -210,18 +210,18 @@ export function RegisterForm() {
             required
             disabled={isLoading}
             autoComplete="new-password"
-            className={`h-12 rounded-xl ${confirmPassword && !passwordsMatch ? "border-destructive" : ""}`}
+            className={`h-10 rounded-md ${confirmPassword && !passwordsMatch ? "border-destructive" : ""}`}
           />
           {confirmPassword && !passwordsMatch && (
             <p className="text-destructive inline-flex items-center gap-1 text-xs">
               <X className="h-3 w-3" />
-              {t("passwordMismatch")}
+              两次输入的密码不一致
             </p>
           )}
         </div>
 
         {error && (
-          <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm">
+          <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         )}
@@ -229,13 +229,13 @@ export function RegisterForm() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-foreground text-background hover:bg-foreground/90 h-12 w-full rounded-full text-base font-medium"
+          className="h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:bg-foreground/90"
         >
           {isLoading ? (
-            t("creatingAccount")
+            "创建中..."
           ) : (
             <>
-              {t("register")}
+              注册
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -256,11 +256,11 @@ export function RegisterForm() {
           >
             隐私政策
           </Link>
-          .
+          。
         </p>
       </form>
 
-      <OAuthBlock label={t("orSignUpWith")} />
+      <OAuthBlock label="或使用以下方式注册" />
     </div>
   );
 }

@@ -31,7 +31,7 @@ router = APIRouter()
 
 {%- if cookiecutter.use_postgresql %}
 
-@router.get("", response_model=AdminUserList)
+@router.get("/", response_model=AdminUserList)
 async def list_users(
     _: CurrentAdmin,
     service: UserSvc,
@@ -137,7 +137,7 @@ async def impersonate_user(
 
 {%- elif cookiecutter.use_sqlite %}
 
-@router.get("", response_model=AdminUserList)
+@router.get("/", response_model=AdminUserList)
 def list_users(
     _: CurrentAdmin,
     service: UserSvc,

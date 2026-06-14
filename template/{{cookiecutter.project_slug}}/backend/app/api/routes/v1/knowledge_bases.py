@@ -80,7 +80,7 @@ async def _broadcast_requirement_event(
     )
 
 
-@router.get("", response_model=KnowledgeBaseList)
+@router.get("/", response_model=KnowledgeBaseList)
 async def list_knowledge_bases(
     service: KnowledgeBaseSvc,
     current_user: CurrentUser,
@@ -94,7 +94,7 @@ async def list_knowledge_bases(
     return KnowledgeBaseList(items=items, total=len(items))
 
 
-@router.post("", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
 async def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,
@@ -552,7 +552,7 @@ async def list_kb_connectors(
 {%- elif cookiecutter.use_sqlite %}
 
 
-@router.get("", response_model=KnowledgeBaseList)
+@router.get("/", response_model=KnowledgeBaseList)
 def list_knowledge_bases(
     service: KnowledgeBaseSvc,
     current_user: CurrentUser,
@@ -566,7 +566,7 @@ def list_knowledge_bases(
     return KnowledgeBaseList(items=items, total=len(items))
 
 
-@router.post("", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
 def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,
@@ -649,7 +649,7 @@ def list_kb_documents(
 {%- elif cookiecutter.use_mongodb %}
 
 
-@router.get("", response_model=KnowledgeBaseList)
+@router.get("/", response_model=KnowledgeBaseList)
 async def list_knowledge_bases(
     service: KnowledgeBaseSvc,
     current_user: CurrentUser,
@@ -663,7 +663,7 @@ async def list_knowledge_bases(
     return KnowledgeBaseList(items=items, total=len(items))
 
 
-@router.post("", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=KnowledgeBaseRead, status_code=status.HTTP_201_CREATED)
 async def create_knowledge_base(
     data: KnowledgeBaseCreate,
     service: KnowledgeBaseSvc,

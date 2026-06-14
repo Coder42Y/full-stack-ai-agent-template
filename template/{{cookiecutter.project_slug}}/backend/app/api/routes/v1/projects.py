@@ -26,7 +26,7 @@ router = APIRouter()
 # Project CRUD
 
 
-@router.get("", response_model=ProjectList)
+@router.get("/", response_model=ProjectList)
 async def list_projects(
     service: ProjectSvc,
     user: CurrentUser,
@@ -48,7 +48,7 @@ async def list_projects(
     return ProjectList(items=items, total=total)
 
 
-@router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
     data: ProjectCreate,
     service: ProjectSvc,

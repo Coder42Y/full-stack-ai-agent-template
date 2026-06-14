@@ -13,8 +13,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return pageMetadata({
-    title: "Set a new password",
-    description: "Reset your account password.",
+    title: "设置新密码",
+    description: "重置账号登录密码。",
     path: "/reset-password",
     locale,
     noindex: true,
@@ -32,27 +32,31 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
     return (
       <div className="space-y-6">
         <div className="space-y-2">
-          <span className="eyebrow text-foreground/55">Reset password</span>
-          <h1 className="text-display-md text-foreground">Missing or expired link</h1>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+            重置密码
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            链接缺失或已过期
+          </h1>
           <p className="text-foreground/70 text-sm">
-            This page expects a token from your reset email. Request a new link to continue.
+            当前页面需要邮箱中的重置令牌。请重新申请链接后继续。
           </p>
         </div>
         <Link
           href="/forgot-password"
-          className="bg-foreground text-background hover:bg-foreground/90 inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-colors"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
         >
-          Request a new link
+          重新申请链接
         </Link>
         <p className="text-foreground/55 text-xs">
-          Or{" "}
+          或{" "}
           <Link
             href={ROUTES.LOGIN}
             className="text-foreground hover:text-foreground/80 underline-offset-4 hover:underline"
           >
-            return to sign in
+            返回登录
           </Link>
-          .
+          。
         </p>
       </div>
     );

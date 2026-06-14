@@ -95,7 +95,7 @@ async def get_avatar(user_id: UUID, user_service: UserSvc) -> Any:
 {%- if cookiecutter.enable_pagination %}
 
 
-@router.get("", response_model=Page[UserRead])
+@router.get("/", response_model=Page[UserRead])
 async def read_users(
     user_service: UserSvc,
     _: CurrentAdmin,
@@ -107,7 +107,7 @@ async def read_users(
 {%- else %}
 
 
-@router.get("", response_model=list[UserRead])
+@router.get("/", response_model=list[UserRead])
 async def read_users(
     user_service: UserSvc,
     _: CurrentAdmin,
@@ -198,7 +198,7 @@ async def update_current_user(
     return user
 
 
-@router.get("", response_model=list[UserRead])
+@router.get("/", response_model=list[UserRead])
 async def read_users(
     user_service: UserSvc,
     _: CurrentAdmin,
@@ -289,7 +289,7 @@ def update_current_user(
 {%- if cookiecutter.enable_pagination %}
 
 
-@router.get("", response_model=Page[UserRead])
+@router.get("/", response_model=Page[UserRead])
 def read_users(
     user_service: UserSvc,
     _: CurrentAdmin,
@@ -301,7 +301,7 @@ def read_users(
 {%- else %}
 
 
-@router.get("", response_model=list[UserRead])
+@router.get("/", response_model=list[UserRead])
 def read_users(
     user_service: UserSvc,
     _: CurrentAdmin,

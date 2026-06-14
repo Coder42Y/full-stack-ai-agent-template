@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,7 +26,6 @@ interface Props {
 }
 
 export function ResetPasswordForm({ token }: Props) {
-  const t = useTranslations("auth.resetPassword");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -37,22 +35,22 @@ export function ResetPasswordForm({ token }: Props) {
   const score = useMemo(() => strengthScore(password), [password]);
   const strengthLabel = useMemo(() => {
     if (!password) return "";
-    if (score <= 1) return t("strengthWeak");
-    if (score <= 2) return t("strengthFair");
-    if (score <= 3) return t("strengthGood");
-    return t("strengthStrong");
-  }, [score, password, t]);
+    if (score <= 1) return "较弱";
+    if (score <= 2) return "一般";
+    if (score <= 3) return "良好";
+    return "较强";
+  }, [score, password]);
   const matches = !confirm || password === confirm;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (password.length < 8) {
-      setError(t("minLength"));
+      setError("密码至少 8 个字符");
       return;
     }
     if (password !== confirm) {
-      setError(t("passwordsDontMatch"));
+      setError("两次输入的密码不一致");
       return;
     }
     setSubmitting(true);
@@ -61,23 +59,27 @@ export function ResetPasswordForm({ token }: Props) {
         token,
         new_password: password,
       });
-      toast.success(t("successToast"));
+      toast.success("密码已更新，请重新登录。");
       router.push(ROUTES.LOGIN);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t("invalidLink");
+      const msg = err instanceof ApiError ? err.message : "重置链接无效或已过期。";
       setError(msg);
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">{t("eyebrow")}</span>
-        <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          {t("heading")}
+        <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+          重置密码
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          设置新密码
         </h1>
-        <p className="text-foreground/65 text-sm">{t("intro")}</p>
+        <p className="text-foreground/65 text-sm">
+          请设置 8 位以上密码，建议包含大小写字母和数字。
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -86,7 +88,7 @@ export function ResetPasswordForm({ token }: Props) {
             htmlFor="new-pw"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("newPassword")}
+            新密码
           </Label>
           <Input
             id="new-pw"
@@ -96,7 +98,7 @@ export function ResetPasswordForm({ token }: Props) {
             required
             autoComplete="new-password"
             disabled={submitting}
-            className="h-12 rounded-xl"
+            className="h-10 rounded-md"
           />
           {password && (
             <div className="space-y-1.5 pt-1">
@@ -132,7 +134,7 @@ export function ResetPasswordForm({ token }: Props) {
             htmlFor="confirm-pw"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("confirm")}
+            确认密码
           </Label>
           <Input
             id="confirm-pw"
@@ -142,24 +144,24 @@ export function ResetPasswordForm({ token }: Props) {
             required
             autoComplete="new-password"
             disabled={submitting}
-            className={`h-12 rounded-xl ${confirm && !matches ? "border-destructive" : ""}`}
+            className={`h-10 rounded-md ${confirm && !matches ? "border-destructive" : ""}`}
           />
           {confirm && !matches && (
             <p className="text-destructive inline-flex items-center gap-1 text-xs">
               <X className="h-3 w-3" />
-              {t("passwordsDontMatch")}
+              两次输入的密码不一致
             </p>
           )}
           {confirm && matches && (
             <p className="text-brand inline-flex items-center gap-1 text-xs">
               <Check className="h-3 w-3" />
-              {t("passwordsMatch")}
+              已匹配
             </p>
           )}
         </div>
 
         {error && (
-          <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm">
+          <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         )}
@@ -167,13 +169,13 @@ export function ResetPasswordForm({ token }: Props) {
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-foreground text-background hover:bg-foreground/90 h-12 w-full rounded-full text-base font-medium"
+          className="h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:bg-foreground/90"
         >
           {submitting ? (
-            t("submitting")
+            "更新中..."
           ) : (
             <>
-              {t("submit")}
+              更新密码
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -184,7 +186,7 @@ export function ResetPasswordForm({ token }: Props) {
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t("backToSignIn")}
+          返回登录
         </Link>
       </form>
     </div>

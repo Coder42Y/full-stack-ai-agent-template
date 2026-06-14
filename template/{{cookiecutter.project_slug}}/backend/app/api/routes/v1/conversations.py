@@ -107,7 +107,7 @@ async def list_conversations_admin(
 {%- endif %}
 
 
-@router.get("", response_model=ConversationList)
+@router.get("/", response_model=ConversationList)
 async def list_conversations(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}
@@ -138,7 +138,7 @@ async def list_conversations(
     return ConversationList(items=items, total=total)  # type: ignore[arg-type]
 
 
-@router.post("", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
 async def create_conversation(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}
@@ -447,7 +447,7 @@ def list_conversations_admin(
 {%- endif %}
 
 
-@router.get("", response_model=ConversationList)
+@router.get("/", response_model=ConversationList)
 def list_conversations(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}
@@ -478,7 +478,7 @@ def list_conversations(
     return ConversationList(items=items, total=total)  # type: ignore[arg-type]
 
 
-@router.post("", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
 def create_conversation(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}
@@ -752,7 +752,7 @@ async def list_conversations_admin(
 {%- endif %}
 
 
-@router.get("", response_model=ConversationList)
+@router.get("/", response_model=ConversationList)
 async def list_conversations(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}
@@ -783,7 +783,7 @@ async def list_conversations(
     return ConversationList(items=items, total=total)  # type: ignore[arg-type]
 
 
-@router.post("", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
 async def create_conversation(
     conversation_service: ConversationSvc,
 {%- if cookiecutter.use_jwt %}

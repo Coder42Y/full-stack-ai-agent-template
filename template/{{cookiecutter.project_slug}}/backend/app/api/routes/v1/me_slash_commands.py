@@ -24,7 +24,7 @@ from app.schemas.user_slash_command import (
 router = APIRouter()
 
 
-@router.get("", response_model=UserSlashCommandList)
+@router.get("/", response_model=UserSlashCommandList)
 async def list_slash_commands(service: UserSlashCommandSvc, user: CurrentUser) -> Any:
     """List the current user's custom commands and built-in overrides."""
 {%- if cookiecutter.use_postgresql %}

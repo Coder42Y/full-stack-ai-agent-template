@@ -29,7 +29,7 @@ router = APIRouter()
 {%- if cookiecutter.use_postgresql %}
 
 
-@router.post("", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
 async def create_webhook(
     data: WebhookCreate,
     webhook_service: WebhookSvc,
@@ -56,7 +56,7 @@ async def create_webhook(
     )
 
 
-@router.get("", response_model=WebhookListResponse)
+@router.get("/", response_model=WebhookListResponse)
 async def list_webhooks(
     webhook_service: WebhookSvc,
 {%- if cookiecutter.use_jwt %}
@@ -208,7 +208,7 @@ async def list_webhook_deliveries(
 {%- elif cookiecutter.use_sqlite %}
 
 
-@router.post("", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
 def create_webhook(
     data: WebhookCreate,
     webhook_service: WebhookSvc,
@@ -235,7 +235,7 @@ def create_webhook(
     )
 
 
-@router.get("", response_model=WebhookListResponse)
+@router.get("/", response_model=WebhookListResponse)
 def list_webhooks(
     webhook_service: WebhookSvc,
 {%- if cookiecutter.use_jwt %}
@@ -361,7 +361,7 @@ def list_webhook_deliveries(
 {%- elif cookiecutter.use_mongodb %}
 
 
-@router.post("", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
 async def create_webhook(
     data: WebhookCreate,
     webhook_service: WebhookSvc,
@@ -388,7 +388,7 @@ async def create_webhook(
     )
 
 
-@router.get("", response_model=WebhookListResponse)
+@router.get("/", response_model=WebhookListResponse)
 async def list_webhooks(
     webhook_service: WebhookSvc,
 {%- if cookiecutter.use_jwt %}

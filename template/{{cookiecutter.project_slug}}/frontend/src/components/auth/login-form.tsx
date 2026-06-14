@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
 
@@ -15,7 +14,6 @@ import { ROUTES } from "@/lib/constants";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginForm() {
-  const t = useTranslations("auth");
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +30,7 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      toast.success(t("loginSuccess"));
+      toast.success("登录成功");
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "登录失败，请重试。";
       setError(message);
@@ -42,19 +40,21 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">{t("welcomeBack")}</span>
-        <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          登录到<em>需求工作台</em>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+          欢迎回来
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          登录到需求工作台
         </h1>
         <p className="text-foreground/65 text-sm">
-          {t("noAccount")}{" "}
+          还没有账号？{" "}
           <Link
             href={ROUTES.REGISTER}
             className="text-foreground hover:text-foreground/80 font-medium underline-offset-4 hover:underline"
           >
-            {t("register")}
+            注册
           </Link>
         </p>
       </div>
@@ -65,22 +65,22 @@ export function LoginForm() {
             htmlFor="email"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("email")}
+            邮箱
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder={t("emailPlaceholder")}
+            placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setEmailTouched(true)}
             required
             disabled={isLoading}
             autoComplete="email"
-            className={`h-12 rounded-xl ${emailTouched && email && !emailValid ? "border-destructive" : ""}`}
+            className={`h-10 rounded-md ${emailTouched && email && !emailValid ? "border-destructive" : ""}`}
           />
           {emailTouched && email && !emailValid && (
-            <p className="text-destructive text-xs">{t("emailRequired")}</p>
+            <p className="text-destructive text-xs">请输入有效邮箱地址</p>
           )}
         </div>
 
@@ -90,13 +90,13 @@ export function LoginForm() {
               htmlFor="password"
               className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
             >
-              {t("password")}
+              密码
             </Label>
             <Link
               href="/forgot-password"
               className="text-foreground/55 hover:text-foreground text-xs font-medium underline-offset-4 hover:underline"
             >
-              {t("forgotShort")}
+              忘记？
             </Link>
           </div>
           <Input
@@ -108,12 +108,12 @@ export function LoginForm() {
             required
             disabled={isLoading}
             autoComplete="current-password"
-            className="h-12 rounded-xl"
+            className="h-10 rounded-md"
           />
         </div>
 
         {error && (
-          <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm">
+          <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         )}
@@ -121,20 +121,20 @@ export function LoginForm() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-foreground text-background hover:bg-foreground/90 h-12 w-full rounded-full text-base font-medium"
+          className="h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:bg-foreground/90"
         >
           {isLoading ? (
-            t("loggingIn")
+            "登录中..."
           ) : (
             <>
-              {t("login")}
+              登录
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
         </Button>
       </form>
 
-      <OAuthBlock label={t("orSignInWith")} />
+      <OAuthBlock label="或使用以下方式登录" />
     </div>
   );
 }

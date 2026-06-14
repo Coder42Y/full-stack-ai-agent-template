@@ -30,7 +30,7 @@ def get_item_service(db: DBSession) -> ItemService:
 ItemSvc = Annotated[ItemService, Depends(get_item_service)]
 
 
-@router.get("", response_model=ItemList)
+@router.get("/", response_model=ItemList)
 {%- if cookiecutter.use_postgresql %}
 async def list_items(
 {%- else %}
@@ -50,7 +50,7 @@ def list_items(
     return ItemList(items=items, total=total)
 
 
-@router.post("", response_model=ItemRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ItemRead, status_code=status.HTTP_201_CREATED)
 {%- if cookiecutter.use_postgresql %}
 async def create_item(
 {%- else %}

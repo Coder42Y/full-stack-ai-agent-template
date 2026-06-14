@@ -28,7 +28,7 @@ router = APIRouter()
 {%- if cookiecutter.use_postgresql %}
 
 
-@router.get("", response_model=AdminConversationList)
+@router.get("/", response_model=AdminConversationList)
 async def admin_list_conversations(
     service: ConversationSvc,
     _: CurrentAdmin,
@@ -88,7 +88,7 @@ async def admin_get_conversation(
 {%- elif cookiecutter.use_sqlite %}
 
 
-@router.get("", response_model=AdminConversationList)
+@router.get("/", response_model=AdminConversationList)
 def admin_list_conversations(
     service: ConversationSvc,
     _: CurrentAdmin,
@@ -148,7 +148,7 @@ def admin_get_conversation(
 {%- elif cookiecutter.use_mongodb %}
 
 
-@router.get("", response_model=AdminConversationList)
+@router.get("/", response_model=AdminConversationList)
 async def admin_list_conversations(
     service: ConversationSvc,
     _: CurrentAdmin,

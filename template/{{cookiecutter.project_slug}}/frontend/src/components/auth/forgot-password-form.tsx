@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, Mail } from "lucide-react";
 
 import { Button, Input, Label } from "@/components/ui";
@@ -12,7 +11,6 @@ import { ROUTES } from "@/lib/constants";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ForgotPasswordForm() {
-  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -43,17 +41,16 @@ export function ForgotPasswordForm() {
 
   if (submitted) {
     return (
-      <div className="space-y-7 text-center">
-        <div
-          className="bg-brand/15 mx-auto flex h-14 w-14 items-center justify-center rounded-full"
-          style={{ boxShadow: "0 0 32px oklch(from var(--color-brand) l c h / 0.35)" }}
-        >
+      <div className="space-y-6 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md border border-foreground/10 bg-foreground/[0.04]">
           <Mail className="text-foreground h-6 w-6" />
         </div>
         <div className="space-y-2">
-          <span className="eyebrow text-foreground/55">请检查邮箱</span>
-          <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            重置链接<em>已发送</em>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+            请检查邮箱
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            重置链接已发送
           </h1>
           <p className="text-foreground/70 text-sm">
             如果 <span className="text-foreground font-medium">{email}</span> 对应账号存在，
@@ -72,11 +69,13 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <span className="eyebrow text-foreground/55">忘记密码？</span>
-        <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          重新设置<em>登录密码</em>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+          忘记密码？
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          重新设置登录密码
         </h1>
         <p className="text-foreground/65 text-sm">
           输入邮箱后，我们会发送一次性链接用于设置新密码。
@@ -89,23 +88,23 @@ export function ForgotPasswordForm() {
             htmlFor="email"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            {t("email")}
+            邮箱
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder={t("emailPlaceholder")}
+            placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={isLoading}
             autoComplete="email"
-            className="h-12 rounded-xl"
+            className="h-10 rounded-md"
           />
         </div>
 
         {error && (
-          <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm">
+          <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         )}
@@ -113,7 +112,7 @@ export function ForgotPasswordForm() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-foreground text-background hover:bg-foreground/90 h-12 w-full rounded-full text-base font-medium"
+          className="h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:bg-foreground/90"
         >
           {isLoading ? (
             "发送中..."

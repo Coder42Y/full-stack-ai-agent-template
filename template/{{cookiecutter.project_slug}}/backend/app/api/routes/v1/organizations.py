@@ -37,7 +37,7 @@ MAX_AVATAR_BYTES = 2 * 1024 * 1024
 router = APIRouter()
 
 
-@router.get("", response_model=OrganizationList)
+@router.get("/", response_model=OrganizationList)
 {%- if cookiecutter.use_postgresql or cookiecutter.use_mongodb %}
 async def list_organizations(
     service: OrganizationSvc,
@@ -78,7 +78,7 @@ def list_organizations(
     return OrganizationList(items=items, total=len(items))
 
 
-@router.post("", response_model=OrganizationRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=OrganizationRead, status_code=status.HTTP_201_CREATED)
 {%- if cookiecutter.use_postgresql or cookiecutter.use_mongodb %}
 async def create_organization(
     data: OrganizationCreate,

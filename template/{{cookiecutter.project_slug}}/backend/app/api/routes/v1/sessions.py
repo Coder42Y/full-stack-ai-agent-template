@@ -17,7 +17,7 @@ router = APIRouter()
 {%- if cookiecutter.use_postgresql %}
 
 
-@router.get("", response_model=SessionListResponse)
+@router.get("/", response_model=SessionListResponse)
 async def list_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,
@@ -36,7 +36,7 @@ async def logout_session(
     await session_service.logout_session(session_id, current_user.id)
 
 
-@router.delete("", response_model=LogoutAllResponse)
+@router.delete("/", response_model=LogoutAllResponse)
 async def logout_all_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,
@@ -52,7 +52,7 @@ async def logout_all_sessions(
 {%- elif cookiecutter.use_mongodb %}
 
 
-@router.get("", response_model=SessionListResponse)
+@router.get("/", response_model=SessionListResponse)
 async def list_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,
@@ -71,7 +71,7 @@ async def logout_session(
     await session_service.logout_session(session_id, str(current_user.id))
 
 
-@router.delete("", response_model=LogoutAllResponse)
+@router.delete("/", response_model=LogoutAllResponse)
 async def logout_all_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,
@@ -87,7 +87,7 @@ async def logout_all_sessions(
 {%- elif cookiecutter.use_sqlite %}
 
 
-@router.get("", response_model=SessionListResponse)
+@router.get("/", response_model=SessionListResponse)
 def list_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,
@@ -106,7 +106,7 @@ def logout_session(
     session_service.logout_session(session_id, current_user.id)
 
 
-@router.delete("", response_model=LogoutAllResponse)
+@router.delete("/", response_model=LogoutAllResponse)
 def logout_all_sessions(
     current_user: CurrentUser,
     session_service: SessionSvc,

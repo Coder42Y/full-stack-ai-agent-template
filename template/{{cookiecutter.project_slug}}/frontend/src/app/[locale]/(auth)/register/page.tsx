@@ -14,8 +14,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return pageMetadata({
-    title: "Create your account",
-    description: "Start your free trial — no credit card required.",
+    title: "创建账号",
+    description: "创建需求协作工作台账号。",
     path: "/register",
     locale,
   });

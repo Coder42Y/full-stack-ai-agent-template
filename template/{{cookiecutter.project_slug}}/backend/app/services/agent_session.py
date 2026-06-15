@@ -236,10 +236,10 @@ class AgentSession:
         topic = user_message.strip() or "这个需求"
         return (
             "我会按需求知识库的工作方式处理这个问题。\n\n"
-            f"当前输入：{topic}\n\n"
-            "如果这是新需求，请补充业务目标、使用角色、业务边界和验收标准；"
-            "如果这是查询，请先选择对应需求项目或来源文档，我会基于已入库内容回答。"
-            "信息不足时，我会直接给出需要澄清的问题。"
+            f"当前输入: {topic}\n\n"
+            "如果这是新需求, 请补充业务目标, 使用角色, 业务边界和验收标准; "
+            "如果这是查询, 请先选择对应需求项目或来源文档, 我会基于已入库内容回答. "
+            "信息不足时, 我会直接给出需要澄清的问题."
         )
 
 {%- if cookiecutter.enable_billing and cookiecutter.enable_teams and cookiecutter.enable_credits_system and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}

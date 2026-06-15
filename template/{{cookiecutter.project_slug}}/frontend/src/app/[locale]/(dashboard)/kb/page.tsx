@@ -83,7 +83,15 @@ export default function KBPage() {
 function StatPill({ value, label }: { value: number | string; label: string }) {
   return (
     <div className="rounded-md border border-foreground/10 bg-background px-4 py-3">
-      <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+      <p
+        className={
+          typeof value === "string"
+            ? "whitespace-nowrap text-lg font-semibold tabular-nums text-foreground"
+            : "text-2xl font-semibold tabular-nums text-foreground"
+        }
+      >
+        {value}
+      </p>
       <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-foreground/50">
         {label}
       </p>

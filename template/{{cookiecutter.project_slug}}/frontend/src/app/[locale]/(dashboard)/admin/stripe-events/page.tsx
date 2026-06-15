@@ -241,8 +241,8 @@ export default function StripeEventsPage() {
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
             支付事件
           </p>
-          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            Webhook <em>事件日志</em>
+          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
+            Webhook 事件日志
           </h2>
           <p className="text-foreground/65 mt-1 text-sm">
             查看账单 Webhook 处理状态，并重放失败事件排查支付流程。

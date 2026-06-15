@@ -79,8 +79,8 @@ export function RatingButtons({
         );
 
         if (!response.ok) {
-          const error = await response.json().catch(() => ({ message: "Unknown error" }));
-          throw new Error(error.message || "Failed to submit rating");
+          const error = await response.json().catch(() => ({ message: "未知错误" }));
+          throw new Error(error.message || "提交评分失败");
         }
 
         const newCounts = calculateNewCounts(currentRating, rating);
@@ -117,15 +117,15 @@ export function RatingButtons({
           );
 
           if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: "Unknown error" }));
-            throw new Error(error.message || "Failed to remove rating");
+            const error = await response.json().catch(() => ({ message: "未知错误" }));
+            throw new Error(error.message || "移除评分失败");
           }
 
           const newCounts = calculateNewCounts(currentRating, null);
           onRatingChange?.({ rating: null, rating_count: newCounts });
           toast.success(t("ratingRemoved"));
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Failed to remove rating");
+          toast.error(error instanceof Error ? error.message : "移除评分失败");
         } finally {
           setIsLoading(false);
         }

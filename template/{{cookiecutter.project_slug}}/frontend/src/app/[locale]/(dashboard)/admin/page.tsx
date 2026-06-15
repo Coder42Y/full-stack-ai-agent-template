@@ -131,8 +131,8 @@ export default function AdminOverviewPage() {
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
             总览
           </p>
-          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight {% raw %}[&_em]:font-accent [&_em]:font-normal [&_em]:italic{% endraw %}">
-            工作区运行<em>概览</em>
+          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
+            工作区运行概览
           </h2>
         </div>
         <Button

@@ -369,19 +369,37 @@ class RequirementWorkflowService:
         """Record a suggestion, create a draft, or apply a new document version."""
         doc = await self._get_doc(kb_id=kb_id, doc_id=doc_id)
         if not self._can_write(role=role, is_app_admin=is_app_admin):
-            return RequirementChangeResponse(
-                action="suggestion_recorded",
-                message="当前角色不能直接修改需求文档, 已记录为修改建议, 请产品确认.",
-                previous_document_id=str(doc.id),
+            new_markdown = _append_change(doc.markdown_content or "", instruction)
+            draft = await rag_document_repo.create(
+                self.db,
+                collection_name=doc.collection_name,
                 filename=doc.filename,
+                filesize=len(new_markdown.encode("utf-8")),
+                filetype=doc.filetype,
+                storage_path=doc.storage_path or "",
+                status="draft",
+                markdown_content=new_markdown,
+                version=doc.version + 1,
+                is_latest=False,
+                previous_version_id=doc.id,
+                modified_by=user_id,
+                organization_id=doc.organization_id,
+                knowledge_base_id=doc.knowledge_base_id,
+            )
+            return RequirementChangeResponse(
+                action="draft_created",
+                message="已将开发修改建议保存为草稿, 等待产品确认后应用.",
+                previous_document_id=str(doc.id),
+                document_id=str(draft.id),
+                filename=draft.filename,
                 diff_summary=f"建议修改: {instruction.strip()}",
-                markdown_preview=doc.markdown_content,
+                markdown_preview=new_markdown,
                 ai_used=False,
                 notification_event=self._event(
                     kb_id=kb_id,
-                    doc=doc,
-                    event_type="requirement.change_suggested",
-                    message=f"{doc.filename} 收到一条修改建议.",
+                    doc=draft,
+                    event_type="requirement.draft_created",
+                    message=f"{draft.filename} 收到开发修改建议, 已生成待确认草稿.",
                     diff_summary=f"建议修改: {instruction.strip()}",
                 ),
             )

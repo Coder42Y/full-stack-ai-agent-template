@@ -93,8 +93,8 @@ export default function AdminRatingsPage() {
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
             回答评分
           </p>
-          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            AI 回答<em>质量反馈</em>
+          <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
+            AI 回答质量反馈
           </h2>
           <p className="text-foreground/65 mt-1 text-sm">
             查看最近 30 天用户对需求问答回复的点赞、点踩和评论。

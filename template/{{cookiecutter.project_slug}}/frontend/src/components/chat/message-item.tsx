@@ -18,6 +18,10 @@ interface MessageItemProps {
   onRegenerate?: () => void;
 }
 
+function normalizeMessageText(text: string): string {
+  return text.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+}
+
 export function MessageItem({ message, groupPosition, onRegenerate }: MessageItemProps) {
   const isUser = message.role === "user";
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -93,7 +97,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                       key={att.file.id}
                       onClick={() => openPreview(att.file)}
                       className="hover:ring-foreground/30 block overflow-hidden rounded-xl border ring-2 ring-transparent transition-all"
-                      title={`Open ${att.file.filename}`}
+                      title={`打开 ${att.file.filename}`}
                     >
                       <Image
                         src={getFileUrl(att.file.id)}
@@ -112,7 +116,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                       onClick={() => openPreview(att.file)}
                     />
                   ) : (
-                    <FileChip key={att.id} filename="Attached file" href={getFileUrl(att.id)} />
+                    <FileChip key={att.id} filename="附件文件" href={getFileUrl(att.id)} />
                   ),
                 )}
               </div>
@@ -123,7 +127,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
           const parts = message.parts ?? [];
           const useParts = !isUser && parts.length > 0;
 
-          // "Thinking…" placeholder — shown until anything streams in.
+          // Placeholder shown until anything streams in.
           const showPlaceholder =
             !isUser &&
             message.isStreaming &&
@@ -138,7 +142,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
             >
               <summary className="text-foreground/55 hover:text-foreground/80 flex cursor-pointer items-center gap-2 font-mono text-[10px] tracking-wider uppercase select-none">
                 <span className="bg-foreground/30 inline-block h-1.5 w-1.5 rounded-full" />
-                Thinking
+                思考过程
                 {message.isStreaming && (
                   <span className="bg-foreground/40 inline-block h-1 w-1 animate-pulse rounded-full" />
                 )}
@@ -155,27 +159,30 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
           }: {
             text: string;
             showCursor: boolean;
-          }) => (
-            <div
-              className={cn(
-                "relative rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5",
-                isUser
-                  ? "bg-primary text-primary-foreground rounded-tr-sm"
-                  : "bg-muted rounded-tl-sm",
-              )}
-            >
-              {isUser ? (
-                <p className="text-sm break-words whitespace-pre-wrap">{text}</p>
-              ) : (
-                <div className="prose-sm max-w-none text-sm">
-                  <MarkdownContent content={text} />
-                  {showCursor && (
-                    <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-full bg-current" />
-                  )}
-                </div>
-              )}
-            </div>
-          );
+          }) => {
+            const displayText = normalizeMessageText(text);
+            return (
+              <div
+                className={cn(
+                  "relative rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5",
+                  isUser
+                    ? "bg-primary text-primary-foreground rounded-tr-sm"
+                    : "bg-muted rounded-tl-sm",
+                )}
+              >
+                {isUser ? (
+                  <p className="text-sm break-words whitespace-pre-wrap">{displayText}</p>
+                ) : (
+                  <div className="prose-sm max-w-none text-sm">
+                    <MarkdownContent content={displayText} />
+                    {showCursor && (
+                      <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-full bg-current" />
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          };
 
           return (
             <>
@@ -263,7 +270,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
               </span>
             )}
             <CopyButton
-              text={message.content}
+              text={normalizeMessageText(message.content)}
               className={cn(
                 "h-6 w-6 rounded-md sm:opacity-0 sm:group-hover:opacity-100",
                 isUser ? "bg-secondary hover:bg-secondary/80" : "bg-muted hover:bg-muted/80",

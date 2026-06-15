@@ -307,7 +307,7 @@ class TestRequirementWorkflowService:
         create_doc.assert_awaited_once()
 
     @pytest.mark.anyio
-    async def test_developer_change_records_suggestion_without_new_version(self):
+    async def test_developer_change_creates_reviewable_draft(self):
         import uuid
 
         from app.services.requirement_workflow import RequirementWorkflowService
@@ -316,12 +316,22 @@ class TestRequirementWorkflowService:
         doc = MagicMock()
         doc.id = uuid.uuid4()
         doc.knowledge_base_id = kb_id
+        doc.collection_name = "kb_orders"
         doc.filename = "orders.md"
+        doc.filetype = "md"
+        doc.storage_path = ""
         doc.markdown_content = "# Orders"
+        doc.version = 1
+        doc.organization_id = uuid.uuid4()
 
-        with patch(
-            "app.repositories.rag_document_repo.get_by_id",
-            new=AsyncMock(return_value=doc),
+        draft = MagicMock()
+        draft.id = uuid.uuid4()
+        draft.filename = doc.filename
+        draft.version = 2
+
+        with (
+            patch("app.repositories.rag_document_repo.get_by_id", new=AsyncMock(return_value=doc)),
+            patch("app.repositories.rag_document_repo.create", new=AsyncMock(return_value=draft)) as create_doc,
         ):
             service = RequirementWorkflowService(db=MagicMock())
             result = await service.change_document(
@@ -334,9 +344,13 @@ class TestRequirementWorkflowService:
                 is_app_admin=False,
             )
 
-        assert result.action == "suggestion_recorded"
-        assert result.document_id is None
-        assert "不能直接修改" in result.message
+        assert result.action == "draft_created"
+        assert result.document_id == str(draft.id)
+        assert result.previous_document_id == str(doc.id)
+        assert "等待产品确认" in result.message
+        create_doc.assert_awaited_once()
+        assert create_doc.await_args.kwargs["status"] == "draft"
+        assert create_doc.await_args.kwargs["is_latest"] is False
 
     @pytest.mark.anyio
     async def test_product_apply_change_creates_latest_version(self):

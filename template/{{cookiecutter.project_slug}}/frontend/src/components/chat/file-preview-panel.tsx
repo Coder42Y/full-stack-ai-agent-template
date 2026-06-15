@@ -365,7 +365,7 @@ function HtmlViewer({ url }: { url: string }) {
         if (!cancelled) setHtml(text);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+        if (!cancelled) setError(e instanceof Error ? e.message : "加载失败");
       });
     return () => {
       cancelled = true;
@@ -397,7 +397,7 @@ function CsvViewer({ url }: { url: string }) {
         if (!cancelled) setRows(parseCsv(text));
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+        if (!cancelled) setError(e instanceof Error ? e.message : "加载失败");
       });
     return () => {
       cancelled = true;
@@ -406,7 +406,7 @@ function CsvViewer({ url }: { url: string }) {
 
   if (error) return <ErrorState message={error} />;
   if (rows === null) return <LoadingState />;
-  if (rows.length === 0) return <EmptyState message="Empty file" />;
+  if (rows.length === 0) return <EmptyState message="空文件" />;
 
   const [header, ...body] = rows;
   const MAX_ROWS = 500;
@@ -538,7 +538,7 @@ function TextViewer({ url, mode, lang }: TextViewerProps) {
         }
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+        if (!cancelled) setError(e instanceof Error ? e.message : "加载失败");
       });
     return () => {
       cancelled = true;

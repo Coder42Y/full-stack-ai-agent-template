@@ -43,14 +43,33 @@ const workflow = [
 ];
 
 const focusItems = [
-  { label: "待澄清", value: "3", note: "产品确认后生成新版本" },
-  { label: "待拆解", value: "2", note: "开发可直接生成实现关注点" },
-  { label: "待确认变更", value: "1", note: "产品决定是否应用草案" },
-];
+  {
+    label: "待澄清",
+    value: "3",
+    note: "产品确认后生成新版本",
+    focus: "clarify",
+    action: "处理澄清",
+  },
+  {
+    label: "待拆解",
+    value: "2",
+    note: "开发可直接生成实现关注点",
+    focus: "breakdown",
+    action: "进入拆解",
+  },
+  {
+    label: "待确认变更",
+    value: "1",
+    note: "产品决定是否应用草案",
+    focus: "change",
+    action: "确认变更",
+  },
+] as const;
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { kbs, isLoading, fetchKBs } = useKnowledgeBases();
+  const firstProjectId = kbs[0]?.id;
 
   useEffect(() => {
     fetchKBs();
@@ -99,17 +118,29 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 divide-y divide-foreground/10 rounded-md border border-foreground/10 bg-background">
               {focusItems.map((item) => (
-                <div key={item.label} className="grid grid-cols-[52px_1fr] gap-3 p-3">
+                <Link
+                  key={item.label}
+                  href={
+                    firstProjectId
+                      ? `${ROUTES.KB_DETAIL(firstProjectId)}?focus=${item.focus}`
+                      : ROUTES.KB
+                  }
+                  className="group grid grid-cols-[52px_1fr_auto] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04]"
+                >
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {item.value}
                   </p>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-foreground/50">
                       {item.note}
                     </p>
                   </div>
-                </div>
+                  <span className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-foreground/10 px-2.5 text-[11px] font-medium text-foreground/65 transition-colors group-hover:border-foreground/25 group-hover:text-foreground">
+                    {firstProjectId ? item.action : "新建项目"}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
               ))}
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
@@ -118,7 +149,13 @@ export default function DashboardPage() {
                   key={stat.label}
                   className="rounded-md border border-foreground/10 bg-background px-3 py-3"
                 >
-                  <p className="text-xl font-semibold tabular-nums text-foreground">
+                  <p
+                    className={
+                      typeof stat.value === "string"
+                        ? "whitespace-nowrap text-lg font-semibold tabular-nums text-foreground"
+                        : "text-xl font-semibold tabular-nums text-foreground"
+                    }
+                  >
                     {stat.value}
                   </p>
                   <p className="mt-1 text-[11px] text-foreground/45">{stat.label}</p>
@@ -192,7 +229,8 @@ export default function DashboardPage() {
           </div>
           <p className="mt-3 text-sm leading-relaxed text-foreground/62">
             登录用户：{user?.email ?? "MVP 管理员"}。真实权限先不拆，需求工作台内提供
-            产品/开发切换：产品可写入和确认版本，开发可查询、拆解并提交修改建议。
+            <span className="whitespace-nowrap">产品/开发</span>
+            切换：产品可写入和确认版本，开发可查询、拆解并提交修改建议。
           </p>
           <div className="mt-4 space-y-2">
             <RoleRow label="产品" value="录入需求、回答澄清、应用新版本" />

@@ -20,7 +20,7 @@ interface HeroCta {
 
 interface PageHeroProps {
   eyebrow: string;
-  /** Headline supports `<em>` for italic Bricolage accent. */
+  /** Headline may include inline emphasis, rendered without decorative italic. */
   title: ReactNode;
   description?: string;
   /** Optional mono-pills row of stats. */
@@ -37,7 +37,7 @@ interface PageHeroProps {
 /**
  * Shared hero card for dashboard pages. Provides a consistent visual anchor:
  * rounded-3xl bordered card with a corner brand-glow, dot-grid texture,
- * eyebrow + display title (with `<em>` italic accent) + optional description,
+ * eyebrow + display title + optional description,
  * optional stat pills row, and optional primary CTA + actions slot.
  */
 export function PageHero({
@@ -92,7 +92,7 @@ export function PageHero({
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
             {eyebrow}
           </p>
-          <h1 className="font-display text-foreground mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
+          <h1 className="font-display text-foreground mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:not-italic [&_em]:font-[inherit]">
             {title}
           </h1>
           {description && (

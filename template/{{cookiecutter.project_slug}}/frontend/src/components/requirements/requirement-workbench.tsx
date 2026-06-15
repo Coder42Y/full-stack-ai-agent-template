@@ -37,6 +37,7 @@ import type {
 } from "@/types";
 
 type WorkbenchMode = "intake" | "query" | "breakdown" | "change" | "history";
+type WorkbenchFocus = "clarify" | "breakdown" | "change";
 
 interface RequirementWorkbenchProps {
   kb: KnowledgeBase;
@@ -102,6 +103,23 @@ export function RequirementWorkbench({
   const latestDocs = documents.filter((doc) => doc.is_latest);
   const markdownDocs = documents.filter((doc) => doc.has_markdown_content);
   const projectTitle = kb.project_name || kb.name;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const focus = new URLSearchParams(window.location.search).get(
+      "focus",
+    ) as WorkbenchFocus | null;
+    if (focus === "clarify") {
+      setMode("intake");
+      setRole("product");
+    } else if (focus === "breakdown") {
+      setMode("breakdown");
+      setRole("developer");
+    } else if (focus === "change") {
+      setMode("history");
+      setRole("product");
+    }
+  }, []);
 
   const pushEvent = useCallback((event: RequirementNotificationEvent | null | undefined) => {
     if (!event) return;
@@ -871,7 +889,9 @@ function ChangePanel({
         <div className="mt-5 rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge>{changeActionLabel(result.action)}</Badge>
-            {result.document_id && <Badge>新版本</Badge>}
+            {result.document_id && (
+              <Badge>{result.action === "draft_created" ? "待产品确认" : "新版本"}</Badge>
+            )}
             <AIStatusBadge result={result} />
           </div>
           <p className="mt-3 text-sm text-foreground/70">{result.message}</p>

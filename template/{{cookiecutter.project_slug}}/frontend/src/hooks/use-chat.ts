@@ -201,7 +201,7 @@ export function useChat(options: UseChatOptions = {}) {
             task: string;
           };
           // Create NEW message for this agent (groupId read from ref)
-          createNewMessage(`🤖 **${agent}** is starting...`);
+          createNewMessage(`**${agent}** 正在处理...`);
           break;
         }
 
@@ -229,7 +229,7 @@ export function useChat(options: UseChatOptions = {}) {
             agent: string;
           };
           // Create NEW message for this task (groupId read from ref)
-          createNewMessage(`📋 **Task** (${agent})\n\n${description}`);
+          createNewMessage(`**任务**（${agent}）\n\n${description}`);
           break;
         }
 
@@ -243,7 +243,7 @@ export function useChat(options: UseChatOptions = {}) {
             };
             updateMessage(currentMessageIdRef.current, (msg) => ({
               ...msg,
-              content: `✅ **Task completed** (${agent})\n\n${output}`,
+              content: `**任务已完成**（${agent}）\n\n${output}`,
               isStreaming: false,
             }));
           }
@@ -368,7 +368,7 @@ export function useChat(options: UseChatOptions = {}) {
           if (currentMessageIdRef.current) {
             const id = currentMessageIdRef.current;
             const { message } = wsEvent.data as { message: string };
-            const errText = `\n\n❌ Error: ${message || "Unknown error"}`;
+            const errText = `\n\n错误：${message || "未知错误"}`;
             const cur = useChatStore.getState().messages.find((m) => m.id === id);
             if (cur?.parts) {
               appendTextDelta(id, errText);
@@ -403,7 +403,7 @@ export function useChat(options: UseChatOptions = {}) {
           if (currentMessageIdRef.current) {
             const id = currentMessageIdRef.current;
             const toolNames = action_requests.map((ar) => ar.tool_name).join(", ");
-            const waitText = `\n\n⏸️ Waiting for approval: ${toolNames}`;
+            const waitText = `\n\n等待确认：${toolNames}`;
             const cur = useChatStore.getState().messages.find((m) => m.id === id);
             if (cur?.parts) {
               appendTextDelta(id, waitText);
@@ -531,15 +531,15 @@ export function useChat(options: UseChatOptions = {}) {
         const rejectedCount = decisions.filter((d) => d.type === "reject").length;
 
         const summaryParts: string[] = [];
-        if (approvedCount > 0) summaryParts.push(`${approvedCount} approved`);
-        if (editedCount > 0) summaryParts.push(`${editedCount} edited`);
-        if (rejectedCount > 0) summaryParts.push(`${rejectedCount} rejected`);
+        if (approvedCount > 0) summaryParts.push(`${approvedCount} 个已通过`);
+        if (editedCount > 0) summaryParts.push(`${editedCount} 个已修改`);
+        if (rejectedCount > 0) summaryParts.push(`${rejectedCount} 个已拒绝`);
 
         updateMessage(currentMessageIdRef.current, (msg) => ({
           ...msg,
           content: msg.content.replace(
-            /\n\n⏸️ Waiting for approval:.*$/,
-            `\n\n✅ Decisions: ${summaryParts.join(", ")}`,
+            /\n\n等待确认：.*$/,
+            `\n\n确认结果：${summaryParts.join(", ")}`,
           ),
         }));
       }

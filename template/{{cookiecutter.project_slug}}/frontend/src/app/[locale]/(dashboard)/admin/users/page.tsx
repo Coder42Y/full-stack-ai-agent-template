@@ -120,8 +120,8 @@ export default function AdminUsersPage() {
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
           用户
         </p>
-        <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          工作区内的<em>所有用户</em>
+        <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
+          工作区内的所有用户
         </h2>
         <p className="text-muted-foreground">
           MVP 阶段默认使用管理员身份，可在这里查看用户状态并进行调试操作。

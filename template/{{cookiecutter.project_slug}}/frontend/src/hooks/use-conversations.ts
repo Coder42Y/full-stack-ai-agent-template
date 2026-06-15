@@ -66,7 +66,7 @@ export function useConversations() {
         }
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch conversations";
+      const message = err instanceof Error ? err.message : "加载对话列表失败";
       setError(message);
     } finally {
       setLoading(false);
@@ -118,7 +118,7 @@ export function useConversations() {
         addConversation(newConversation);
         return newConversation;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to create conversation";
+        const message = err instanceof Error ? err.message : "创建对话失败";
         setError(message);
         return null;
       } finally {
@@ -141,7 +141,7 @@ export function useConversations() {
         const response = await apiClient.get<MessagesResponse>(`/conversations/${id}/messages`);
         setCurrentMessages(response.items);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to fetch messages";
+        const message = err instanceof Error ? err.message : "加载消息失败";
         setError(message);
       } finally {
         setLoading(false);
@@ -155,9 +155,9 @@ export function useConversations() {
       try {
         await apiClient.patch(`/conversations/${id}`, { is_archived: true });
         updateConversation(id, { is_archived: true });
-        toast.success("Conversation archived");
+        toast.success("对话已归档");
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to archive conversation";
+        const message = err instanceof Error ? err.message : "归档对话失败";
         setError(message);
         toast.error(message);
       }
@@ -170,9 +170,9 @@ export function useConversations() {
       try {
         await apiClient.patch(`/conversations/${id}`, { is_archived: false });
         updateConversation(id, { is_archived: false });
-        toast.success("Conversation restored");
+        toast.success("对话已恢复");
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to restore conversation";
+        const message = err instanceof Error ? err.message : "恢复对话失败";
         setError(message);
         toast.error(message);
       }
@@ -185,9 +185,9 @@ export function useConversations() {
       try {
         await apiClient.delete(`/conversations/${id}`);
         removeConversation(id);
-        toast.success("Conversation deleted");
+        toast.success("对话已删除");
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to delete conversation";
+        const message = err instanceof Error ? err.message : "删除对话失败";
         setError(message);
         toast.error(message);
       }
@@ -200,9 +200,9 @@ export function useConversations() {
       try {
         await apiClient.patch(`/conversations/${id}`, { title });
         updateConversation(id, { title });
-        toast.success("Conversation renamed");
+        toast.success("对话已重命名");
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to rename conversation";
+        const message = err instanceof Error ? err.message : "重命名对话失败";
         setError(message);
         toast.error(message);
       }
@@ -217,7 +217,7 @@ export function useConversations() {
           active_knowledge_base_ids: kbIds,
         });
       } catch {
-        toast.error("Failed to update knowledge bases");
+        toast.error("更新需求项目关联失败");
       }
     },
     [updateConversation],

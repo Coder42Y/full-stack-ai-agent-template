@@ -235,12 +235,11 @@ class AgentSession:
     def _demo_fallback_text(user_message: str) -> str:
         topic = user_message.strip() or "这个需求"
         return (
-            "我先按需求知识库 MVP 的工作方式给出可演示结论。\\n\\n"
-            f"- 你问的是: {topic}\\n"
-            "- 产品侧可以把一句话需求录入项目, 系统会生成需求草案和澄清问题。\\n"
-            "- 开发侧可以围绕已入库需求提问, 答案应回到来源文档、澄清记录和版本变更。\\n"
-            "- 如果信息不足, 下一步应该补充业务边界、验收标准、异常流程和优先级。\\n\\n"
-            "当前外部模型网关未及时返回, 我已使用演示兜底回复, 保证对话、会话创建和消息落库链路正常。"
+            "我会按需求知识库的工作方式处理这个问题。\n\n"
+            f"当前输入：{topic}\n\n"
+            "如果这是新需求，请补充业务目标、使用角色、业务边界和验收标准；"
+            "如果这是查询，请先选择对应需求项目或来源文档，我会基于已入库内容回答。"
+            "信息不足时，我会直接给出需要澄清的问题。"
         )
 
 {%- if cookiecutter.enable_billing and cookiecutter.enable_teams and cookiecutter.enable_credits_system and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}

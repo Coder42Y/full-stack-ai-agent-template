@@ -12,6 +12,7 @@ HOST="${REQ_KB_PREVIEW_HOST:-0.0.0.0}"
 LAN_HOST="${REQ_KB_PREVIEW_LAN_HOST:-$(hostname -I | awk '{print $1}')}"
 BACKEND_PORT="${REQ_KB_PREVIEW_BACKEND_PORT:-8782}"
 FRONTEND_PORT="${REQ_KB_PREVIEW_FRONTEND_PORT:-8783}"
+FRONTEND_MODE="${REQ_KB_PREVIEW_FRONTEND_MODE:-production}"
 
 DB_CONTAINER="${REQ_KB_PREVIEW_DB_CONTAINER:-req_kb_preview_pgvector}"
 POSTGRES_HOST="${REQ_KB_PREVIEW_POSTGRES_HOST:-localhost}"
@@ -108,6 +109,7 @@ echo "== Req KB preview startup =="
 echo "repo: $REPO"
 echo "work dir: $PROJECT_DIR"
 echo "frontend: $frontend_url"
+echo "frontend mode: $FRONTEND_MODE"
 echo "backend: $backend_url_public"
 
 need uv
@@ -193,6 +195,18 @@ echo "== install frontend deps and type-check =="
   cd "$FRONTEND_DIR"
   npm install
   npm run type-check
+  if [ "$FRONTEND_MODE" = "production" ]; then
+    BACKEND_URL="$backend_url_local" \
+    NEXT_PUBLIC_API_URL="$backend_url_public" \
+    NEXT_PUBLIC_WS_URL="ws://$LAN_HOST:$BACKEND_PORT" \
+    npm run build
+    mkdir -p .next/standalone/.next
+    rm -rf .next/standalone/.next/static
+    cp -R .next/static .next/standalone/.next/static
+    if [ -d public ]; then
+      cp -R public .next/standalone/public
+    fi
+  fi
 )
 
 echo
@@ -213,8 +227,13 @@ chmod 600 "$WORK_ROOT/backend.env"
 tmux new-session -d -s "$BACKEND_SESSION" \
   "cd '$BACKEND_DIR' && set -a && . '$WORK_ROOT/backend.env' && set +a && ./.venv/bin/uvicorn app.main:app --host '$HOST' --port '$BACKEND_PORT' 2>&1 | tee '$BACKEND_LOG'"
 
-tmux new-session -d -s "$FRONTEND_SESSION" \
-  "cd '$FRONTEND_DIR' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' npm run dev -- -H '$HOST' -p '$FRONTEND_PORT' 2>&1 | tee '$FRONTEND_LOG'"
+if [ "$FRONTEND_MODE" = "production" ]; then
+  tmux new-session -d -s "$FRONTEND_SESSION" \
+    "cd '$FRONTEND_DIR/.next/standalone' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' HOSTNAME='$HOST' PORT='$FRONTEND_PORT' node server.js 2>&1 | tee '$FRONTEND_LOG'"
+else
+  tmux new-session -d -s "$FRONTEND_SESSION" \
+    "cd '$FRONTEND_DIR' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' npm run dev -- -H '$HOST' -p '$FRONTEND_PORT' 2>&1 | tee '$FRONTEND_LOG'"
+fi
 
 echo
 echo "== smoke checks =="

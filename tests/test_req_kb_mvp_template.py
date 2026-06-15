@@ -119,7 +119,6 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "diff_document_versions" in workflow
         assert "apply_draft" in workflow
         assert "difflib.unified_diff" in workflow
-        assert "suggestion_recorded" in workflow
         assert "draft_created" in workflow
         assert "version_created" in workflow
         assert "draft_applied" in workflow
@@ -137,7 +136,7 @@ class TestRequirementKbMvpGeneratedOutput:
 
         assert "test_query_falls_back_to_markdown_without_vector_hits" in tests
         assert "test_create_from_text_persists_markdown_and_questions" in tests
-        assert "test_developer_change_records_suggestion_without_new_version" in tests
+        assert "test_developer_change_creates_reviewable_draft" in tests
         assert "test_product_apply_change_creates_latest_version" in tests
         assert "test_product_applies_draft_as_latest_version" in tests
         assert "test_requirement_notification_helper_broadcasts_payload" in tests
@@ -228,7 +227,7 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "需求知识库" in list_page
         assert "新建需求项目" in list_page
         assert "router.push(`/kb/${id}`)" in list_page
-        assert "产品/开发 MVP" in project_list
+        assert "管理 PRD、一句话需求、来源问答、拆解结果和版本变更" in project_list
         assert "需求项目" in project_list
         assert 'type WorkbenchMode = "intake" | "query" | "breakdown" | "change" | "history";' in workbench
         assert "当前身份" in workbench
@@ -321,7 +320,8 @@ class TestRequirementKbMvpFrontendTemplate:
         auth_layout = _read(self.template_root / "app/[locale]/(auth)/layout.tsx")
         og_image = _read(self.template_root / "app/opengraph-image.tsx")
 
-        assert "需求知识库 MVP" in dashboard
+        assert "需求协作指挥台" in dashboard
+        assert "今日关注" in dashboard
         assert "产品一句话录入" in dashboard
         assert "开发有来源查询" in dashboard
         assert "这里是需求对话入口" in chat_empty
@@ -334,7 +334,8 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "个人资料" in settings_nav
         assert "演示账号" in profile
         assert "业务身份" in profile
-        assert "面向产品和开发的需求知识库" in auth_layout
+        assert "需求知识库 MVP" in auth_layout
+        assert "登录后进入需求协作工作台" in auth_layout
         assert "需求&nbsp;" in og_image
         assert "可追溯" in og_image
 

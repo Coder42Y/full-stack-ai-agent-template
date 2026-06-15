@@ -63,10 +63,10 @@ dependencies = [
 {%- if cookiecutter.use_jwks_idp %}
     # PyJWT[crypto] pulls in `cryptography` for RSA/ECDSA verification — needed
     # to validate IdP-issued tokens against a published JWKS.
-    "pyjwt[crypto]>=2.9.0",
+    "pyjwt[crypto]>=2.13.0",
 {%- else %}
     # HMAC HS256 only — no asymmetric keys, no `cryptography` extra.
-    "pyjwt>=2.9.0",
+    "pyjwt>=2.13.0",
 {%- endif %}
     "bcrypt>=4.0.0",
     "python-multipart>=0.0.12",
@@ -77,6 +77,9 @@ dependencies = [
 {%- endif %}
 {%- if cookiecutter.enable_redis %}
     "redis>=5.2.0",
+{%- if not cookiecutter.use_jwt %}
+    "pyjwt>=2.13.0",
+{%- endif %}
 {%- endif %}
 {%- if cookiecutter.enable_caching %}
     "fastapi-cache2>=0.2.2",
@@ -114,6 +117,7 @@ dependencies = [
 {%- endif %}
 {%- if cookiecutter.use_taskiq %}
     "taskiq>=0.11.0",
+    "aiohttp>=3.14.0",
     "taskiq-redis>=1.0.0",
     "taskiq-dependencies>=0.1.0",
 {%- endif %}

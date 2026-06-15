@@ -1,15 +1,6 @@
 # Full-Stack FastAPI + Next.js Template for AI/LLM Applications
 
 <p align="center">
-  <a href="https://github.com/vstorm-co/full-stack-ai-agent-template/stargazers"><img src="https://img.shields.io/github/stars/vstorm-co/full-stack-ai-agent-template?style=flat&logo=github&color=yellow" alt="GitHub Stars"></a>
-  <a href="https://github.com/vstorm-co/full-stack-ai-agent-template/blob/main/LICENSE"><img src="https://img.shields.io/github/license/vstorm-co/full-stack-ai-agent-template?color=blue" alt="License"></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white" alt="Python"></a>
-  <a href="https://pypi.org/project/fastapi-fullstack/"><img src="https://img.shields.io/pypi/v/fastapi-fullstack?color=green&logo=pypi&logoColor=white" alt="PyPI"></a>
-  <img src="https://img.shields.io/badge/coverage-100%25-brightgreen" alt="Coverage">
-  <img src="https://img.shields.io/badge/integrations-20%2B-brightgreen" alt="20+ Integrations">
-</p>
-
-<p align="center">
   <b>Production-ready project generator for AI/LLM applications with 20+ enterprise integrations.</b><br>
   <sub>Built with FastAPI, Next.js 15, PydanticAI/LangChain, and everything you need for professional business applications.</sub>
 </p>
@@ -17,7 +8,6 @@
 <p align="center">
   <a href="#-why-this-template">Why This Template</a> •
   <a href="#-features">Features</a> •
-  <a href="#-demo">Demo</a> •
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#-ai-agent">AI Agent</a> •
@@ -92,14 +82,6 @@ This template gives you all of that out of the box, with **20+ configurable inte
 
 ---
 
-## 🎬 Demo
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/app_start.gif" alt="FastAPI Fullstack Generator Demo">
-</p>
-
----
-
 ## 🚀 Quick Start
 
 ### Installation
@@ -166,38 +148,6 @@ bun dev
 - Docs: http://localhost:8000/docs
 - Admin Panel: http://localhost:8000/admin
 - Frontend: http://localhost:3000
-
----
-
-## 📸 Screenshots
-
-### Chat Interface
-
-|                                                       Light Mode                                                       |                                                      Dark Mode                                                       |
-| :--------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: |
-| ![Chat Light](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/new_chat_light.png) | ![Chat Dark](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/new_chat_dark.png) |
-
-### Authentication
-
-|                                                      Register                                                      |                                                    Login                                                     |
-| :----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
-| ![Register](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/new_register.png) | ![Login](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/new_login.png) |
-
-### Observability
-
-|                                             Logfire (PydanticAI)                                             |                                              LangSmith (LangChain)                                               |
-| :----------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: |
-| ![Logfire](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/logfire.png) | ![LangSmith](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/langsmith.png) |
-
-### Admin, Monitoring & API
-
-|                                               Celery Flower                                                |                                              SQLAdmin Panel                                              |
-| :--------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: |
-| ![Flower](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/flower.png) | ![Admin](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/admin.png) |
-
-|                                              API Documentation                                               |
-| :----------------------------------------------------------------------------------------------------------: |
-| ![API Docs](https://raw.githubusercontent.com/vstorm-co/full-stack-ai-agent-template/main/assets/docs_2.png) |
 
 ---
 
@@ -616,12 +566,6 @@ fastapi-fullstack new
 | [Observability](https://github.com/vstorm-co/full-stack-ai-agent-template/blob/main/docs/observability.md) | Logfire integration, tracing, metrics        |
 | [Deployment](https://github.com/vstorm-co/full-stack-ai-agent-template/blob/main/docs/deployment.md)       | Docker, Kubernetes, production setup         |
 | [Development](https://github.com/vstorm-co/full-stack-ai-agent-template/blob/main/docs/development.md)     | Local setup, testing, debugging              |
-
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=vstorm-co/full-stack-ai-agent-template&type=date&legend=top-left)](https://www.star-history.com/#vstorm-co/full-stack-ai-agent-template&type=date&legend=top-left)
 
 ---
 

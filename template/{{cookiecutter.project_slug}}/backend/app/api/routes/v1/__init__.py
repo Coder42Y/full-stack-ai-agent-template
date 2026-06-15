@@ -86,7 +86,7 @@ v1_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 # User routes
 v1_router.include_router(users.router, prefix="/users", tags=["users"])
-{%- if cookiecutter.enable_pagination %}
+{%- if cookiecutter.enable_pagination == "True" %}
 v1_router.add_api_route(
     "/users",
     users.read_users,

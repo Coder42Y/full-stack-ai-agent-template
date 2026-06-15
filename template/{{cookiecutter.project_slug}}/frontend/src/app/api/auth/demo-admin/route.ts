@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
+import { setAuthCookies } from "@/lib/auth-cookies";
 import type { LoginResponse, User } from "@/types";
 
 const DEMO_EMAIL = "admin-demo@example.com";
@@ -19,33 +20,19 @@ async function loginDemoAdmin() {
   });
 }
 
-function withAuthCookies(user: User, token: LoginResponse) {
+function withAuthCookies(request: NextRequest, user: User, token: LoginResponse) {
   const response = NextResponse.json({
     ...user,
     access_token: token.access_token,
     demo_admin: true,
   });
 
-  response.cookies.set("access_token", token.access_token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 8,
-    path: "/",
-  });
-
-  response.cookies.set("refresh_token", token.refresh_token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+  setAuthCookies(response, request, token);
 
   return response;
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     try {
       await backendFetch("/api/v1/auth/register", {
@@ -68,7 +55,7 @@ export async function POST() {
       headers: { Authorization: `Bearer ${token.access_token}` },
     });
 
-    return withAuthCookies(user, token);
+    return withAuthCookies(request, user, token);
   } catch (error) {
     if (error instanceof BackendApiError) {
       return NextResponse.json({ detail: error.message }, { status: error.status });

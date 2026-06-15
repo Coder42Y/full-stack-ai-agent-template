@@ -40,7 +40,8 @@ export function useKnowledgeBases() {
     try {
       const data = await apiClient.get<KnowledgeBaseList>("/kb");
       setKbs(data.items);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) return;
       toast.error("加载需求项目失败");
     } finally {
       setIsLoading(false);

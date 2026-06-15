@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, ApiError } from "@/lib/api-client";
 import { useOrgStore } from "@/stores";
 import type { Organization, OrganizationList, CreateOrganizationInput } from "@/types";
 
@@ -18,7 +18,8 @@ export function useOrganizations() {
         const personal = data.items.find((o) => o.is_personal) ?? data.items[0];
         if (personal) setActiveOrgId(personal.id);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) return;
       toast.error("加载协作空间失败");
     }
   }, [activeOrgId, setOrgs, setActiveOrgId]);

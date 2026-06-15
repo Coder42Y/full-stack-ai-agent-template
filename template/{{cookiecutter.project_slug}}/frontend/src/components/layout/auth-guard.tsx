@@ -29,6 +29,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           if (cancelled) return;
           setUser(demoUser as User);
           useAuthStore.getState().setAccessToken(access_token ?? null);
+          router.refresh();
         } catch {
           if (cancelled) return;
           useAuthStore.getState().setAccessToken(null);

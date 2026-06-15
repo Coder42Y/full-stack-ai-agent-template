@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { setAuthCookies } from "@/lib/auth-cookies";
 import { BackendApiError, backendFetch } from "@/lib/server-api";
 
 interface TokenResponse {
@@ -26,21 +27,7 @@ export async function POST(request: NextRequest) {
       message: "Sign-in successful",
     });
 
-    const isProd = process.env.NODE_ENV === "production";
-    response.cookies.set("access_token", data.access_token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
-      maxAge: 60 * 15,
-      path: "/",
-    });
-    response.cookies.set("refresh_token", data.refresh_token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    setAuthCookies(response, request, data);
     return response;
   } catch (error) {
     if (error instanceof BackendApiError) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
+import { setAuthCookies } from "@/lib/auth-cookies";
 import type { LoginResponse } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -32,23 +33,7 @@ export async function POST(request: NextRequest) {
       message: "Login successful",
     });
 
-    // Set access token cookie (short-lived)
-    response.cookies.set("access_token", data.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 15, // 15 minutes
-      path: "/",
-    });
-
-    // Set refresh token cookie (long-lived)
-    response.cookies.set("refresh_token", data.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    setAuthCookies(response, request, data);
 
     return response;
   } catch (error) {

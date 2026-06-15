@@ -10,6 +10,7 @@ import logging
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.requests import HTTPConnection
 
@@ -68,7 +69,7 @@ async def app_exception_handler(
             "error": {
                 "code": exc.code,
                 "message": exc.message,
-                "details": exc.details or None,
+                "details": jsonable_encoder(exc.details or None),
             }
         },
         headers=headers,

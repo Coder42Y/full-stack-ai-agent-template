@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
+import { clearAuthCookies } from "@/lib/auth-cookies";
 import type { User } from "@/types";
+
+function unauthenticatedResponse(request: NextRequest, detail = "Not authenticated") {
+  const response = NextResponse.json({ detail }, { status: 401 });
+  clearAuthCookies(response, request);
+  return response;
+}
 
 export async function GET(request: NextRequest) {
   try {
     const accessToken = request.cookies.get("access_token")?.value;
 
     if (!accessToken) {
-      return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+      return unauthenticatedResponse(request);
     }
 
     const data = await backendFetch<User>("/api/v1/auth/me", {
@@ -22,9 +29,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ...data, access_token: accessToken });
   } catch (error) {
     if (error instanceof BackendApiError) {
-      if (error.status === 401) {
-        // Token expired, try to refresh
-        return NextResponse.json({ detail: "Token expired" }, { status: 401 });
+      if (error.status === 401 || error.status === 404 || error.status >= 500) {
+        return unauthenticatedResponse(request, "Session expired");
       }
       return NextResponse.json({ detail: "Failed to get user" }, { status: error.status });
     }

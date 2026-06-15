@@ -160,7 +160,6 @@ export function useKBDetail(id: string | null) {
       } catch (e) {
         const msg = e instanceof Error ? e.message : "上传失败";
         toast.error(msg);
-        throw e;
       } finally {
         setIsUploading(false);
       }

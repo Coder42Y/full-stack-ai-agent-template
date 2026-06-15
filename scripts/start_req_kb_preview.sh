@@ -13,9 +13,9 @@ LAN_HOST="${REQ_KB_PREVIEW_LAN_HOST:-$(hostname -I | awk '{print $1}')}"
 BACKEND_PORT="${REQ_KB_PREVIEW_BACKEND_PORT:-8782}"
 FRONTEND_PORT="${REQ_KB_PREVIEW_FRONTEND_PORT:-8783}"
 
-DB_CONTAINER="${REQ_KB_PREVIEW_DB_CONTAINER:-ai_agent_test_db}"
+DB_CONTAINER="${REQ_KB_PREVIEW_DB_CONTAINER:-req_kb_preview_pgvector}"
 POSTGRES_HOST="${REQ_KB_PREVIEW_POSTGRES_HOST:-localhost}"
-POSTGRES_PORT="${REQ_KB_PREVIEW_POSTGRES_PORT:-15432}"
+POSTGRES_PORT="${REQ_KB_PREVIEW_POSTGRES_PORT:-15433}"
 POSTGRES_USER="${REQ_KB_PREVIEW_POSTGRES_USER:-postgres}"
 POSTGRES_PASSWORD="${REQ_KB_PREVIEW_POSTGRES_PASSWORD:-postgres}"
 POSTGRES_DB="${REQ_KB_PREVIEW_POSTGRES_DB:-req_kb_preview_live}"
@@ -65,11 +65,24 @@ wait_http() {
   return 1
 }
 
+wait_postgres() {
+  local attempts="${1:-60}"
+  for _ in $(seq 1 "$attempts"); do
+    if docker exec "$DB_CONTAINER" pg_isready -U "$POSTGRES_USER" -d postgres >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Postgres container '$DB_CONTAINER' did not become ready." >&2
+  return 1
+}
+
 ensure_postgres_container() {
   if docker inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     if [ "$(docker inspect -f '{{.State.Running}}' "$DB_CONTAINER")" != "true" ]; then
       docker start "$DB_CONTAINER" >/dev/null
     fi
+    wait_postgres
     return 0
   fi
 
@@ -79,6 +92,16 @@ ensure_postgres_container() {
     -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
     -p "$POSTGRES_PORT:5432" \
     pgvector/pgvector:pg16 >/dev/null
+  wait_postgres
+}
+
+ensure_pgvector_extension() {
+  local sql="CREATE EXTENSION IF NOT EXISTS vector;"
+  if ! docker exec "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -tc "$sql" >/dev/null; then
+    echo "Postgres container '$DB_CONTAINER' does not provide the pgvector extension." >&2
+    echo "Use the default preview container or set REQ_KB_PREVIEW_DB_CONTAINER to a pgvector-enabled Postgres." >&2
+    exit 1
+  fi
 }
 
 echo "== Req KB preview startup =="
@@ -145,6 +168,7 @@ docker exec "$DB_CONTAINER" psql -U "$POSTGRES_USER" -tc \
   "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$POSTGRES_DB';" >/dev/null
 docker exec "$DB_CONTAINER" dropdb -U "$POSTGRES_USER" --if-exists "$POSTGRES_DB" >/dev/null
 docker exec "$DB_CONTAINER" createdb -U "$POSTGRES_USER" "$POSTGRES_DB"
+ensure_pgvector_extension
 
 echo
 echo "== install backend deps and migrate =="
@@ -182,6 +206,7 @@ POSTGRES_DB=$POSTGRES_DB
 OPENAI_API_KEY=${OPENAI_API_KEY:-dummy}
 ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-dummy}
 ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-http://claude.purvar.local}
+RAG_DETERMINISTIC_EMBEDDINGS=true
 EOF
 chmod 600 "$WORK_ROOT/backend.env"
 

@@ -13,6 +13,7 @@ from pathlib import Path
 from app.db.session import get_db_context
 from app.services.rag.connectors import CONNECTOR_REGISTRY
 from app.services.rag.ingestion import IngestionService
+from app.services.rag.models import IngestionStatus
 from app.services.rag_document import RAGDocumentService
 from app.services.rag_sync import RAGSyncService
 from app.services.sync_source import SyncSourceService
@@ -36,6 +37,8 @@ async def ingest_document_in_background(
             replace=replace,
             source_path=source_path,
         )
+        if result.status != IngestionStatus.DONE:
+            raise RuntimeError(result.error_message or result.message or "Document ingestion failed")
         async with get_db_context() as db:
             await RAGDocumentService(db).complete_ingestion(
                 rag_document_id,
@@ -120,13 +123,16 @@ async def sync_source_in_background(source_id: str, sync_log_id: str) -> None:
                 for f in files:
                     try:
                         local_path = await connector.download_file(f, Path(tmp_dir))
-                        await ingestion.ingest_file(
+                        result = await ingestion.ingest_file(
                             filepath=local_path,
                             collection_name=source.collection_name,
                             replace=(source.sync_mode == "full"),
                             source_path=f.source_path,
                         )
-                        ingested += 1
+                        if result.status == IngestionStatus.DONE:
+                            ingested += 1
+                        else:
+                            failed += 1
                     except Exception as exc:
                         logger.warning("connector_file_failed: %s — %s", f.name, exc)
                         failed += 1

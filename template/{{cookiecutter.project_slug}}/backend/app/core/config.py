@@ -536,6 +536,7 @@ class Settings(BaseSettings):
 {%- endif %}
 
     # Embeddings
+    RAG_DETERMINISTIC_EMBEDDINGS: bool = False
     {%- if cookiecutter.use_openai_embeddings %}
     EMBEDDING_MODEL: str = "text-embedding-3-small"
     {%- elif cookiecutter.use_voyage_embeddings %}

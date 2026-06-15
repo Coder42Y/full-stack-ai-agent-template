@@ -1,5 +1,7 @@
 {%- if cookiecutter.enable_rag %}
 from abc import ABC, abstractmethod
+import hashlib
+import math
 
 {%- if cookiecutter.use_openai_embeddings %}
 from openai import OpenAI
@@ -49,6 +51,33 @@ class BaseEmbeddingProvider(ABC):
     @abstractmethod
     def warmup(self) -> None:
         """Ensures the model is loaded and ready for inference."""
+        pass
+
+
+class DeterministicEmbeddingProvider(BaseEmbeddingProvider):
+    """Local deterministic embeddings for offline development and smoke tests."""
+
+    def __init__(self, dim: int) -> None:
+        self.dim = dim
+
+    def _embed(self, text: str) -> list[float]:
+        values = [0.0] * self.dim
+        tokens = text.lower().split() or [text.lower()]
+        for token in tokens:
+            digest = hashlib.sha256(token.encode("utf-8")).digest()
+            index = int.from_bytes(digest[:4], "big") % self.dim
+            values[index] += 1.0
+        norm = math.sqrt(sum(value * value for value in values)) or 1.0
+        return [value / norm for value in values]
+
+    def embed_queries(self, texts: list[str]) -> list[list[float]]:
+        return [self._embed(text) for text in texts]
+
+    def embed_document(self, document: Document) -> list[list[float]]:
+        texts = [doc.chunk_content if doc.chunk_content else "" for doc in (document.chunked_pages or [])]
+        return self.embed_queries(texts)
+
+    def warmup(self) -> None:
         pass
 
 {%- if cookiecutter.use_openai_embeddings %}
@@ -249,6 +278,10 @@ class EmbeddingService:
         """
         config = settings.embeddings_config
         self.expected_dim = config.dim
+        from app.core.config import settings as app_settings
+        if app_settings.RAG_DETERMINISTIC_EMBEDDINGS:
+            self.provider = DeterministicEmbeddingProvider(dim=config.dim)
+            return
         {%- if cookiecutter.use_openai_embeddings %}
         self.provider = OpenAIEmbeddingProvider(model=config.model)
         {%- elif cookiecutter.use_voyage_embeddings %}

@@ -176,6 +176,7 @@ async def _run_ingestion(rag_document_id: str, collection_name: str, filepath: s
     from app.services.rag.documents import DocumentProcessor
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.ingestion import IngestionService
+    from app.services.rag.models import IngestionStatus
 {%- if cookiecutter.use_milvus %}
     from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
 {%- elif cookiecutter.use_qdrant %}
@@ -195,6 +196,12 @@ async def _run_ingestion(rag_document_id: str, collection_name: str, filepath: s
     file_path = Path(filepath)
     try:
         result = await ingestion_service.ingest_file(filepath=file_path, collection_name=collection_name, replace=replace, source_path=source_path)
+        if result.status != IngestionStatus.DONE:
+            message = result.error_message or result.message or "Document ingestion failed"
+            async with get_worker_db_context() as db:
+                await RAGDocumentService(db).fail_ingestion(rag_document_id, error_message=message)
+            await _notify_ws(rag_document_id, "error", source_path)
+            raise RuntimeError(message)
         async with get_worker_db_context() as db:
             await RAGDocumentService(db).complete_ingestion(
                 rag_document_id,
@@ -377,6 +384,7 @@ async def _run_source_sync(source_id: str, sync_log_id: str | None = None) -> di
     from app.services.rag.documents import DocumentProcessor
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.ingestion import IngestionService
+    from app.services.rag.models import IngestionStatus
 {%- if cookiecutter.use_milvus %}
     from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
 {%- elif cookiecutter.use_qdrant %}
@@ -426,13 +434,16 @@ async def _run_source_sync(source_id: str, sync_log_id: str | None = None) -> di
             for remote_file in files:
                 try:
                     local_path = await connector.download_file(remote_file, Path(tmp_dir))
-                    await ingestion_svc.ingest_file(
+                    result = await ingestion_svc.ingest_file(
                         filepath=local_path,
                         collection_name=collection_name,
                         replace=(sync_mode == "full"),
                         source_path=remote_file.source_path,
                     )
-                    ingested += 1
+                    if result.status == IngestionStatus.DONE:
+                        ingested += 1
+                    else:
+                        failed += 1
                 except Exception as e:
                     logger.warning(f"Failed to sync {remote_file.name}: {e}")
                     failed += 1

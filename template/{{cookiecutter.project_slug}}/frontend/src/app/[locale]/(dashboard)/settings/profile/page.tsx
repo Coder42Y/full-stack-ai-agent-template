@@ -107,8 +107,13 @@ export default function ProfileSettingsPage() {
 
       <SettingsSection title="下一步" description="从个人资料回到需求协作流程。">
         <div className="grid gap-3 sm:grid-cols-2">
+{% endraw %}{%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}{% raw %}
           <NextStep href={ROUTES.KB} label="进入需求项目" description="创建项目、录入一句话需求、回答澄清问题。" />
           <NextStep href={ROUTES.CHAT} label="打开需求对话" description="围绕需求来源进行查询、解释和变更建议。" />
+{% endraw %}{%- else %}{% raw %}
+          <NextStep href={ROUTES.CHAT} label="打开对话" description="围绕业务问题继续提问、追问和整理结论。" />
+          <NextStep href={ROUTES.RAG} label="打开知识库" description="上传文档、检索资料，并用来源内容支撑回答。" />
+{% endraw %}{%- endif %}{% raw %}
         </div>
       </SettingsSection>
     </div>

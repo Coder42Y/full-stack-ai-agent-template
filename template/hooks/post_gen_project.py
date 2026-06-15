@@ -332,6 +332,7 @@ if not enable_rag:
         # too (otherwise `next build` type-checks orphaned, broken imports).
         # Mirrors the teams-off KB removal block.
         remove_dir(os.path.join(frontend_src, "components", "kb"))
+        remove_dir(os.path.join(frontend_src, "components", "requirements"))
         remove_dir(os.path.join(frontend_src, "app", "api", "kb"))
         remove_dir(os.path.join(frontend_src, "app", "[locale]", "(dashboard)", "kb"))
         remove_file(os.path.join(frontend_src, "hooks", "use-knowledge-bases.ts"))
@@ -751,6 +752,7 @@ if not enable_teams:
         remove_file(os.path.join(frontend_src, "types", "organization.ts"))
         # Also remove KB/billing frontend since they depend on teams
         remove_dir(os.path.join(frontend_src, "components", "kb"))
+        remove_dir(os.path.join(frontend_src, "components", "requirements"))
         remove_dir(os.path.join(frontend_src, "app", "api", "kb"))
         remove_dir(os.path.join(frontend_src, "app", "[locale]", "(dashboard)", "kb"))
         remove_file(os.path.join(frontend_src, "hooks", "use-knowledge-bases.ts"))

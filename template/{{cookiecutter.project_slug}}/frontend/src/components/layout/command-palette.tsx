@@ -108,11 +108,17 @@ export function CommandPalette() {
 
         <Group heading="快捷操作">
           <PaletteItem icon={Plus} label="开始新对话" onSelect={() => go(ROUTES.CHAT)} shortcut="⌘N" />
-{%- if cookiecutter.enable_rag %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
           <PaletteItem
             icon={Database}
             label="打开需求项目"
             onSelect={() => go(ROUTES.KB)}
+          />
+{%- elif cookiecutter.enable_rag %}
+          <PaletteItem
+            icon={Database}
+            label="打开知识库"
+            onSelect={() => go(ROUTES.RAG)}
           />
 {%- endif %}
 {%- if cookiecutter.enable_teams %}

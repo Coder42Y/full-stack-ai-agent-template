@@ -1,3 +1,4 @@
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
 {% raw %}"use client";
 
 import { useEffect, useMemo } from "react";
@@ -298,3 +299,274 @@ function RoleRow({ label, value }: { label: string; value: string }) {
   );
 }
 {% endraw %}
+{%- else %}
+{% raw %}"use client";
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  Database,
+  FileText,
+  MessageSquareText,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
+
+import { useAuth } from "@/hooks";
+import { ROUTES } from "@/lib/constants";
+
+const workflow = [
+  {
+    title: "开始对话",
+    description: "创建会话并围绕业务问题、文档或任务持续追问。",
+    icon: MessageSquareText,
+  },
+  {
+    title: "选择模型",
+    description: "在对话控制里选择默认模型、温度和推理强度。",
+    icon: Bot,
+  },
+  {
+    title: "管理资料",
+    description: "在 RAG 页面上传、检索和管理知识库文档。",
+    icon: Database,
+  },
+  {
+    title: "查看后台",
+    description: "管理员可以检查用户、会话、评分和系统运行状态。",
+    icon: ShieldCheck,
+  },
+];
+
+const focusItems = [
+  { label: "最近对话", value: "Chat", note: "继续已有上下文或创建新会话", href: ROUTES.CHAT },
+  { label: "知识库", value: "RAG", note: "上传文档并执行检索问答", href: ROUTES.RAG },
+  { label: "个人设置", value: "Me", note: "维护账号资料和偏好设置", href: ROUTES.PROFILE },
+] as const;
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+
+  const stats = [
+    { label: "运行模式", value: "MVP" },
+    { label: "当前账号", value: user?.role === "admin" ? "管理员" : "成员" },
+    { label: "主要入口", value: "对话/RAG" },
+  ];
+
+  return (
+    <div className="mx-auto w-full max-w-[1360px] space-y-5 pb-10">
+      <section className="border-foreground/10 bg-card/80 overflow-hidden rounded-md border">
+        <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_390px]">
+          <div className="flex flex-col justify-between p-6 sm:p-8">
+            <div className="max-w-3xl">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+                AI 工作台
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                对话、资料和后台管理集中在一个入口。
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-foreground/62">
+                使用对话处理任务，结合 RAG 文档检索补充上下文，并通过管理后台查看系统运行状态。
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <PrimaryLink href={ROUTES.CHAT} label="开始对话" />
+              <SecondaryLink href={ROUTES.RAG} label="打开知识库" />
+            </div>
+          </div>
+
+          <div className="border-foreground/10 bg-foreground/[0.025] border-t p-5 lg:border-t-0 lg:border-l">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+                快捷入口
+              </p>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background px-2.5 py-1 text-[11px] text-foreground/60">
+                <CheckCircle2 className="h-3 w-3 text-brand" />
+                可用
+              </span>
+            </div>
+            <div className="mt-4 divide-y divide-foreground/10 rounded-md border border-foreground/10 bg-background">
+              {focusItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="group grid grid-cols-[64px_1fr_auto] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04]"
+                >
+                  <p className="text-lg font-semibold tabular-nums text-foreground">
+                    {item.value}
+                  </p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-foreground/50">
+                      {item.note}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-foreground/35 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-md border border-foreground/10 bg-background px-3 py-3"
+                >
+                  <p className="whitespace-nowrap text-lg font-semibold tabular-nums text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-[11px] text-foreground/45">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-3 lg:grid-cols-4">
+        {workflow.map((item) => (
+          <div
+            key={item.title}
+            className="border-foreground/10 bg-card/80 rounded-md border p-4"
+          >
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
+              <item.icon className="h-5 w-5" />
+            </span>
+            <h2 className="mt-4 text-sm font-semibold text-foreground">{item.title}</h2>
+            <p className="mt-2 text-xs leading-relaxed text-foreground/58">{item.description}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="rounded-md border border-foreground/10 bg-card/80">
+          <div className="flex items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+                推荐动作
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">继续推进</h2>
+            </div>
+            <Link
+              href={ROUTES.CHAT}
+              className="text-sm font-medium text-foreground underline underline-offset-4"
+            >
+              新建对话
+            </Link>
+          </div>
+          <div className="grid gap-3 p-5 sm:grid-cols-2">
+            <ActionTile
+              href={ROUTES.CHAT}
+              icon={MessageSquareText}
+              title="打开对话"
+              description="输入问题、上传上下文文件，并使用模型控制调整回答方式。"
+            />
+            <ActionTile
+              href={ROUTES.RAG}
+              icon={Database}
+              title="管理知识库"
+              description="上传文档、查看集合，并用检索结果支撑回答。"
+            />
+            <ActionTile
+              href={ROUTES.SETTINGS}
+              icon={Settings2}
+              title="调整设置"
+              description="维护账号、外观、通知和快捷指令。"
+            />
+            <ActionTile
+              href={ROUTES.ADMIN}
+              icon={ShieldCheck}
+              title="进入后台"
+              description="管理员查看用户、对话、评分和系统状态。"
+            />
+          </div>
+        </div>
+
+        <aside className="rounded-md border border-foreground/10 bg-card/80 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-foreground/45" />
+              <h2 className="text-sm font-semibold text-foreground">当前会话</h2>
+            </div>
+            <CheckCircle2 className="h-4 w-4 text-brand" />
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-foreground/62">
+            登录用户：{user?.email ?? "未登录"}。当前生成组合未启用组织级需求项目，首页会直接引导到对话和 RAG 管理。
+          </p>
+          <div className="mt-4 space-y-2">
+            <RoleRow label="对话" value="提问、追问、保存上下文" />
+            <RoleRow label="RAG" value="上传文档、检索资料、辅助回答" />
+          </div>
+        </aside>
+      </section>
+    </div>
+  );
+}
+
+function ActionTile({
+  href,
+  icon: Icon,
+  title,
+  description,
+}: {
+  href: string;
+  icon: typeof MessageSquareText;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-md border border-foreground/10 bg-background p-4 transition-colors hover:border-foreground/25"
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-foreground/55">
+            {description}
+          </p>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-foreground/35 transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </Link>
+  );
+}
+
+function PrimaryLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+    >
+      {label}
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+  );
+}
+
+function SecondaryLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-foreground/15 bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground/35"
+    >
+      <Database className="h-4 w-4" />
+      {label}
+    </Link>
+  );
+}
+
+function RoleRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-foreground/10 bg-background px-3 py-2">
+      <p className="text-sm font-medium text-foreground">{label}</p>
+      <p className="mt-1 text-xs leading-relaxed text-foreground/55">{value}</p>
+    </div>
+  );
+}
+{% endraw %}
+{%- endif %}

@@ -1,11 +1,11 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M4 AI 需求拆解
 priority: P0
-depends_on: spec-req-kb-m3-grounded-query.md
+depends_on: m3-grounded-query.md
 ---
 
 # Spec：M4 AI 需求拆解

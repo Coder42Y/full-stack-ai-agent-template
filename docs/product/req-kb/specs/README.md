@@ -1,7 +1,7 @@
 ---
 type: spec
 source:
-  - req-kb-prd.md
+  - ../prd.md
 created: 2026-06-11
 status: draft
 scope: 需求知识库系统 — 功能点拆分
@@ -9,7 +9,7 @@ scope: 需求知识库系统 — 功能点拆分
 
 # Spec：需求知识库系统 — 功能点拆分
 
-> 来源文档：[req-kb-prd.md](req-kb-prd.md)
+> 来源文档：[../prd.md](../prd.md)
 > 基线骨架：`template/{{cookiecutter.project_slug}}/`
 
 ## 0. 文档导航
@@ -18,16 +18,16 @@ scope: 需求知识库系统 — 功能点拆分
 
 | 模块 | Spec | 优先级 | 状态 |
 |------|------|--------|------|
-| M0 基础模型与权限底座 | [spec-req-kb-m0-foundation.md](spec-req-kb-m0-foundation.md) | P0 | in_progress |
-| M1 文档上传与 Markdown 入库 | [spec-req-kb-m1-document-ingestion.md](spec-req-kb-m1-document-ingestion.md) | P0 | draft |
-| M2 一句话需求创建 | [spec-req-kb-m2-one-sentence-intake.md](spec-req-kb-m2-one-sentence-intake.md) | P0 | in_progress |
-| M3 需求查询与原文引用 | [spec-req-kb-m3-grounded-query.md](spec-req-kb-m3-grounded-query.md) | P0 | draft |
-| M4 AI 需求拆解 | [spec-req-kb-m4-breakdown.md](spec-req-kb-m4-breakdown.md) | P0 | in_progress |
-| M5 文档修改、diff 与草稿审批 | [spec-req-kb-m5-change-management.md](spec-req-kb-m5-change-management.md) | P0 | in_progress |
-| M6 文档版本管理 | [spec-req-kb-m6-versioning.md](spec-req-kb-m6-versioning.md) | P0 | in_progress |
-| M7 角色权限与 AI 行为边界 | [spec-req-kb-m7-rbac-ai-boundary.md](spec-req-kb-m7-rbac-ai-boundary.md) | P0 | draft |
-| M8 WebSocket 变更通知 | [spec-req-kb-m8-notifications.md](spec-req-kb-m8-notifications.md) | P1 | implemented |
-| M9 前端需求工作台与产品/开发 MVP | [spec-req-kb-m9-frontend-workbench.md](spec-req-kb-m9-frontend-workbench.md) | P0 | implemented |
+| M0 基础模型与权限底座 | [m0-foundation.md](m0-foundation.md) | P0 | in_progress |
+| M1 文档上传与 Markdown 入库 | [m1-document-ingestion.md](m1-document-ingestion.md) | P0 | draft |
+| M2 一句话需求创建 | [m2-one-sentence-intake.md](m2-one-sentence-intake.md) | P0 | in_progress |
+| M3 需求查询与原文引用 | [m3-grounded-query.md](m3-grounded-query.md) | P0 | draft |
+| M4 AI 需求拆解 | [m4-breakdown.md](m4-breakdown.md) | P0 | in_progress |
+| M5 文档修改、diff 与草稿审批 | [m5-change-management.md](m5-change-management.md) | P0 | in_progress |
+| M6 文档版本管理 | [m6-versioning.md](m6-versioning.md) | P0 | in_progress |
+| M7 角色权限与 AI 行为边界 | [m7-rbac-ai-boundary.md](m7-rbac-ai-boundary.md) | P0 | draft |
+| M8 WebSocket 变更通知 | [m8-notifications.md](m8-notifications.md) | P1 | implemented |
+| M9 前端需求工作台与产品/开发 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |
 
 ## 1. 依赖顺序
 
@@ -71,4 +71,4 @@ M0 基础模型/权限
 
 ## 4. 前端 MVP 调整
 
-MVP 阶段前端不做登录鉴权拆分，但提供产品/开发两个身份选择。详见 [M9 前端需求工作台与产品/开发 MVP](spec-req-kb-m9-frontend-workbench.md)。
+MVP 阶段前端不做登录鉴权拆分，但提供产品/开发两个身份选择。详见 [M9 前端需求工作台与产品/开发 MVP](m9-frontend-workbench.md)。

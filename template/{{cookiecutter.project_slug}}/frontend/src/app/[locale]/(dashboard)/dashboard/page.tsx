@@ -86,12 +86,12 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1360px] space-y-5 pb-10">
-      <section className="border-foreground/10 bg-card/80 overflow-hidden rounded-md border">
+    <div className="mx-auto w-full max-w-[1360px] space-y-6 pb-10">
+      <section className="surface-panel overflow-hidden rounded-lg">
         <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_390px]">
           <div className="flex flex-col justify-between p-6 sm:p-8">
             <div className="max-w-3xl">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+              <p className="section-label">
                 需求协作指挥台
               </p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -107,9 +107,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="border-foreground/10 bg-foreground/[0.025] border-t p-5 lg:border-t-0 lg:border-l">
+          <div className="border-t border-foreground/10 bg-foreground/[0.025] p-5 lg:border-t-0 lg:border-l">
             <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+              <p className="section-label">
                 今日关注
               </p>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background px-2.5 py-1 text-[11px] text-foreground/60">
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 MVP 演示
               </span>
             </div>
-            <div className="mt-4 divide-y divide-foreground/10 rounded-md border border-foreground/10 bg-background">
+            <div className="mt-4 divide-y divide-foreground/10 overflow-hidden rounded-md border border-foreground/10 bg-background/80">
               {focusItems.map((item) => (
                 <Link
                   key={item.label}
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                       ? `${ROUTES.KB_DETAIL(firstProjectId)}?focus=${item.focus}`
                       : ROUTES.KB
                   }
-                  className="group grid grid-cols-[52px_1fr_auto] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04]"
+                  className="group grid grid-cols-[44px_1fr] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04] sm:grid-cols-[52px_1fr_auto]"
                 >
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {item.value}
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                       {item.note}
                     </p>
                   </div>
-                  <span className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-foreground/10 px-2.5 text-[11px] font-medium text-foreground/65 transition-colors group-hover:border-foreground/25 group-hover:text-foreground">
+                  <span className="col-span-2 inline-flex h-8 w-fit shrink-0 items-center gap-1 rounded-md border border-foreground/10 px-2.5 text-[11px] font-medium text-foreground/65 transition-colors group-hover:border-foreground/25 group-hover:text-foreground sm:col-span-1">
                     {firstProjectId ? item.action : "新建项目"}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-md border border-foreground/10 bg-background px-3 py-3"
+                  className="metric-tile rounded-md px-3 py-3"
                 >
                   <p
                     className={
@@ -171,7 +171,7 @@ export default function DashboardPage() {
         {workflow.map((item) => (
           <div
             key={item.title}
-            className="border-foreground/10 bg-card/80 rounded-md border p-4"
+            className="surface-interactive rounded-md p-4"
           >
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
               <item.icon className="h-5 w-5" />
@@ -183,10 +183,10 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-md border border-foreground/10 bg-card/80">
+        <div className="surface-panel rounded-lg">
           <div className="flex items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+              <p className="section-label">
                 最近需求项目
               </p>
               <h2 className="mt-1 text-base font-semibold text-foreground">继续推进</h2>
@@ -207,7 +207,7 @@ export default function DashboardPage() {
               ))}
               </div>
             ) : kbs.length === 0 ? (
-              <div className="rounded-md border border-dashed border-foreground/15 p-5 text-sm text-foreground/60">
+              <div className="rounded-md border border-dashed border-foreground/15 bg-background/60 p-5 text-sm text-foreground/60">
                 还没有需求项目。先创建一个项目，再把一句话需求或 PRD 文档放进工作台。
               </div>
             ) : (
@@ -220,7 +220,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <aside className="rounded-md border border-foreground/10 bg-card/80 p-5">
+        <aside className="surface-panel rounded-lg p-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <UsersRound className="h-4 w-4 text-foreground/45" />
@@ -248,7 +248,7 @@ function ProjectTile({ kb }: { kb: KnowledgeBase }) {
   return (
     <Link
       href={ROUTES.KB_DETAIL(kb.id)}
-      className="group rounded-md border border-foreground/10 bg-background p-4 transition-colors hover:border-foreground/25"
+      className="surface-interactive group rounded-md p-4"
     >
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
@@ -270,7 +270,7 @@ function PrimaryLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+      className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background shadow-sm transition-colors hover:bg-foreground/90"
     >
       {label}
       <ArrowRight className="h-4 w-4" />
@@ -282,7 +282,7 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-foreground/15 bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground/35"
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-foreground/15 bg-background/80 px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground/35 hover:bg-background"
     >
       <BookOpenCheck className="h-4 w-4" />
       {label}
@@ -292,7 +292,7 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 
 function RoleRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-background px-3 py-2">
+    <div className="surface-raised rounded-md px-3 py-2">
       <p className="text-sm font-medium text-foreground">{label}</p>
       <p className="mt-1 text-xs leading-relaxed text-foreground/55">{value}</p>
     </div>
@@ -356,12 +356,12 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1360px] space-y-5 pb-10">
-      <section className="border-foreground/10 bg-card/80 overflow-hidden rounded-md border">
+    <div className="mx-auto w-full max-w-[1360px] space-y-6 pb-10">
+      <section className="surface-panel overflow-hidden rounded-lg">
         <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_390px]">
           <div className="flex flex-col justify-between p-6 sm:p-8">
             <div className="max-w-3xl">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
+              <p className="section-label">
                 AI 工作台
               </p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -377,9 +377,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="border-foreground/10 bg-foreground/[0.025] border-t p-5 lg:border-t-0 lg:border-l">
+          <div className="border-t border-foreground/10 bg-foreground/[0.025] p-5 lg:border-t-0 lg:border-l">
             <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+              <p className="section-label">
                 快捷入口
               </p>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background px-2.5 py-1 text-[11px] text-foreground/60">
@@ -387,12 +387,12 @@ export default function DashboardPage() {
                 可用
               </span>
             </div>
-            <div className="mt-4 divide-y divide-foreground/10 rounded-md border border-foreground/10 bg-background">
+            <div className="mt-4 divide-y divide-foreground/10 overflow-hidden rounded-md border border-foreground/10 bg-background/80">
               {focusItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="group grid grid-cols-[64px_1fr_auto] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04]"
+                  className="group grid grid-cols-[56px_1fr_auto] items-center gap-3 p-3 transition-colors hover:bg-foreground/[0.04]"
                 >
                   <p className="text-lg font-semibold tabular-nums text-foreground">
                     {item.value}
@@ -411,7 +411,7 @@ export default function DashboardPage() {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-md border border-foreground/10 bg-background px-3 py-3"
+                  className="metric-tile rounded-md px-3 py-3"
                 >
                   <p className="whitespace-nowrap text-lg font-semibold tabular-nums text-foreground">
                     {stat.value}
@@ -428,7 +428,7 @@ export default function DashboardPage() {
         {workflow.map((item) => (
           <div
             key={item.title}
-            className="border-foreground/10 bg-card/80 rounded-md border p-4"
+            className="surface-interactive rounded-md p-4"
           >
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
               <item.icon className="h-5 w-5" />
@@ -440,10 +440,10 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-md border border-foreground/10 bg-card/80">
+        <div className="surface-panel rounded-lg">
           <div className="flex items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+              <p className="section-label">
                 推荐动作
               </p>
               <h2 className="mt-1 text-base font-semibold text-foreground">继续推进</h2>
@@ -483,7 +483,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <aside className="rounded-md border border-foreground/10 bg-card/80 p-5">
+        <aside className="surface-panel rounded-lg p-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-foreground/45" />
@@ -518,7 +518,7 @@ function ActionTile({
   return (
     <Link
       href={href}
-      className="group rounded-md border border-foreground/10 bg-background p-4 transition-colors hover:border-foreground/25"
+      className="surface-interactive group rounded-md p-4"
     >
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
@@ -540,7 +540,7 @@ function PrimaryLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+      className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background shadow-sm transition-colors hover:bg-foreground/90"
     >
       {label}
       <ArrowRight className="h-4 w-4" />
@@ -552,7 +552,7 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-foreground/15 bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground/35"
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-foreground/15 bg-background/80 px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground/35 hover:bg-background"
     >
       <Database className="h-4 w-4" />
       {label}
@@ -562,7 +562,7 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 
 function RoleRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-background px-3 py-2">
+    <div className="surface-raised rounded-md px-3 py-2">
       <p className="text-sm font-medium text-foreground">{label}</p>
       <p className="mt-1 text-xs leading-relaxed text-foreground/55">{value}</p>
     </div>

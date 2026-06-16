@@ -1,13 +1,13 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M2 一句话需求创建
 priority: P0
 depends_on:
-  - spec-req-kb-m0-foundation.md
-  - spec-req-kb-m1-document-ingestion.md
+  - m0-foundation.md
+  - m1-document-ingestion.md
 ---
 
 # Spec：M2 一句话需求创建

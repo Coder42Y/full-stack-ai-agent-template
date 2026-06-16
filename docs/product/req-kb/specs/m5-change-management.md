@@ -1,15 +1,15 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M5 文档修改、diff 与草稿审批
 priority: P0
 depends_on:
-  - spec-req-kb-m0-foundation.md
-  - spec-req-kb-m3-grounded-query.md
-  - spec-req-kb-m6-versioning.md
-  - spec-req-kb-m7-rbac-ai-boundary.md
+  - m0-foundation.md
+  - m3-grounded-query.md
+  - m6-versioning.md
+  - m7-rbac-ai-boundary.md
 ---
 
 # Spec：M5 文档修改、diff 与草稿审批

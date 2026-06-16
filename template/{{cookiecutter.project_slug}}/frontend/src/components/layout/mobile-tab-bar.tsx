@@ -68,20 +68,20 @@ export function MobileTabBar() {
     <nav
       role="navigation"
       aria-label="主导航"
-      className="border-foreground/10 bg-background/95 supports-[backdrop-filter]:bg-background/85 fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t backdrop-blur-md pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-foreground/10 bg-background/90 shadow-[0_-18px_42px_-34px_oklch(0%_0_0/0.5)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       {items.map((item) => {
         const active = isActive(item);
         const className = cn(
-          "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium uppercase tracking-wider transition-colors min-h-[56px]",
-          active ? "text-foreground" : "text-foreground/55 hover:text-foreground",
+          "flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium uppercase tracking-wider transition-colors",
+          active ? "text-foreground" : "text-foreground/55 hover:bg-foreground/[0.04] hover:text-foreground",
         );
         const inner = (
           <>
             <item.icon
               className={cn(
                 "h-5 w-5 transition-transform",
-                active && "text-foreground scale-110",
+                active && "scale-110 text-brand",
               )}
             />
             <span className="font-mono">{item.label}</span>

@@ -1,0 +1,817 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>需求知识库 MVP Spec</title><style>
+:root { color-scheme: light; --fg:#141414; --muted:#666; --line:#ddd; --bg:#fafafa; --card:#fff; --brand:#0f766e; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans SC",sans-serif; background:var(--bg); color:var(--fg); line-height:1.65; }
+header { position:sticky; top:0; z-index:2; background:rgba(250,250,250,.94); border-bottom:1px solid var(--line); backdrop-filter:blur(8px); }
+.header-inner { max-width:1180px; margin:0 auto; padding:18px 24px; display:flex; gap:24px; align-items:center; justify-content:space-between; }
+h1 { margin:0; font-size:22px; }
+.meta { color:var(--muted); font-size:13px; }
+.layout { max-width:1180px; margin:0 auto; display:grid; grid-template-columns:260px minmax(0,1fr); gap:24px; padding:24px; }
+nav { position:sticky; top:76px; align-self:start; display:flex; flex-direction:column; gap:6px; max-height:calc(100vh - 100px); overflow:auto; }
+nav a { color:#245; text-decoration:none; padding:8px 10px; border-radius:6px; font-size:13px; }
+nav a:hover { background:#e8f3f1; color:var(--brand); }
+.doc { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:28px; margin-bottom:20px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+.file { color:var(--brand); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px; }
+h1,h2,h3,h4 { line-height:1.25; }
+h2 { border-top:1px solid #eee; padding-top:22px; margin-top:28px; }
+code { background:#f1f5f9; padding:2px 5px; border-radius:4px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.92em; }
+pre { background:#0f172a; color:#e5e7eb; padding:16px; border-radius:8px; overflow:auto; }
+pre code { background:transparent; color:inherit; padding:0; }
+li { margin:5px 0; }
+@media (max-width: 860px) { .layout { grid-template-columns:1fr; } nav { position:relative; top:auto; max-height:none; } }
+</style></head><body><header><div class="header-inner"><div><h1>需求知识库 MVP Spec</h1><div class="meta">由 docs/product/req-kb/specs/*.md 生成</div></div><div class="meta">11 个文档</div></div></header><div class="layout"><nav><a href="#spec-req-kb-split">README.md</a><a href="#spec-req-kb-m0-foundation">m0-foundation.md</a><a href="#spec-req-kb-m1-document-ingestion">m1-document-ingestion.md</a><a href="#spec-req-kb-m2-one-sentence-intake">m2-one-sentence-intake.md</a><a href="#spec-req-kb-m3-grounded-query">m3-grounded-query.md</a><a href="#spec-req-kb-m4-breakdown">m4-breakdown.md</a><a href="#spec-req-kb-m5-change-management">m5-change-management.md</a><a href="#spec-req-kb-m6-versioning">m6-versioning.md</a><a href="#spec-req-kb-m7-rbac-ai-boundary">m7-rbac-ai-boundary.md</a><a href="#spec-req-kb-m8-notifications">m8-notifications.md</a><a href="#spec-req-kb-m9-frontend-workbench">m9-frontend-workbench.md</a></nav><main><section class="doc" id="spec-req-kb-split"><div class="file">README.md</div><p>---</p>
+<p>type: spec</p>
+<p>source:</p>
+<p>  - prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: draft</p>
+<p>scope: 需求知识库系统 — 功能点拆分</p>
+<p>---</p>
+<h1>Spec：需求知识库系统 — 功能点拆分</h1>
+<p>&gt; 来源文档：[prd.md](prd.md)</p>
+<p>&gt; 基线骨架：<code>template/{{cookiecutter.project_slug}}/</code></p>
+<h2>0. 文档导航</h2>
+<p>本文档把 PRD 拆解为 9 个可实施功能模块。每个模块单独成 spec，包含数据模型、API、文件范围、依赖和验收标准。</p>
+<p><code>| 模块 | Spec | 优先级 | 状态 |</code></p>
+<p><code>|------|------|--------|------|</code></p>
+<p><code>| M0 基础模型与权限底座 | [m0-foundation.md](m0-foundation.md) | P0 | in_progress |</code></p>
+<p><code>| M1 文档上传与 Markdown 入库 | [m1-document-ingestion.md](m1-document-ingestion.md) | P0 | draft |</code></p>
+<p><code>| M2 一句话需求创建 | [m2-one-sentence-intake.md](m2-one-sentence-intake.md) | P0 | in_progress |</code></p>
+<p><code>| M3 需求查询与原文引用 | [m3-grounded-query.md](m3-grounded-query.md) | P0 | draft |</code></p>
+<p><code>| M4 AI 需求拆解 | [m4-breakdown.md](m4-breakdown.md) | P0 | in_progress |</code></p>
+<p><code>| M5 文档修改、diff 与草稿审批 | [m5-change-management.md](m5-change-management.md) | P0 | in_progress |</code></p>
+<p><code>| M6 文档版本管理 | [m6-versioning.md](m6-versioning.md) | P0 | in_progress |</code></p>
+<p><code>| M7 角色权限与 AI 行为边界 | [m7-rbac-ai-boundary.md](m7-rbac-ai-boundary.md) | P0 | draft |</code></p>
+<p><code>| M8 WebSocket 变更通知 | [m8-notifications.md](m8-notifications.md) | P1 | in_progress |</code></p>
+<p><code>| M9 前端需求工作台与产品/开发 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |</code></p>
+<h2>1. 依赖顺序</h2>
+<pre><code>
+M0 基础模型/权限
+
+  ├─ M1 文档上传入库
+
+  │   ├─ M3 查询引用
+
+  │   ├─ M4 需求拆解
+
+  │   ├─ M5 修改审批
+
+  │   └─ M6 版本管理
+
+  ├─ M2 一句话需求创建
+
+  │   └─ M1 入库管道
+
+  ├─ M7 权限边界
+
+  │   ├─ M1/M2 写入权限
+
+  │   └─ M5 修改权限
+
+  └─ M8 通知
+
+      └─ M5/M6 文档变更事件
+
+</code></pre>
+<h2>2. 实施原则</h2>
+<ul>
+<li>文档为中心：所有需求最终都落到 <code>RAGDocument</code>，保留源文件和完整 <code>markdown_content</code>。</li>
+<li>RAG 只负责定位：回答前必须读取完整 markdown，再输出原文引用。</li>
+<li>版本快照：旧版保留，新版设置 <code>is_latest=true</code>，向量索引只保留最新版。</li>
+<li>权限先于 AI：产品/admin 可写；开发/测试只能查询和提出建议。</li>
+<li>小步交付：先打通基础模型和上传入库，再叠加 AI 追问、修改审批和通知。</li>
+</ul>
+<h2>3. 当前 demo MVP 范围</h2>
+<p>当前实现已覆盖可演示后端闭环：</p>
+<ul>
+<li>M0/M1：扩展 <code>RAGDocument</code> 文档全文、版本、最新版和修改人字段；DOCX 优先 Mammoth Markdown 入库；上传完成写回 <code>markdown_content</code>。</li>
+<li>M2：<code>POST /api/v1/kb/{kb_id}/requirements/from-text</code> 支持 AI-first 一句话创建 Markdown 需求并返回澄清问题；模型未配置时使用本地 fallback。</li>
+<li>M3：<code>POST /api/v1/kb/{kb_id}/query</code> 支持从完整 <code>markdown_content</code> 兜底检索和来源引用，并可调用需求 AI 基于来源组织回答。</li>
+<li>M4：<code>GET /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown</code> 按 Markdown 章节拆解并引用来源。</li>
+<li>M5/M6：<code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/change</code> 支持建议、草稿和应用新版本；旧版标记 <code>is_latest=false</code>。</li>
+<li>M7：MVP 前端用 <code>X-Requirement-Role</code> 在产品/开发间切换；产品可写，开发只能读、拆解或提出建议。</li>
+<li>M8：变更和入库响应返回轻量 <code>notification_event</code>，后续可接 WebSocket fan-out。</li>
+</ul>
+<p>当前仍未完成完整生产态：持久化多轮澄清状态机、真实 diff 审批 UI、WebSocket 广播、历史版本列表、向量旧版清理和生产态登录角色映射。</p>
+<h2>4. 前端 MVP 调整</h2>
+<p>MVP 阶段前端不做登录鉴权拆分，但提供产品/开发两个身份选择。详见 [M9 前端需求工作台与产品/开发 MVP](m9-frontend-workbench.md)。</p></section><section class="doc" id="spec-req-kb-m0-foundation"><div class="file">m0-foundation.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M0 基础模型与权限底座</p>
+<p>priority: P0</p>
+<p>---</p>
+<h1>Spec：M0 基础模型与权限底座</h1>
+<h2>功能概述</h2>
+<p>为需求知识库系统补齐数据模型和角色基础，使后续文档上传、版本管理、修改审批和通知都能在同一套字段上工作。</p>
+<h2>数据模型</h2>
+<h3><code>rag_documents</code></h3>
+<p>新增字段：</p>
+<p><code>| 字段 | 类型 | 说明 |</code></p>
+<p><code>|------|------|------|</code></p>
+<p><code>| `markdown_content` | `TEXT` nullable | 文档转换后的完整 Markdown 内容 |</code></p>
+<p><code>| `version` | `INTEGER` default 1 | 文档版本号 |</code></p>
+<p><code>| `is_latest` | `BOOLEAN` default true | 是否为当前最新版本 |</code></p>
+<p><code>| `previous_version_id` | FK -&gt; `rag_documents.id` nullable | 上一版本文档 |</code></p>
+<p><code>| `modified_by` | FK -&gt; `users.id` nullable | 最后修改人 |</code></p>
+<p>索引：</p>
+<ul>
+<li><code>ix_rag_documents_is_latest</code></li>
+<li><code>ix_rag_documents_previous_version_id</code></li>
+<li><code>ix_rag_documents_modified_by</code></li>
+</ul>
+<h3><code>knowledge_bases</code></h3>
+<p>新增字段：</p>
+<p><code>| 字段 | 类型 | 说明 |</code></p>
+<p><code>|------|------|------|</code></p>
+<p><code>| `project_name` | `VARCHAR(255)` nullable | 项目名称，用于 UI 展示和项目级 KB 组织 |</code></p>
+<h3><code>UserRole</code></h3>
+<p>扩展枚举：</p>
+<pre><code>
+class UserRole(StrEnum):
+
+    ADMIN = &quot;admin&quot;
+
+    PRODUCT = &quot;product&quot;
+
+    DEVELOPER = &quot;developer&quot;
+
+    TESTER = &quot;tester&quot;
+
+    USER = &quot;user&quot;
+
+</code></pre>
+<p><code>admin</code> 仍拥有全部权限；其他角色默认同级，具体业务权限由后续 M7 权限服务控制。</p>
+<h2>文件结构</h2>
+<p>修改文件：</p>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `backend/app/db/models/rag_document.py` | 新增文档全文和版本字段 |</code></p>
+<p><code>| `backend/app/db/models/knowledge_base.py` | 新增 `project_name` |</code></p>
+<p><code>| `backend/app/db/models/user.py` | 扩展角色枚举 |</code></p>
+<p><code>| `backend/app/schemas/rag.py` | 暴露版本元数据 |</code></p>
+<p><code>| `backend/app/schemas/knowledge_base.py` | 暴露 `project_name` |</code></p>
+<p><code>| `backend/app/schemas/user.py` | 扩展角色枚举 |</code></p>
+<p><code>| `backend/app/repositories/rag_document.py` | 支持创建版本字段 |</code></p>
+<p><code>| `backend/app/repositories/knowledge_base.py` | 支持 `project_name` 创建/更新 |</code></p>
+<p><code>| `backend/app/services/rag_document.py` | list/create 贯通版本元数据 |</code></p>
+<p><code>| `backend/app/services/knowledge_base.py` | create/update 贯通 `project_name` |</code></p>
+<p>新增文件：</p>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `backend/alembic/versions/0022_req_kb_foundation.py` | 基础字段迁移 |</code></p>
+<h2>验收标准</h2>
+<ul>
+<li>生成项目启用 RAG + SQL DB 时，迁移后 <code>rag_documents</code> 有完整新增字段。</li>
+<li><code>knowledge_bases</code> 有 <code>project_name</code> 字段。</li>
+<li>API schema 可序列化 <code>version/is_latest/previous_version_id/modified_by/has_markdown_content</code>。</li>
+<li><code>UserRole</code> 接受 <code>product/developer/tester</code>。</li>
+<li>现有 admin/user 行为不破坏。</li>
+</ul></section><section class="doc" id="spec-req-kb-m1-document-ingestion"><div class="file">m1-document-ingestion.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M1 文档上传与 Markdown 入库</p>
+<p>priority: P0</p>
+<p>depends_on: m0-foundation.md</p>
+<p>---</p>
+<h1>Spec：M1 文档上传与 Markdown 入库</h1>
+<h2>功能概述</h2>
+<p>产品/admin 上传 PRD 文件后，系统保留源文件，把 docx/pdf/txt/md 转为完整 Markdown，保存到 <code>RAGDocument.markdown_content</code>，并把 chunks 写入向量库。</p>
+<h2>核心流程</h2>
+<pre><code>
+upload file
+
+  -&gt; 权限校验 product/admin
+
+  -&gt; 存储源文件
+
+  -&gt; 转换 Markdown
+
+  -&gt; 质量检查
+
+  -&gt; 创建/更新 RAGDocument
+
+  -&gt; chunk + embedding + vector upsert
+
+</code></pre>
+<h2>转换策略</h2>
+<ul>
+<li><code>.docx</code> 优先使用 <code>mammoth</code> 转 Markdown。</li>
+<li>mammoth 质量检查失败时，如配置 <code>LLAMAPARSE_API_KEY</code>，兜底 LlamaParse。</li>
+<li><code>.pdf</code> 复用现有 PDF parser。</li>
+<li><code>.md/.txt</code> 直接读取。</li>
+</ul>
+<p>质量检查最低标准：</p>
+<ul>
+<li>Markdown 非空且长度超过 200 字符。</li>
+<li>标题数量或段落数量不能明显低于源文件结构。</li>
+<li>表格转换失败时记录 warning；如果启用 LlamaParse 则兜底。</li>
+</ul>
+<h2>API 契约</h2>
+<p>复用并扩展：</p>
+<pre><code>
+POST /api/v1/kb/{kb_id}/documents
+
+</code></pre>
+<p>响应继续返回 <code>RAGIngestResponse</code>，后台任务完成后 <code>RAGDocument.markdown_content/status/chunk_count</code> 更新。</p>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/rag/models.py` | 已实现：`Document.to_markdown()` 和 `IngestionResult.markdown_content/chunk_count` |</code></p>
+<p><code>| `app/services/rag/ingestion.py` | 已实现：ingest 完成后返回完整 Markdown 和 chunk 数 |</code></p>
+<p><code>| `app/services/rag/documents.py` | 增加 mammoth DOCX Markdown parser |</code></p>
+<p><code>| `app/services/rag_document.py` | 已实现：上传后保存 markdown 内容 |</code></p>
+<p><code>| `app/worker/tasks/rag_tasks.py` | 已实现：ingestion 完成时写回 markdown |</code></p>
+<p><code>| `app/worker/background/rag.py` | 已实现：非队列模式写回 markdown |</code></p>
+<p><code>| `app/commands/rag.py` | 已实现：CLI ingest 写回 markdown |</code></p>
+<p><code>| `pyproject.toml` | 增加 `mammoth` 依赖 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成最小闭环：</p>
+<ul>
+<li>RAG parser 解析出的完整文档内容可通过 <code>Document.to_markdown()</code> 输出。</li>
+<li><code>IngestionResult</code> 返回 <code>markdown_content</code> 和 <code>chunk_count</code>。</li>
+<li>API 上传后台任务、Celery/Taskiq/ARQ worker、CLI ingest 都会在完成时写回 <code>RAGDocument.markdown_content</code>。</li>
+<li>DOCX 优先使用 mammoth 输出 Markdown，失败或空内容时回退到 python-docx 文本解析。</li>
+<li><code>/kb/{kb_id}/documents</code> 上传入口记录 <code>modified_by</code>，并由 M7 写权限依赖限制为 product/admin。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>mammoth 质量检查与 LlamaParse 兜底。</li>
+<li>更细粒度的表格转换质量 warning 和人工复核队列。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>上传 docx 后源文件可下载。</li>
+<li><code>rag_documents.markdown_content</code> 保存完整 Markdown。</li>
+<li>chunk 入向量库，查询能命中。</li>
+<li>mammoth 转换异常时文档状态为 <code>error</code> 或兜底 LlamaParse。</li>
+<li>developer/tester 上传返回权限错误。</li>
+</ul></section><section class="doc" id="spec-req-kb-m2-one-sentence-intake"><div class="file">m2-one-sentence-intake.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M2 一句话需求创建</p>
+<p>priority: P0</p>
+<p>depends_on:</p>
+<p>  - m0-foundation.md</p>
+<p>  - m1-document-ingestion.md</p>
+<p>---</p>
+<h1>Spec：M2 一句话需求创建</h1>
+<h2>功能概述</h2>
+<p>产品在工作台中输入一句话需求时，AI 主动追问澄清问题；澄清回答提交后生成结构化 Markdown 新版本，并可被 RAG/Markdown fallback 检索。</p>
+<h2>状态机</h2>
+<pre><code>
+drafting
+
+  -&gt; clarifying
+
+  -&gt; awaiting_confirmation
+
+  -&gt; ingested
+
+</code></pre>
+<h2>AI 行为</h2>
+<ul>
+<li>首轮识别一句话需求，生成可讨论 Markdown 草案并入库为当前 MVP 文档。</li>
+<li>追问 2-3 个最关键问题。</li>
+<li>用户回答后由 AI 更新完整 Markdown，保留原始表达和澄清结论。</li>
+<li>模型不可用时保留 deterministic fallback，保证本地 demo 和测试可运行。</li>
+<li>系统 prompt 固化在 <code>RequirementAIService</code>，要求反幻觉、角色边界和 JSON-only 结构化输出。</li>
+</ul>
+<h2>API 契约</h2>
+<p>可先走 Agent WebSocket 事件，不额外暴露 HTTP：</p>
+<pre><code>
+{
+
+  &quot;type&quot;: &quot;requirement_draft&quot;,
+
+  &quot;payload&quot;: {
+
+    &quot;title&quot;: &quot;海外收货地址支持&quot;,
+
+    &quot;markdown&quot;: &quot;...&quot;,
+
+    &quot;questions&quot;: []
+
+  }
+
+}
+
+</code></pre>
+<p>确认入库：</p>
+<pre><code>
+{
+
+  &quot;type&quot;: &quot;requirement_confirm&quot;,
+
+  &quot;payload&quot;: {&quot;draft_id&quot;: &quot;...&quot;}
+
+}
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/agents/prompts.py` | 增加需求澄清 prompt |</code></p>
+<p><code>| `app/services/agent_session.py` | 处理 draft/confirm 事件 |</code></p>
+<p><code>| `app/services/requirement_intake.py` | 新增一句话需求服务 |</code></p>
+<p><code>| `app/repositories/rag_document.py` | 支持 draft 创建与确认 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成 AI-first MVP 闭环：</p>
+<ul>
+<li>新增 <code>POST /api/v1/knowledge-bases/{kb_id}/requirements/from-text</code>。</li>
+<li>product 可用一句话创建 Markdown 需求文档，落到 <code>RAGDocument.markdown_content</code>。</li>
+<li>响应返回 2-3 个澄清问题、生成的 Markdown 和轻量通知 payload。</li>
+<li><code>app/services/requirement_ai.py</code> 接入 Anthropic Messages-compatible 接口，读取 <code>ANTHROPIC_AUTH_TOKEN</code>/<code>ANTHROPIC_BASE_URL</code>/<code>ANTHROPIC_MODEL</code>。</li>
+<li><code>RequirementWorkflowService</code> 优先调用 AI 生成草案和应用澄清回答；模型未配置或失败时使用本地 fallback。</li>
+<li>前端在澄清问题下提供回答输入框，提交后调用 change workflow 生成新版本。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>对话式多轮澄清状态机。</li>
+<li>产品确认后再入库，而不是 MVP 版先创建可追踪文档再用澄清回答生成新版本。</li>
+<li>Agent WebSocket 事件接入。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>product 输入一句话后 AI 返回 2-3 个澄清问题。</li>
+<li>澄清后生成 Markdown 草稿。</li>
+<li>用户确认后文档入库，<code>status=done</code>，可检索。</li>
+<li>developer 输入修改时不直接入库，只记录建议；创建需求和上传入口在前端开发身份下禁用。</li>
+</ul></section><section class="doc" id="spec-req-kb-m3-grounded-query"><div class="file">m3-grounded-query.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M3 需求查询与原文引用</p>
+<p>priority: P0</p>
+<p>depends_on:</p>
+<p>  - m0-foundation.md</p>
+<p>  - m1-document-ingestion.md</p>
+<p>---</p>
+<h1>Spec：M3 需求查询与原文引用</h1>
+<h2>功能概述</h2>
+<p>开发/测试/产品/admin 查询需求时，AI 先通过 RAG chunk 定位候选文档，再读取完整 <code>markdown_content</code> 精确定位章节，回答必须引用原文来源。</p>
+<h2>检索链路</h2>
+<pre><code>
+query
+
+  -&gt; retrieve chunks
+
+  -&gt; collect parent_doc_id
+
+  -&gt; load latest RAGDocument.markdown_content
+
+  -&gt; locate section
+
+  -&gt; answer with quotes and source labels
+
+</code></pre>
+<h2>输出规范</h2>
+<p>必须包含来源标注：</p>
+<pre><code>
+[来源：V2.3_订单模块需求.docx &gt; 用户收货地址 &gt; 海外地址]
+
+</code></pre>
+<p>如果无法精确定位：</p>
+<pre><code>
+未找到可精确引用的原文，可能相关文档：...
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/requirement_query.py` | 新增完整文档定位服务 |</code></p>
+<p><code>| `app/services/rag/retrieval.py` | 复用并补充 `parent_doc_id` 约束 |</code></p>
+<p><code>| `app/agents/tools/rag_tool.py` | 输出来源和模糊提示 |</code></p>
+<p><code>| `app/agents/prompts.py` | 强制引用原文系统提示 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成 MVP 查询 API：</p>
+<ul>
+<li>新增 <code>RequirementQueryService</code>，先用 RAG chunk 定位 <code>parent_doc_id</code>，再按 <code>vector_document_id</code> 回查最新 <code>RAGDocument.markdown_content</code>。</li>
+<li>新增 <code>POST /api/v1/kb/{kb_id}/query</code>，返回 <code>RequirementQueryResponse</code>，包含 <code>answer/sources/is_grounded</code>。</li>
+<li>命中完整 Markdown 时，回答中包含 <code>[来源：filename &gt; page N &gt; chunk M]</code>。</li>
+<li>未找到完整 Markdown 时，返回 chunk 级 fallback，并提示来源不够精确。</li>
+<li>如果向量检索不可用或没有 embedding key，查询会退回到 KB 最新 <code>markdown_content</code> 的确定性检索，仍返回章节级来源引用，便于离线 demo。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>Agent tool 层直接复用 <code>RequirementQueryService</code>，让对话场景也走同一套 grounded query。</li>
+<li>章节标题级定位（例如 <code>模块 &gt; 小节 &gt; 条款</code>），当前 MVP 只定位到 page/chunk。</li>
+<li>tester 查询时追加测试关注点提示。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>查询命中文档时，回答包含明确来源。</li>
+<li>回答内容来自 <code>markdown_content</code>，不是只依赖 chunk 摘要。</li>
+<li>找不到精确原文时返回模糊提示。</li>
+<li>tester 查询拆解时可额外提示测试关注点，但不能编造需求。</li>
+</ul></section><section class="doc" id="spec-req-kb-m4-breakdown"><div class="file">m4-breakdown.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M4 AI 需求拆解</p>
+<p>priority: P0</p>
+<p>depends_on: m3-grounded-query.md</p>
+<p>---</p>
+<h1>Spec：M4 AI 需求拆解</h1>
+<h2>功能概述</h2>
+<p>用户要求“拆解某模块需求”时，AI 基于完整文档按章节输出功能点、接口/数据影响、边界条件和测试关注点，每个拆解点都要引用原文。</p>
+<h2>输出结构</h2>
+<pre><code>
+## 需求拆解：订单模块
+
+
+
+### 1. 海外地址支持
+
+- 功能点：...
+
+- 开发关注：...
+
+- 测试关注：...
+
+- 原文依据：[来源：...]
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/requirement_breakdown.py` | 新增拆解服务 |</code></p>
+<p><code>| `app/agents/prompts.py` | 增加拆解 prompt |</code></p>
+<p><code>| `app/agents/tools/rag_tool.py` | 调用完整文档定位 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成离线 demo 闭环：</p>
+<ul>
+<li>新增 <code>GET /api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/breakdown</code>。</li>
+<li>基于 <code>RAGDocument.markdown_content</code> 按 Markdown 标题拆解。</li>
+<li>每个拆解项返回 <code>[来源: filename &gt; section]</code>。</li>
+<li>tester 角色会附加测试关注点提示，仍只基于原文拆解。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>接入 Agent tool 层，让对话场景可直接触发同一拆解服务。</li>
+<li>引入 LLM 对复杂章节做更自然的任务拆分，但保留原文引用约束。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>“帮我拆解订单模块需求”能定位相关最新版文档。</li>
+<li>输出按章节组织。</li>
+<li>每个拆解点至少有一个来源引用。</li>
+<li>不存在原文依据时明确标注“不确定”，不能补充虚构需求。</li>
+</ul></section><section class="doc" id="spec-req-kb-m5-change-management"><div class="file">m5-change-management.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M5 文档修改、diff 与草稿审批</p>
+<p>priority: P0</p>
+<p>depends_on:</p>
+<p>  - m0-foundation.md</p>
+<p>  - m3-grounded-query.md</p>
+<p>  - m6-versioning.md</p>
+<p>  - m7-rbac-ai-boundary.md</p>
+<p>---</p>
+<h1>Spec：M5 文档修改、diff 与草稿审批</h1>
+<h2>功能概述</h2>
+<p>产品/admin 可通过对话修改需求文档。小改动在对话内展示 diff 并确认；大改动生成草稿，进入文档列表审批。</p>
+<h2>改动判定</h2>
+<p><code>| 类型 | 判定 | 处理 |</code></p>
+<p><code>|------|------|------|</code></p>
+<p><code>| 小改动 | 影响不超过 1 个段落 | 对话内 diff 确认后更新 |</code></p>
+<p><code>| 大改动 | 新增/删除/重写 1 个及以上章节 | 创建 `status=draft` 草稿，等待审批 |</code></p>
+<p>AI 判定宁可保守：无法判断时走大改动审批。</p>
+<h2>API 契约</h2>
+<pre><code>
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes
+
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes/{change_id}/approve
+
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes/{change_id}/reject
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/requirement_change.py` | 变更判定、diff、草稿创建 |</code></p>
+<p><code>| `app/api/routes/v1/knowledge_bases.py` | 增加变更审批端点 |</code></p>
+<p><code>| `app/schemas/requirement_change.py` | 新增请求/响应 schema |</code></p>
+<p><code>| `app/agents/prompts.py` | 修改意图识别和 diff prompt |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成离线 demo 闭环：</p>
+<ul>
+<li>新增 <code>POST /api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/change</code>。</li>
+<li>developer/tester 调用时只返回 <code>suggestion_recorded</code>，不创建新版本。</li>
+<li>product/admin 可创建 <code>draft</code> 版本，或 <code>apply=true</code> 时直接创建 <code>done</code> 新版本并把旧版标为 <code>is_latest=false</code>。</li>
+<li>响应返回 diff 摘要、Markdown preview 和轻量通知 payload。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>小改 diff 的结构化红绿对比。</li>
+<li>大改草稿审批列表和确认接口。</li>
+<li>RAG 向量索引只保留最新版的真实重建逻辑。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>product 小改动生成 diff，确认后创建新版。</li>
+<li>product 大改动生成草稿，审批后创建新版。</li>
+<li>developer/tester 修改建议不产生文档变更。</li>
+<li>所有修改都保留旧版文档。</li>
+</ul></section><section class="doc" id="spec-req-kb-m6-versioning"><div class="file">m6-versioning.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M6 文档版本管理</p>
+<p>priority: P0</p>
+<p>depends_on: m0-foundation.md</p>
+<p>---</p>
+<h1>Spec：M6 文档版本管理</h1>
+<h2>功能概述</h2>
+<p>每次需求文档变更都创建新版本。旧版 <code>is_latest=false</code>，新版 <code>is_latest=true</code>，并通过 <code>previous_version_id</code> 串起版本链。RAG 只索引最新版。</p>
+<h2>版本规则</h2>
+<ul>
+<li>原始上传版本为 <code>version=1</code>。</li>
+<li>新版本 <code>version = previous.version + 1</code>。</li>
+<li>同一版本链只能有一个 <code>is_latest=true</code>。</li>
+<li>旧版本仍可下载源文件、查看 Markdown 和 diff。</li>
+</ul>
+<h2>API 契约</h2>
+<pre><code>
+GET /api/v1/kb/{kb_id}/documents/{doc_id}/versions
+
+GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&amp;to=2
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/requirement_version.py` | 版本创建、列表、diff |</code></p>
+<p><code>| `app/repositories/rag_document.py` | 按版本链查询 |</code></p>
+<p><code>| `app/services/rag/ingestion.py` | 新版索引、旧版向量删除 |</code></p>
+<p><code>| `app/api/routes/v1/knowledge_bases.py` | 增加版本端点 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成离线 demo 闭环：</p>
+<ul>
+<li><code>RAGDocument.version/is_latest/previous_version_id/modified_by</code> 已落库。</li>
+<li>product/admin 通过 change API 应用修改时，会把旧版标为历史版本并创建新版本。</li>
+<li>查询 fallback 只读取 <code>is_latest=true</code> 且有 <code>markdown_content</code> 的 KB 文档。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>历史版本列表/对比 API。</li>
+<li>向量索引删除旧版、重建新版。</li>
+<li>审计日志和回滚入口。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>修改后旧版保留且 <code>is_latest=false</code>。</li>
+<li>新版 <code>previous_version_id</code> 指向旧版。</li>
+<li>RAG 查询只命中最新版。</li>
+<li>能查询“这个需求和上次比改了什么”。</li>
+</ul></section><section class="doc" id="spec-req-kb-m7-rbac-ai-boundary"><div class="file">m7-rbac-ai-boundary.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M7 角色权限与 AI 行为边界</p>
+<p>priority: P0</p>
+<p>depends_on: m0-foundation.md</p>
+<p>---</p>
+<h1>Spec：M7 角色权限与 AI 行为边界</h1>
+<h2>功能概述</h2>
+<p>用角色控制需求知识库读写权限，同时把角色传入需求 AI 上下文，确保 developer 的修改意图只记录建议，不直接变更文档。MVP 前端暂只暴露产品和开发两个身份选择，不做登录鉴权拆分。</p>
+<h2>权限矩阵</h2>
+<p><code>| 操作 | admin | product | developer | tester |</code></p>
+<p><code>|------|-------|---------|-----------|--------|</code></p>
+<p><code>| 上传文档 | yes | yes | no | no |</code></p>
+<p><code>| 创建需求 | yes | yes | no | no |</code></p>
+<p><code>| 修改文档 | yes | yes | suggestion only | suggestion only |</code></p>
+<p><code>| 审批草稿 | yes | yes | no | no |</code></p>
+<p><code>| 查询/拆解 | yes | yes | yes | yes |</code></p>
+<p><code>| 下载/历史版本 | yes | yes | yes | yes |</code></p>
+<p><code>| 管理 KB | yes | yes | no | no |</code></p>
+<p><code>| 管理用户 | yes | no | no | no |</code></p>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/core/security.py` 或 `app/api/deps.py` | 增加业务权限依赖 |</code></p>
+<p><code>| `app/services/agent_session.py` | Agent 上下文注入角色 |</code></p>
+<p><code>| `app/agents/prompts.py` | 角色行为边界 |</code></p>
+<p><code>| `app/api/routes/v1/knowledge_bases.py` | 写接口加权限依赖 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成 MVP 权限边界：</p>
+<ul>
+<li><code>UserRole</code> 已包含 <code>product/developer/tester</code>。</li>
+<li><code>app/api/deps.py</code> 新增 <code>RequirementDemoRole</code> 和 <code>CurrentRequirementDemoWriter</code>，读取 <code>X-Requirement-Role</code>，MVP 中产品可写、开发不可写。</li>
+<li><code>app/api/routes/v1/knowledge_bases.py</code> 的创建/更新/删除 KB、上传/删除文档、创建/触发/删除 sync source 写接口已接入 <code>CurrentRequirementDemoWriter</code>。</li>
+<li>查询、文档列表和拆解保持可读；查询/拆解把当前产品或开发角色传入 AI 上下文。</li>
+<li>变更接口在开发身份下调用 suggestion-only 路径，返回“建议已记录”，不生成新版本。</li>
+<li>新增单元测试覆盖 product/admin 可写、developer/tester/user 不可写。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>恢复生产态真实用户身份和组织成员角色，不再依赖前端 demo header。</li>
+<li>tester 角色 UI 和测试视角拆解开关。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>product/admin 可上传和修改需求。</li>
+<li>developer 调用写接口返回权限错误或前端禁用入口。</li>
+<li>developer 在工作台中提出修改时，AI 回复“建议已记录”类信息，不生成 diff/草稿。</li>
+<li>admin 仍可管理用户。</li>
+</ul></section><section class="doc" id="spec-req-kb-m8-notifications"><div class="file">m8-notifications.md</div><p>---</p>
+<p>type: spec</p>
+<p>source: prd.md</p>
+<p>created: 2026-06-11</p>
+<p>status: in_progress</p>
+<p>scope: 需求知识库 — M8 WebSocket 变更通知</p>
+<p>priority: P1</p>
+<p>depends_on:</p>
+<p>  - m5-change-management.md</p>
+<p>  - m6-versioning.md</p>
+<p>---</p>
+<h1>Spec：M8 WebSocket 变更通知</h1>
+<h2>功能概述</h2>
+<p>需求文档变更后，通过 WebSocket 向项目成员推送变更通知，包含修改人、文档名和 diff 摘要。</p>
+<h2>事件格式</h2>
+<pre><code>
+{
+
+  &quot;type&quot;: &quot;requirement_changed&quot;,
+
+  &quot;payload&quot;: {
+
+    &quot;document_id&quot;: &quot;...&quot;,
+
+    &quot;knowledge_base_id&quot;: &quot;...&quot;,
+
+    &quot;filename&quot;: &quot;V2.3_订单模块需求.docx&quot;,
+
+    &quot;version&quot;: 2,
+
+    &quot;modified_by&quot;: {&quot;id&quot;: &quot;...&quot;, &quot;name&quot;: &quot;产品经理&quot;},
+
+    &quot;summary&quot;: &quot;新增海外地址支持说明&quot;
+
+  }
+
+}
+
+</code></pre>
+<h2>文件范围</h2>
+<p><code>| 文件 | 说明 |</code></p>
+<p><code>|------|------|</code></p>
+<p><code>| `app/services/requirement_notification.py` | 生成通知 payload |</code></p>
+<p><code>| `app/services/agent_session.py` | 复用 WebSocket 事件发送 |</code></p>
+<p><code>| `frontend/src/hooks/use-websocket.ts` | 接收通知事件 |</code></p>
+<p><code>| `frontend/src/app/[locale]/(dashboard)/settings/notifications/page.tsx` | 展示通知列表 |</code></p>
+<h2>当前实现状态</h2>
+<p>已完成离线 demo 层的轻量事件 payload：</p>
+<ul>
+<li>一句话入库、变更草稿、应用新版本、开发建议都会返回 <code>notification_event</code>。</li>
+<li>事件包含 <code>event_type/kb_id/document_id/filename/message</code>，可直接被前端或 WebSocket fan-out 使用。</li>
+</ul>
+<p>待实现增强：</p>
+<ul>
+<li>将 <code>notification_event</code> 发布到现有 WebSocket/Redis 通道。</li>
+<li>前端通知列表和 toast。</li>
+<li>通知已读状态和组织成员广播。</li>
+</ul>
+<h2>验收标准</h2>
+<ul>
+<li>文档更新后项目成员收到 WebSocket 通知。</li>
+<li>通知包含 diff 摘要和版本号。</li>
+<li>当前修改人不重复收到自己触发的提示，或前端可去重。</li>
+<li>WebSocket 不可用时，文档变更流程不失败。</li>
+</ul></section><section class="doc" id="spec-req-kb-m9-frontend-workbench"><div class="file">m9-frontend-workbench.md</div><p>---</p>
+<p>type: spec</p>
+<p>source:</p>
+<p>  - prd.md</p>
+<p>  - README.md</p>
+<p>created: 2026-06-12</p>
+<p>status: implemented</p>
+<p>scope: M9 前端需求工作台与产品/开发 MVP</p>
+<p>---</p>
+<h1>Spec：M9 前端需求工作台与产品/开发 MVP</h1>
+<h2>1. 背景</h2>
+<p>现有后端已经打通需求知识库 MVP API，但前端仍以通用 RAG/Knowledge Base 页面为主，浏览器演示看不到 PRD 主线。MVP 阶段先取消登录鉴权复杂度，在工作台内提供“产品/开发”两个身份选择，用于演示真实角色边界。</p>
+<h2>2. 产品目标</h2>
+<ul>
+<li>将 <code>/kb</code> 从通用知识库列表重构为“需求项目”入口。</li>
+<li>将 <code>/kb/[id]</code> 从通用文档上传页重构为“需求工作台”。</li>
+<li>前端提供产品/开发身份切换，不做登录鉴权分流。</li>
+<li>MVP 演示界面默认使用中文文案，避免浏览器演示时仍呈现英文产品体验。</li>
+<li>用模式切换承载 PRD 行为：录入、查询、拆解、变更。</li>
+<li>浏览器中可以完成一条 PRD 演示链路：产品创建项目 → 一句话需求 → 回答澄清问题并生成新版本 → 开发查询引用 → 开发拆解 → 开发提交修改建议 → 产品应用变更 → 事件回执。</li>
+</ul>
+<h2>3. 信息架构</h2>
+<h3><code>/kb</code> 需求项目页</h3>
+<p>职责：</p>
+<ul>
+<li>显示需求项目卡片。</li>
+<li>卡片突出 <code>project_name</code>、KB 名称、scope、更新时间。</li>
+<li>创建项目弹窗收集项目名称、需求库名称、描述、scope。</li>
+<li>空状态直接引导创建需求项目。</li>
+</ul>
+<h3><code>/kb/[id]</code> 需求工作台</h3>
+<p>布局：</p>
+<pre><code>
+┌──────────────────────────────────────────────────────────────┐
+
+│ 项目头部：项目名 / 文档数 / 最新版本 / Markdown 覆盖率 / 事件数 │
+
+├───────────────┬──────────────────────────────┬───────────────┤
+
+│ 文档列表       │ 四种工作模式                  │ 事件与结果       │
+
+│ 版本、状态      │ 录入 / 查询 / 拆解 / 变更       │ 引用、diff、通知  │
+
+└───────────────┴──────────────────────────────┴───────────────┘
+
+</code></pre>
+<p>工作模式：</p>
+<ul>
+<li><code>intake</code>：一句话创建需求，返回澄清问题和 Markdown 预览；用户可在澄清问题下直接填写回答，并提交为需求文档新版本。</li>
+<li><code>query</code>：输入需求问题，返回 grounded answer 和来源引用。</li>
+<li><code>breakdown</code>：选择文档，返回按章节拆解和测试关注点。</li>
+<li><code>change</code>：选择文档，输入修改说明；产品可直接应用生成新版本，开发只能提交修改建议。</li>
+</ul>
+<h2>4. MVP 角色策略</h2>
+<p>MVP 前端不做登录鉴权拆分，但展示产品/开发两个业务身份。</p>
+<ul>
+<li>默认身份为产品，可创建需求项目、上传文档、录入一句话需求、回答澄清并应用版本变更。</li>
+<li>切换为开发后，录入和上传入口禁用，查询/拆解可用。</li>
+<li>开发在变更页提交的是修改建议，后端不会直接生成新版本。</li>
+<li>前端通过 <code>X-Requirement-Role</code> 传递 MVP 角色；后端 demo 依赖解析该 header。</li>
+<li>后端现有 JWT/RBAC 暂不拆，前端演示流程继续使用 demo admin 自动登录获取会话。</li>
+</ul>
+<h2>5. 文件范围</h2>
+<p>新增：</p>
+<ul>
+<li><code>frontend/src/components/requirements/requirement-project-list.tsx</code></li>
+<li><code>frontend/src/components/requirements/requirement-workbench.tsx</code></li>
+<li><code>frontend/src/components/requirements/index.ts</code></li>
+</ul>
+<p>修改：</p>
+<ul>
+<li><code>frontend/src/app/[locale]/(dashboard)/kb/page.tsx</code></li>
+<li><code>frontend/src/app/[locale]/(dashboard)/kb/[id]/page.tsx</code></li>
+<li><code>frontend/src/components/kb/create-kb-dialog.tsx</code></li>
+<li><code>frontend/src/components/layout/sidebar.tsx</code></li>
+<li><code>frontend/src/components/layout/mobile-tab-bar.tsx</code></li>
+<li><code>frontend/src/components/layout/header.tsx</code></li>
+<li><code>frontend/src/components/layout/command-palette.tsx</code></li>
+<li><code>frontend/src/components/layout/breadcrumb.tsx</code></li>
+<li><code>frontend/src/hooks/use-knowledge-bases.ts</code></li>
+</ul>
+<h2>6. 中文界面要求</h2>
+<p>MVP 阶段面向浏览器演示的需求知识库界面必须使用中文。</p>
+<ul>
+<li><code>/kb</code> 页面标题、说明、统计项、空状态、按钮和创建弹窗均使用中文。</li>
+<li><code>/kb/[id]</code> 工作台的导航、文档列表、四个模式、表单、澄清回答、按钮、结果摘要、来源引用和事件回执均使用中文。</li>
+<li>侧边栏、顶部导航、移动端底部导航、命令面板和面包屑中与该功能相关的入口统一命名为“需求项目”或“需求”。</li>
+<li>技术内部字段、API 路径、TypeScript 类型、<code>Markdown</code>、版本号和文件名可以保留英文或原始值。</li>
+</ul>
+<h2>7. API 复用</h2>
+<p>沿用已有 BFF 和 hook：</p>
+<ul>
+<li><code>GET /api/kb</code></li>
+<li><code>POST /api/kb</code></li>
+<li><code>GET /api/kb/{id}</code></li>
+<li><code>GET /api/kb/{id}/documents</code></li>
+<li><code>POST /api/kb/{id}/documents</code></li>
+<li><code>POST /api/kb/{id}/requirements/from-text</code></li>
+<li><code>POST /api/kb/{id}/query</code></li>
+<li><code>GET /api/kb/{id}/documents/{docId}/breakdown</code></li>
+<li><code>POST /api/kb/{id}/documents/{docId}/change</code></li>
+</ul>
+<h2>8. 验收标准</h2>
+<ul>
+<li><code>/kb</code> 页面标题、空状态、卡片和创建弹窗均呈现“需求项目”语义。已实现。</li>
+<li>创建项目可填写 <code>project_name</code> 并成功进入项目工作台。已实现。</li>
+<li><code>/kb/[id]</code> 以需求工作台呈现，不再是单纯文档上传页。已实现。</li>
+<li>工作台支持一句话需求创建，并展示澄清问题、Markdown 预览和事件。已实现。</li>
+<li>工作台支持在澄清问题下直接填写回答，并将回答应用成新的需求文档版本。已实现。</li>
+<li>工作台支持需求查询，并展示 <code>is_grounded</code>、answer 和来源引用。已实现。</li>
+<li>工作台支持选择文档拆解，并展示章节、原文摘录和测试关注点。已实现。</li>
+<li>工作台支持选择文档应用变更，并展示 action、diff 摘要、新版本 ID 和事件。已实现。</li>
+<li>前端导航将 KB 命名为“需求项目”或“需求”，移动端同步更新。已实现。</li>
+<li>M9 相关用户可见文案默认中文，浏览器演示不出现英文主界面。已实现。</li>
+<li>生成项目的 frontend type-check 或 build 至少一项通过。已通过 <code>npm run type-check</code>。</li>
+<li>工作台支持产品/开发身份切换，并将身份透传给 BFF/FastAPI。已实现。</li>
+<li>开发身份下创建/上传入口禁用，变更提交为建议而不是新版本。已实现。</li>
+</ul>
+<h2>9. 后续迭代</h2>
+<ul>
+<li>恢复生产态真实登录用户、组织成员角色和 tester 身份。</li>
+<li>对话式多轮澄清。</li>
+<li>小改 diff 可视化确认、大改草稿审批列表。</li>
+<li>WebSocket 实时事件流。</li>
+<li>历史版本列表和版本对比。</li>
+</ul></section></main></div></body></html>

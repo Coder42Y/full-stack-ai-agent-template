@@ -1,6 +1,6 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M0 基础模型与权限底座

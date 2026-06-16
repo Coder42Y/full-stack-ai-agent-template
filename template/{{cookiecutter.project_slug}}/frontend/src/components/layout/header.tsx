@@ -55,7 +55,7 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
+    <header className="sticky top-0 z-40 w-full border-b border-foreground/10 bg-background/85 shadow-[0_1px_0_oklch(100%_0_0/0.05)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
       <div className="flex h-14 items-center justify-between px-3 sm:px-6">
         {/* Left: mobile menu + app name + nav */}
         <div className="flex items-center gap-1 sm:gap-4">
@@ -64,8 +64,15 @@ export function Header() {
             <span className="sr-only">打开菜单</span>
           </Button>
 
-          <Link href={ROUTES.DASHBOARD} className="text-sm font-bold tracking-tight sm:text-base">
-            需求知识库
+          <Link
+            href={ROUTES.DASHBOARD}
+            className="flex items-center gap-2 rounded-md px-1 text-sm font-semibold tracking-tight text-foreground sm:text-base"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
+              需
+            </span>
+            <span className="hidden sm:inline">需求知识库</span>
+            <span className="sm:hidden">需求</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -80,10 +87,10 @@ export function Header() {
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                      "relative flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-secondary text-foreground"
-                        : "text-muted-foreground hover:text-foreground",
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground",
                     )}
                   >
                     <item.icon className="h-3.5 w-3.5" />

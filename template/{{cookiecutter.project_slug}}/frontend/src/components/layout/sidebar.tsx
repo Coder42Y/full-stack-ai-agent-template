@@ -40,22 +40,23 @@ const navigation = [
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const stripped = pathname.replace(/^\/[a-z]{2}/, "");
 
   return (
-    <nav className="flex-1 space-y-1 p-4">
+    <nav className="flex-1 space-y-1 p-3">
       {navigation.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive = stripped === item.href || stripped.startsWith(item.href + "/");
         return (
           <Link
             key={item.name}
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+              "flex min-h-[44px] items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors",
               "min-h-[44px]",
               isActive
-                ? "bg-secondary text-secondary-foreground"
-                : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground",
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground",
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -68,11 +69,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           href={ROUTES.ADMIN}
           onClick={onNavigate}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+            "flex min-h-[44px] items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors",
             "min-h-[44px]",
-            pathname.startsWith("/admin")
-              ? "bg-secondary text-secondary-foreground"
-              : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground",
+            stripped.startsWith("/admin")
+              ? "bg-foreground text-background shadow-sm"
+              : "text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground",
           )}
         >
           <ShieldAlert className="h-5 w-5" />
@@ -88,9 +89,14 @@ export function Sidebar() {
 
   return (
     <Sheet open={isOpen} onOpenChange={close}>
-      <SheetContent side="left" className="w-72 p-0">
-        <SheetHeader className="h-14 px-4">
-          <SheetTitle>需求知识库</SheetTitle>
+      <SheetContent side="left" className="w-72 border-r border-foreground/10 bg-background/95 p-0 backdrop-blur-xl">
+        <SheetHeader className="h-14 border-b border-foreground/10 px-4">
+          <SheetTitle className="flex items-center gap-2 text-base">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
+              需
+            </span>
+            需求知识库
+          </SheetTitle>
           <SheetClose onClick={close} />
         </SheetHeader>
         <NavLinks onNavigate={close} />

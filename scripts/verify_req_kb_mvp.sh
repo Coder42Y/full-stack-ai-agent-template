@@ -157,7 +157,7 @@ tmux log: $LOG
 ## Current limits
 
 - Full generated-project pytest is intentionally outside this fast verifier; the generated core Req KB/RBAC tests are included.
-- Live FastAPI startup and HTTP demo flow are separate from this static verifier; see docs/req-kb-mvp-demo.md.
+- Live FastAPI startup and HTTP demo flow are separate from this static verifier; see docs/product/req-kb/mvp-demo.md.
 - Redis/pubsub cross-process notification fan-out, read receipts, and toast notification center remain follow-up.
 - Persistent multi-turn clarification state and structured red/green diff approval UI remain follow-up.
 

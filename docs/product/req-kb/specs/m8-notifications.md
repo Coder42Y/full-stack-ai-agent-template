@@ -1,13 +1,13 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: implemented
 scope: 需求知识库 — M8 WebSocket 变更通知
 priority: P1
 depends_on:
-  - spec-req-kb-m5-change-management.md
-  - spec-req-kb-m6-versioning.md
+  - m5-change-management.md
+  - m6-versioning.md
 ---
 
 # Spec：M8 WebSocket 变更通知

@@ -1,11 +1,11 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M6 文档版本管理
 priority: P0
-depends_on: spec-req-kb-m0-foundation.md
+depends_on: m0-foundation.md
 ---
 
 # Spec：M6 文档版本管理

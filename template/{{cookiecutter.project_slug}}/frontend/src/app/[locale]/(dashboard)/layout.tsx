@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main
           id="main"
           tabIndex={-1}
-          className="flex min-h-0 flex-1 flex-col overflow-auto p-3 pb-20 sm:p-6 sm:pb-20 lg:pb-6"
+          className="app-workspace scrollbar-thin flex min-h-0 flex-1 flex-col overflow-auto p-3 pb-20 sm:p-6 sm:pb-20 lg:pb-6"
         >
           <PageTransition>{children}</PageTransition>
         </main>

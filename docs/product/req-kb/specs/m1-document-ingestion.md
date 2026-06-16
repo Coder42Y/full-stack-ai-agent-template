@@ -1,11 +1,11 @@
 ---
 type: spec
-source: req-kb-prd.md
+source: ../prd.md
 created: 2026-06-11
 status: in_progress
 scope: 需求知识库 — M1 文档上传与 Markdown 入库
 priority: P0
-depends_on: spec-req-kb-m0-foundation.md
+depends_on: m0-foundation.md
 ---
 
 # Spec：M1 文档上传与 Markdown 入库

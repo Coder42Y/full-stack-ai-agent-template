@@ -1,8 +1,8 @@
 ---
 type: spec
 source:
-  - req-kb-prd.md
-  - spec-req-kb-split.md
+  - ../prd.md
+  - README.md
 created: 2026-06-12
 status: implemented
 scope: M9 前端需求工作台与产品/开发 MVP

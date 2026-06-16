@@ -85,8 +85,8 @@ ANTHROPIC_MODEL=claude-sonnet-4-5
 If the model gateway is not configured or fails, generated projects keep a
 deterministic local fallback so the demo and tests remain runnable.
 
-See [docs/req-kb-prd.md](docs/req-kb-prd.md) and
-[docs/req-kb-mvp-demo.md](docs/req-kb-mvp-demo.md) for the product spec and demo
+See [docs/product/req-kb/prd.md](docs/product/req-kb/prd.md) and
+[docs/product/req-kb/mvp-demo.md](docs/product/req-kb/mvp-demo.md) for the product spec and demo
 flow.
 
 ## Quick Start

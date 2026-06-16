@@ -27,8 +27,8 @@ export function RequirementProjectList({ projects, onDelete }: RequirementProjec
   });
 
   return (
-    <div className="overflow-hidden rounded-md border border-foreground/10 bg-card/80">
-      <div className="grid grid-cols-[minmax(0,1fr)_150px_150px_48px] border-b border-foreground/10 bg-foreground/[0.025] px-4 py-2 text-[11px] font-medium text-foreground/45">
+    <div className="surface-panel overflow-hidden rounded-lg">
+      <div className="grid grid-cols-[minmax(0,1fr)_150px_150px_48px] border-b border-foreground/10 bg-foreground/[0.025] px-4 py-3 text-[11px] font-medium text-foreground/45">
         <span>项目</span>
         <span className="hidden sm:block">范围</span>
         <span className="hidden sm:block">更新时间</span>
@@ -58,15 +58,15 @@ function RequirementProjectRow({
   const updatedAt = new Date(project.updated_at ?? project.created_at);
 
   return (
-    <article className="group relative isolate bg-card transition-colors hover:bg-foreground/[0.025]">
+    <article className="group relative isolate bg-card/70 transition-colors hover:bg-background/80">
       <Link
         href={`/kb/${project.id}`}
-        className="absolute inset-0 z-10 rounded-[inherit] focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-none"
+        className="absolute inset-0 z-10 rounded-[inherit] focus-visible:ring-2 focus-visible:ring-brand/45 focus-visible:outline-none"
         aria-label={`打开需求项目 ${title}`}
       />
       <div className="pointer-events-none grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_150px_150px_48px] sm:items-center">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-foreground">
+          <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand/12 text-foreground ring-1 ring-foreground/10">
             <FolderKanban className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -75,7 +75,7 @@ function RequirementProjectRow({
                 {title}
               </h2>
               {project.is_default && (
-                <span className="rounded-sm bg-brand/12 px-1.5 py-0.5 text-[10px] text-foreground">
+                <span className="rounded-sm bg-brand/12 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
                   默认
                 </span>
               )}
@@ -98,13 +98,13 @@ function RequirementProjectRow({
                 event.stopPropagation();
                 if (confirm(`确定删除“${title}”？`)) onDelete();
               }}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground/45 opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground/45 opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
               aria-label="删除需求项目"
             >
               <Trash2 className="h-4 w-4" />
             </button>
           )}
-          <ArrowUpRight className="h-4 w-4 self-center text-foreground/35 transition-transform group-hover:rotate-45 group-hover:text-foreground/80" />
+          <ArrowUpRight className="h-4 w-4 self-center text-foreground/35 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground/80" />
         </div>
       </div>
     </article>

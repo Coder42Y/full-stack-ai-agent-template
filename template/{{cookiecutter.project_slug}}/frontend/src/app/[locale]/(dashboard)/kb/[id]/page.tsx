@@ -59,10 +59,10 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
   if (!kb) return null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4">
+    <div className="mx-auto w-full max-w-7xl space-y-5 pb-8">
       <Link
         href="/kb"
-        className="inline-flex items-center gap-2 text-sm font-medium text-foreground/60 transition-colors hover:text-foreground"
+        className="inline-flex h-9 items-center gap-2 rounded-md border border-foreground/10 bg-background/70 px-3 text-sm font-medium text-foreground/60 transition-colors hover:border-foreground/25 hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         需求项目

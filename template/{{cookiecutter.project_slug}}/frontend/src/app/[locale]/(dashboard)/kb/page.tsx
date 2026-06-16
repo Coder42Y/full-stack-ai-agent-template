@@ -24,11 +24,11 @@ export default function KBPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] space-y-5 pb-8">
-      <header className="rounded-md border border-foreground/10 bg-card/80">
+    <div className="mx-auto w-full max-w-[1240px] space-y-6 pb-8">
+      <header className="surface-panel overflow-hidden rounded-lg">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="p-6 sm:p-7">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/55">
+            <p className="section-label">
               需求项目
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
@@ -47,7 +47,7 @@ export default function KBPage() {
               新建项目
             </button>
           </div>
-          <div className="border-foreground/10 bg-foreground/[0.025] grid grid-cols-3 gap-2 border-t p-5 lg:grid-cols-1 lg:border-t-0 lg:border-l">
+          <div className="grid grid-cols-3 gap-2 border-t border-foreground/10 bg-foreground/[0.025] p-5 lg:grid-cols-1 lg:border-t-0 lg:border-l">
             <StatPill value={counts.total} label="项目数" />
             <StatPill value={counts.workspace} label="团队范围" />
             <StatPill value="产品/开发" label="MVP 身份" />
@@ -82,7 +82,7 @@ export default function KBPage() {
 
 function StatPill({ value, label }: { value: number | string; label: string }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-background px-4 py-3">
+    <div className="metric-tile rounded-md px-4 py-3">
       <p
         className={
           typeof value === "string"
@@ -92,7 +92,7 @@ function StatPill({ value, label }: { value: number | string; label: string }) {
       >
         {value}
       </p>
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-foreground/50">
+      <p className="mt-1 section-label">
         {label}
       </p>
     </div>

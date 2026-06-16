@@ -5,6 +5,7 @@ import {
   Bell,
   BookOpenCheck,
   CheckCircle2,
+  Clock3,
   FileText,
   GitBranch,
   Loader2,
@@ -102,6 +103,7 @@ export function RequirementWorkbench({
 
   const latestDocs = documents.filter((doc) => doc.is_latest);
   const markdownDocs = documents.filter((doc) => doc.has_markdown_content);
+  const pendingDocs = documents.filter((doc) => isProcessingStatus(doc.status));
   const projectTitle = kb.project_name || kb.name;
 
   useEffect(() => {
@@ -153,11 +155,11 @@ export function RequirementWorkbench({
   }, [accessToken, connectNotifications]);
 
   return (
-    <div className="space-y-5">
-      <header className="rounded-lg border border-foreground/10 bg-card p-5">
+    <div className="space-y-6">
+      <header className="surface-panel overflow-hidden rounded-lg p-5">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/55">
+            <p className="section-label">
               需求协作工作台
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
@@ -167,7 +169,7 @@ export function RequirementWorkbench({
               产品负责录入与确认变更，开发负责查询、拆解和提出修改建议。
             </p>
           </div>
-          <div className="min-w-[320px] space-y-3">
+          <div className="w-full space-y-3 xl:w-[360px]">
             <RoleSelector value={role} onChange={setRole} />
             <div className="grid grid-cols-3 gap-2">
               <Metric value={documents.length} label="文档数" />
@@ -175,6 +177,23 @@ export function RequirementWorkbench({
               <Metric value={markdownDocs.length} label="Markdown" />
             </div>
           </div>
+        </div>
+        <div className="mt-5 grid gap-2 border-t border-foreground/10 pt-4 sm:grid-cols-3">
+          <WorkbenchSignal
+            label="当前身份"
+            value={role === "product" ? "产品可写" : "开发只读"}
+            tone={role === "product" ? "brand" : "neutral"}
+          />
+          <WorkbenchSignal
+            label="选中文档"
+            value={selectedDocument ? selectedDocument.filename : "未选择"}
+            tone={selectedDocument ? "neutral" : "warn"}
+          />
+          <WorkbenchSignal
+            label="处理状态"
+            value={pendingDocs.length ? `${pendingDocs.length} 个文档处理中` : "文档已就绪"}
+            tone={pendingDocs.length ? "warn" : "success"}
+          />
         </div>
       </header>
 
@@ -189,9 +208,9 @@ export function RequirementWorkbench({
           onRefresh={onRefresh}
         />
 
-        <main className="min-w-0 rounded-lg border border-foreground/10 bg-card">
+        <main className="surface-panel min-w-0 overflow-hidden rounded-lg">
           <ModeTabs active={mode} onChange={setMode} />
-          <div className="p-5">
+          <div className="p-4 sm:p-5">
             {mode === "intake" && (
               <IntakePanel
                 role={role}
@@ -275,7 +294,7 @@ export function RequirementWorkbench({
           </div>
         </main>
 
-        <aside className="space-y-5">
+        <aside className="space-y-5 xl:sticky xl:top-20 xl:self-start">
           <ResultSummary
             queryResult={queryResult}
             breakdownResult={breakdownResult}
@@ -291,10 +310,36 @@ export function RequirementWorkbench({
 
 function Metric({ value, label }: { value: number | string; label: string }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] px-3 py-2">
+    <div className="metric-tile rounded-md px-3 py-2">
       <p className="text-xl font-semibold tabular-nums text-foreground">{value}</p>
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+      <p className="mt-1 section-label">
         {label}
+      </p>
+    </div>
+  );
+}
+
+function WorkbenchSignal({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "brand" | "neutral" | "success" | "warn";
+}) {
+  const toneClass = {
+    brand: "bg-brand/12 text-foreground ring-brand/20",
+    neutral: "bg-background/70 text-foreground/70 ring-foreground/10",
+    success: "bg-green-500/10 text-green-700 ring-green-500/20 dark:text-green-300",
+    warn: "bg-amber-500/10 text-amber-800 ring-amber-500/20 dark:text-amber-200",
+  }[tone];
+
+  return (
+    <div className={cn("rounded-md px-3 py-2 ring-1", toneClass)}>
+      <p className="section-label">{label}</p>
+      <p className="mt-1 truncate text-sm font-medium" title={value}>
+        {value}
       </p>
     </div>
   );
@@ -313,8 +358,8 @@ function RoleSelector({
   ];
 
   return (
-    <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-2">
-      <p className="px-1 pb-2 font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+    <div className="rounded-md border border-foreground/10 bg-background/60 p-2">
+      <p className="section-label px-1 pb-2">
         当前身份
       </p>
       <div className="grid grid-cols-2 gap-2">
@@ -325,10 +370,10 @@ function RoleSelector({
             title={role.description}
             onClick={() => onChange(role.id)}
             className={cn(
-              "rounded-md border px-3 py-2 text-left transition-colors",
+              "rounded-md border px-3 py-2 text-left transition-all",
               value === role.id
-                ? "border-brand/50 bg-brand/10 text-foreground"
-                : "border-foreground/10 bg-background text-foreground/60 hover:border-foreground/25",
+                ? "border-brand/50 bg-brand/12 text-foreground shadow-sm"
+                : "border-foreground/10 bg-background/70 text-foreground/60 hover:border-foreground/25 hover:bg-background",
             )}
           >
             <span className="block text-sm font-medium">{role.label}</span>
@@ -383,16 +428,26 @@ function DocumentRail({
   onRefresh: () => Promise<void> | void;
 }) {
   const canWrite = role === "product";
+  const latestCount = documents.filter((doc) => doc.is_latest).length;
+  const processingCount = documents.filter((doc) => isProcessingStatus(doc.status)).length;
   return (
-    <aside className="rounded-lg border border-foreground/10 bg-card p-4">
+    <aside className="surface-panel rounded-lg p-4 xl:sticky xl:top-20 xl:self-start">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+          <p className="section-label">
             来源文档
           </p>
           <h2 className="mt-1 text-base font-semibold text-foreground">文档</h2>
         </div>
-        <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-foreground/15 px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground/35">
+        <label
+          className={cn(
+            "inline-flex h-9 items-center justify-center rounded-md border border-foreground/15 px-3 text-xs font-medium text-foreground transition-colors",
+            canWrite
+              ? "cursor-pointer hover:border-foreground/35 hover:bg-background"
+              : "cursor-not-allowed opacity-45",
+          )}
+          title={canWrite ? "上传 PRD 或需求文档" : "开发身份不可上传文档"}
+        >
           {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           <input
             type="file"
@@ -408,23 +463,28 @@ function DocumentRail({
           />
         </label>
       </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <MiniStat value={documents.length} label="全部" />
+        <MiniStat value={latestCount} label="最新" />
+        <MiniStat value={processingCount} label="处理中" />
+      </div>
 
       {documents.length === 0 ? (
-        <div className="mt-4 rounded-md border border-dashed border-foreground/15 p-4 text-sm text-foreground/55">
+        <div className="mt-4 rounded-md border border-dashed border-foreground/15 bg-background/60 p-4 text-sm leading-relaxed text-foreground/55">
           {canWrite ? "上传 PRD 或创建一句话需求后，即可开始项目。" : "开发身份可查看已有文档；请切换产品身份录入需求。"}
         </div>
       ) : (
-        <div className="mt-4 space-y-2">
+        <div className="scrollbar-thin mt-4 max-h-[520px] space-y-2 overflow-auto pr-1">
           {documents.map((doc) => (
             <button
               key={doc.id}
               type="button"
               onClick={() => onSelect(doc.id)}
               className={cn(
-                "w-full rounded-md border p-3 text-left transition-colors",
+                "w-full rounded-md border p-3 text-left transition-all",
                 selectedId === doc.id
-                  ? "border-brand/50 bg-brand/10"
-                  : "border-foreground/10 bg-foreground/[0.02] hover:border-foreground/25",
+                  ? "border-brand/50 bg-brand/12 shadow-sm"
+                  : "border-foreground/10 bg-background/70 hover:border-foreground/25 hover:bg-background",
               )}
             >
               <div className="flex items-start gap-2">
@@ -447,6 +507,7 @@ function DocumentRail({
                         markdown
                       </Badge>
                     )}
+                    <DocumentStatusBadge status={doc.status} />
                   </div>
                 </div>
               </div>
@@ -455,6 +516,40 @@ function DocumentRail({
         </div>
       )}
     </aside>
+  );
+}
+
+function MiniStat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div className="rounded-md border border-foreground/10 bg-background/60 px-2 py-2">
+      <p className="text-sm font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-0.5 text-[10px] text-foreground/45">{label}</p>
+    </div>
+  );
+}
+
+function DocumentStatusBadge({ status }: { status: string }) {
+  const isProcessing = isProcessingStatus(status);
+  const isFailed = status === "failed" || status === "error";
+  if (isProcessing) {
+    return (
+      <Badge className="rounded-sm bg-amber-100 px-1.5 py-0 font-mono text-[9px] uppercase text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+        <Clock3 className="mr-1 h-2.5 w-2.5" />
+        {documentStatusLabel(status)}
+      </Badge>
+    );
+  }
+  if (isFailed) {
+    return (
+      <Badge className="rounded-sm bg-red-100 px-1.5 py-0 font-mono text-[9px] uppercase text-red-700 dark:bg-red-900/30 dark:text-red-200">
+        {documentStatusLabel(status)}
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="rounded-sm bg-background px-1.5 py-0 font-mono text-[9px] uppercase text-foreground/55">
+      {documentStatusLabel(status)}
+    </Badge>
   );
 }
 
@@ -474,7 +569,7 @@ function ModeTabs({
   ];
 
   return (
-    <div className="grid grid-cols-2 border-b border-foreground/10 sm:grid-cols-5">
+    <div className="grid grid-cols-2 border-b border-foreground/10 bg-background/40 sm:grid-cols-5">
       {modes.map((mode) => (
         <button
           key={mode.id}
@@ -483,7 +578,7 @@ function ModeTabs({
           className={cn(
             "flex h-12 items-center justify-center gap-2 border-r border-foreground/10 text-sm font-medium transition-colors last:border-r-0",
             active === mode.id
-              ? "bg-foreground text-background"
+              ? "bg-foreground text-background shadow-sm"
               : "text-foreground/60 hover:bg-foreground/[0.04] hover:text-foreground",
           )}
         >
@@ -657,14 +752,14 @@ function IntakePanel({
                 用这些回答更新需求版本
               </Button>
               {clarificationResult && (
-                <div className="rounded-md border border-foreground/10 bg-background p-3">
+                <div className="surface-raised rounded-md p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge>{changeActionLabel(clarificationResult.action)}</Badge>
                     {clarificationResult.document_id && <Badge>澄清回答已应用</Badge>}
                   </div>
                   <p className="mt-2 text-sm text-foreground/70">{clarificationResult.message}</p>
                   {clarificationResult.markdown_preview && (
-                    <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap rounded-md bg-foreground/[0.03] p-3 text-xs leading-relaxed text-foreground/75">
+                    <pre className="scrollbar-thin mt-3 max-h-52 overflow-auto whitespace-pre-wrap rounded-md bg-foreground/[0.03] p-3 text-xs leading-relaxed text-foreground/75">
                       {clarificationResult.markdown_preview}
                     </pre>
                   )}
@@ -673,7 +768,7 @@ function IntakePanel({
             </div>
           </ResultBox>
           <ResultBox title="Markdown 预览">
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-foreground/75">
+            <pre className="scrollbar-thin max-h-64 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-foreground/75">
               {result.markdown_content}
             </pre>
           </ResultBox>
@@ -731,7 +826,7 @@ function QueryPanel({
 
       {result && (
         <div className="mt-5 space-y-4">
-          <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+          <div className="surface-raised rounded-md p-4">
             <div className="mb-3 flex items-center gap-2">
               <Badge className={result.is_grounded ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : ""}>
                 {result.is_grounded ? "有来源" : "无明确来源"}
@@ -795,12 +890,12 @@ function BreakdownPanel({
         <div className="mt-5 space-y-3">
           <AIStatusBadge result={result} />
           {result.answer && (
-            <pre className="whitespace-pre-wrap rounded-md border border-foreground/10 bg-foreground/[0.02] p-4 text-sm leading-relaxed text-foreground/75">
+            <pre className="surface-raised whitespace-pre-wrap rounded-md p-4 text-sm leading-relaxed text-foreground/75">
               {result.answer}
             </pre>
           )}
           {result.items.map((item) => (
-            <div key={item.title} className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+            <div key={item.title} className="surface-raised rounded-md p-4">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-medium text-foreground">{item.title}</h3>
                 <Badge className="shrink-0">{item.source_label}</Badge>
@@ -808,7 +903,7 @@ function BreakdownPanel({
               <p className="mt-2 text-sm leading-relaxed text-foreground/70">{item.summary}</p>
               {item.test_focus.length > 0 && (
                 <div className="mt-3">
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+                  <p className="section-label">
                     测试关注点
                   </p>
                   <ul className="mt-2 space-y-1 text-sm text-foreground/70">
@@ -886,7 +981,7 @@ function ChangePanel({
       </form>
 
       {result && (
-        <div className="mt-5 rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+        <div className="surface-raised mt-5 rounded-md p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge>{changeActionLabel(result.action)}</Badge>
             {result.document_id && (
@@ -896,7 +991,7 @@ function ChangePanel({
           </div>
           <p className="mt-3 text-sm text-foreground/70">{result.message}</p>
           {result.diff_summary && (
-            <pre className="mt-3 whitespace-pre-wrap rounded-md bg-background p-3 text-xs leading-relaxed text-foreground/75">
+            <pre className="scrollbar-thin mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-md bg-background/80 p-3 text-xs leading-relaxed text-foreground/75">
               {result.diff_summary}
             </pre>
           )}
@@ -983,11 +1078,11 @@ function HistoryPanel({
 
       {versions && (
         <div className="mt-5 space-y-3">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+          <p className="section-label">
             共 {versions.total} 个版本
           </p>
           {versions.items.map((item) => (
-            <div key={item.document_id} className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+            <div key={item.document_id} className="surface-raised rounded-md p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge>v{item.version}</Badge>
@@ -1046,7 +1141,7 @@ function HistoryPanel({
       )}
 
       {applyResult && (
-        <div className="mt-5 rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+        <div className="surface-raised mt-5 rounded-md p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge>{changeActionLabel(applyResult.action)}</Badge>
             <AIStatusBadge result={applyResult} />
@@ -1059,12 +1154,12 @@ function HistoryPanel({
       )}
 
       {diffResult && (
-        <div className="mt-5 rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
+        <div className="surface-raised mt-5 rounded-md p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge>v{diffResult.from_version} → v{diffResult.to_version}</Badge>
             <p className="text-sm text-foreground/70">{diffResult.summary}</p>
           </div>
-          <pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-background p-3 text-xs leading-relaxed text-foreground/75">
+          <pre className="scrollbar-thin mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-background/80 p-3 text-xs leading-relaxed text-foreground/75">
             {diffResult.diff_lines.length ? diffResult.diff_lines.join("\n") : "没有文本差异。"}
           </pre>
         </div>
@@ -1087,7 +1182,7 @@ function PanelShell({
   return (
     <section>
       <div className="mb-5 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand/15 text-foreground">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand/15 text-foreground ring-1 ring-brand/20">
           <Icon className="h-5 w-5" />
         </span>
         <div>
@@ -1102,10 +1197,15 @@ function PanelShell({
 
 function SelectedDocumentNotice({ document }: { document: KBDocument | null }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-sm text-foreground/70">
+    <div className="surface-raised flex flex-wrap items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground/70">
       {document ? (
         <>
-          已选择文档：<span className="font-medium text-foreground">{document.filename}</span>
+          <span>已选择文档：</span>
+          <span className="min-w-0 truncate font-medium text-foreground">{document.filename}</span>
+          <Badge className="rounded-sm bg-background px-1.5 py-0 font-mono text-[9px] uppercase">
+            v{document.version}
+          </Badge>
+          <DocumentStatusBadge status={document.status} />
         </>
       ) : (
         "请先选择或创建一个需求文档。"
@@ -1124,7 +1224,7 @@ function ResultSummary({
   changeResult: RequirementChangeResponse | null;
 }) {
   return (
-    <section className="rounded-lg border border-foreground/10 bg-card p-4">
+    <section className="surface-panel rounded-lg p-4">
       <div className="flex items-center gap-2">
         <MessageSquareText className="h-4 w-4 text-foreground/45" />
         <h2 className="text-sm font-semibold text-foreground">结果上下文</h2>
@@ -1132,7 +1232,7 @@ function ResultSummary({
       <div className="mt-4 space-y-4">
         {queryResult?.sources.length ? (
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+            <p className="section-label">
               最新引用
             </p>
             <div className="mt-2 space-y-2">
@@ -1145,8 +1245,8 @@ function ResultSummary({
           <p className="text-sm text-foreground/55">查询后的引用来源会显示在这里。</p>
         )}
         {breakdownResult && (
-          <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-3">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+          <div className="surface-raised rounded-md p-3">
+            <p className="section-label">
               拆解结果
             </p>
             <p className="mt-1 text-sm text-foreground/70">
@@ -1155,8 +1255,8 @@ function ResultSummary({
           </div>
         )}
         {changeResult && (
-          <div className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-3">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+          <div className="surface-raised rounded-md p-3">
+            <p className="section-label">
               最近变更
             </p>
             <p className="mt-1 text-sm text-foreground/70">
@@ -1171,7 +1271,7 @@ function ResultSummary({
 
 function EventPanel({ events }: { events: RequirementNotificationEvent[] }) {
   return (
-    <section className="rounded-lg border border-foreground/10 bg-card p-4">
+    <section className="surface-panel rounded-lg p-4">
       <div className="flex items-center gap-2">
         <Bell className="h-4 w-4 text-foreground/45" />
         <h2 className="text-sm font-semibold text-foreground">事件回执</h2>
@@ -1183,8 +1283,8 @@ function EventPanel({ events }: { events: RequirementNotificationEvent[] }) {
       ) : (
         <div className="mt-4 space-y-2">
           {events.map((event, index) => (
-            <div key={`${event.event_type}-${event.document_id}-${index}`} className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-3">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+            <div key={`${event.event_type}-${event.document_id}-${index}`} className="surface-raised rounded-md p-3">
+              <p className="section-label">
                 {eventTypeLabel(event.event_type)}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-foreground/70">{event.message}</p>
@@ -1215,7 +1315,7 @@ function EventPanel({ events }: { events: RequirementNotificationEvent[] }) {
 
 function NotificationStatus({ connected }: { connected: boolean }) {
   return (
-    <section className="rounded-lg border border-foreground/10 bg-card p-4">
+    <section className="surface-panel rounded-lg p-4">
       <div className="flex items-center gap-2">
         <span
           className={cn(
@@ -1235,8 +1335,8 @@ function NotificationStatus({ connected }: { connected: boolean }) {
 const ResultBox = forwardRef<HTMLDivElement, { title: string; children: React.ReactNode }>(
   function ResultBox({ title, children }, ref) {
     return (
-      <div ref={ref} className="rounded-md border border-foreground/10 bg-foreground/[0.02] p-4">
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-wider text-foreground/45">
+      <div ref={ref} className="surface-raised rounded-md p-4">
+        <p className="section-label mb-3">
           {title}
         </p>
         {children}
@@ -1255,8 +1355,8 @@ function CitationCard({
   compact?: boolean;
 }) {
   return (
-    <div className="rounded-md border border-foreground/10 bg-background p-3">
-      <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/45">{label}</p>
+    <div className="surface-raised rounded-md p-3">
+      <p className="section-label">{label}</p>
       <p className={cn("mt-2 text-foreground/70", compact ? "line-clamp-3 text-xs" : "text-sm leading-relaxed")}>
         {excerpt}
       </p>
@@ -1306,5 +1406,22 @@ function requirementEventKey(event: RequirementNotificationEvent) {
     event.status ?? "",
     event.message,
   ].join(":");
+}
+
+function isProcessingStatus(status: string) {
+  return status === "pending" || status === "processing";
+}
+
+function documentStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pending: "等待",
+    processing: "处理中",
+    completed: "完成",
+    failed: "失败",
+    error: "失败",
+    draft: "草稿",
+    approved: "已确认",
+  };
+  return labels[status] ?? status;
 }
 {% endraw %}

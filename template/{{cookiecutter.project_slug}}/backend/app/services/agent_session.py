@@ -11,6 +11,7 @@ The route is left as a thin lifecycle wrapper that just feeds incoming messages 
 """
 
 import logging
+import re
 from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -47,11 +48,112 @@ from app.db.session import get_db_context{% if cookiecutter.use_sqlite %}, get_d
 from contextlib import contextmanager{% endif %}
 from app.services.file_storage import get_file_storage
 {%- endif %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+from app.services.requirement_ai import RequirementAIService
+{%- endif %}
 {%- if cookiecutter.enable_billing and cookiecutter.enable_teams and cookiecutter.enable_credits_system and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
 from app.services.usage import UsageService
 {%- endif %}
 
 logger = logging.getLogger(__name__)
+
+
+_GREETING_RE = re.compile(
+    r"^\s*(你好|您好|hello|hi|hey|在吗|哈喽|嗨|早上好|下午好|晚上好)[!\u3002.\s]*$",
+    re.IGNORECASE,
+)
+_HELP_RE = re.compile(r"(你能做什么|怎么用|帮助|help|功能|使用说明|可以做什么)", re.IGNORECASE)
+_QUERY_RE = re.compile(r"(查询|查一下|查下|找一下|有没有|是什么|哪些|多少|根据|基于|来源|引用|PRD|文档)")
+_INTAKE_RE = re.compile(r"(新需求|创建需求|录入需求|一句话需求|帮我写需求|需求是|想做|需要支持)")
+_BREAKDOWN_RE = re.compile(r"(拆解|开发点|实现点|测试点|验收|测试用例|边界条件)")
+_CHANGE_RE = re.compile(r"(变更|修改|改一下|调整|建议增加|建议修改|优化|删掉|移除)")
+
+
+def _classify_chat_intent(message: str, intent_hint: str | None = None) -> str:
+    """Classify common chat turns before invoking the LLM."""
+    if intent_hint in {"intake", "query", "breakdown", "change", "test", "general"}:
+        return intent_hint
+    text = message.strip()
+    if not text:
+        return "empty"
+    if _GREETING_RE.search(text):
+        return "greeting"
+    if _HELP_RE.search(text):
+        return "help"
+    if _CHANGE_RE.search(text):
+        return "change"
+    if _BREAKDOWN_RE.search(text):
+        return "breakdown"
+    if _INTAKE_RE.search(text):
+        return "intake"
+    if _QUERY_RE.search(text):
+        return "query"
+    if len(text) <= 8 and "?" not in text and "\uff1f" not in text:
+        return "general"
+    return "agent"
+
+
+def _chat_actions(intent: str) -> list[dict[str, Any]]:
+    """Return UI actions that keep lightweight turns product-aware."""
+    base_actions = [
+        {
+            "id": "open-kb",
+            "label": "打开需求工作台",
+            "kind": "navigate",
+            "href": "/kb",
+        },
+        {
+            "id": "open-chat-settings",
+            "label": "选择知识库",
+            "kind": "select_kb",
+        },
+    ]
+    if intent == "query":
+        return [
+            {
+                "id": "open-kb",
+                "label": "查看需求项目",
+                "kind": "navigate",
+                "href": "/kb",
+            },
+            {
+                "id": "select-kb",
+                "label": "选择要查询的知识库",
+                "kind": "select_kb",
+            },
+        ]
+    if intent == "intake":
+        return [
+            {
+                "id": "open-intake",
+                "label": "去工作台录入需求",
+                "kind": "open_workbench",
+                "href": "/kb",
+                "payload": {"mode": "intake"},
+            },
+            {
+                "id": "upload-source",
+                "label": "先上传来源文档",
+                "kind": "upload",
+                "href": "/kb",
+            },
+        ]
+    if intent in {"breakdown", "change", "test"}:
+        return [
+            {
+                "id": "open-kb",
+                "label": "选择需求文档",
+                "kind": "open_workbench",
+                "href": "/kb",
+                "payload": {"mode": intent},
+            },
+            {
+                "id": "select-kb",
+                "label": "切换知识库",
+                "kind": "select_kb",
+            },
+        ]
+    return base_actions
 
 
 class AgentSession:
@@ -78,6 +180,7 @@ class AgentSession:
         """Process one user turn: persist input, run the agent, stream events, persist output."""
         user_message = data.get("message", "")
         file_ids = data.get("file_ids", [])
+        intent = _classify_chat_intent(user_message, data.get("intent_hint"))
 
         if not user_message and not file_ids:
             await send_event(self.websocket, "error", {"message": "Empty message"})
@@ -99,16 +202,27 @@ class AgentSession:
                 "conversation_created",
                 {"conversation_id": self.current_conversation_id},
             )
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+        await self._reload_conversation_history()
+{%- endif %}
 {%- endif %}
 
         await send_event(self.websocket, "user_prompt", {"content": user_message})
+        await send_event(
+            self.websocket,
+            "assistant_status",
+            {
+                "mode": "workflow" if intent in {"intake", "query", "breakdown", "change", "test"} else "ai",
+                "intent": intent,
+                "message": self._status_message(intent),
+            },
+        )
+
+        handled = await self._maybe_handle_lightweight_turn(user_message, intent)
+        if handled:
+            return
 
         try:
-            assistant = get_agent(
-                model_name=data.get("model"),
-                thinking_effort=data.get("thinking_effort"),
-            )
-            model_history = build_message_history(self.conversation_history)
 {%- if (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
             user_input = await self._build_multimodal_input(user_message, file_ids)
 {%- else %}
@@ -139,6 +253,19 @@ class AgentSession:
             )
 {%- endif %}
 
+            if await self._maybe_handle_grounded_query(user_message, intent):
+                return
+
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+            if await self._maybe_handle_gateway_chat(user_message, user_input, intent, data):
+                return
+
+{%- endif %}
+            assistant = get_agent(
+                model_name=data.get("model"),
+                thinking_effort=data.get("thinking_effort"),
+            )
+            model_history = build_message_history(self.conversation_history)
             collected_tool_calls: list[dict[str, Any]] = []
             async with assistant.agent.iter(
                 user_input, deps=self.deps, message_history=model_history
@@ -194,27 +321,254 @@ class AgentSession:
             raise
         except Exception as e:
             logger.exception(f"Error processing agent request: {e}")
-            await self._send_demo_fallback_response(user_message, str(e))
+            await self._send_offline_assistant_response(user_message, intent, str(e))
 
-    async def _send_demo_fallback_response(self, user_message: str, error_message: str) -> None:
-        """Return a deterministic Req KB answer when the model endpoint is unavailable.
+    @staticmethod
+    def _status_message(intent: str) -> str:
+        messages = {
+            "greeting": "轻量对话",
+            "help": "功能导航",
+            "intake": "需求录入",
+            "query": "需求查询",
+            "breakdown": "需求拆解",
+            "change": "变更建议",
+            "test": "测试分析",
+            "general": "普通说明",
+        }
+        return messages.get(intent, "AI 对话")
 
-        The demo environment may use an internal LLM gateway. If that gateway times out,
-        the chat should still show the product flow and persist a traceable assistant turn.
-        """
+    async def _maybe_handle_lightweight_turn(self, user_message: str, intent: str) -> bool:
+        """Handle turns that should not spend a model call."""
+        if intent == "greeting":
+            output = (
+                "你好, 我在. 你可以直接把需求想法、PRD 问题、开发拆解或变更建议发给我; "
+                "如果要基于文档回答, 先在右下角选择对应知识库."
+            )
+            await self._send_workflow_reply(
+                output=output,
+                intent=intent,
+                title="需求协作助手",
+                summary="可帮你录入需求、查询 PRD、拆解开发/测试关注点和整理变更建议.",
+                actions=_chat_actions(intent),
+            )
+            return True
+
+        if intent == "help":
+            output = (
+                "我可以做四类事:\n"
+                "- 录入一句话需求, 并追问关键业务边界.\n"
+                "- 基于选中的知识库查询 PRD, 并标注来源.\n"
+                "- 拆解开发实现点、测试验收点和待确认问题.\n"
+                "- 把修改诉求整理成变更建议, 避免直接改动正式需求."
+            )
+            await self._send_workflow_reply(
+                output=output,
+                intent=intent,
+                title="可以从这些入口开始",
+                summary="选择知识库后, 查询和拆解会更准确; 没有来源时我会明确提示缺少依据.",
+                actions=_chat_actions(intent),
+            )
+            return True
+
+        return False
+
+    async def _maybe_handle_grounded_query(self, user_message: str, intent: str) -> bool:
+        """Answer requirement queries through the deterministic grounded query service."""
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_postgresql %}
+        if intent != "query":
+            return False
+        if not self.deps.kb_collection_names:
+            await self._send_workflow_reply(
+                output=(
+                    "当前还没有选中知识库, 我不能把这个问题回答成确定需求结论. "
+                    "请先选择需求项目或上传来源文档, 然后再问一次."
+                ),
+                intent=intent,
+                title="需要先选择知识库",
+                summary="有选中的来源后, 我会基于原文回答并标注来源.",
+                actions=_chat_actions(intent),
+            )
+            return True
+
+        from app.services.requirement_query import RequirementQueryService
+
+        async with get_db_context() as db:
+            response = await RequirementQueryService(db).query_collections(
+                collection_names=self.deps.kb_collection_names,
+                query=user_message,
+                role="developer",
+                limit=5,
+            )
+        await self._send_workflow_reply(
+            output=response.answer,
+            intent=intent,
+            title="已基于知识库查询",
+            summary=(
+                f"Grounding: {response.grounding_status}; "
+                f"confidence: {response.confidence}; sources: {len(response.sources)}"
+            ),
+            actions=_chat_actions(intent),
+        )
+        return True
+{%- else %}
+        return False
+{%- endif %}
+
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+    async def _maybe_handle_gateway_chat(
+        self,
+        user_message: str,
+        user_input: str | list[Any],
+        intent: str,
+        data: dict[str, Any],
+    ) -> bool:
+        """Use the configured Anthropic-compatible gateway for normal chat turns."""
+        gateway = RequirementAIService(
+            model_override=str(data.get("model") or "") or None,
+            thinking_effort_override=str(data.get("thinking_effort") or "") or None,
+        )
+        if not gateway.is_configured or not isinstance(user_input, str):
+            return False
+
+        from app.agents.prompts import get_system_prompt_with_rag
+
+        await send_event(self.websocket, "model_request_start", {})
+        output_parts: list[str] = []
+        async for chunk in gateway.stream_chat(
+            system_prompt=get_system_prompt_with_rag(),
+            messages=[
+                *self.conversation_history[-8:],
+                {"role": "user", "content": user_input},
+            ],
+            max_tokens=1800,
+        ):
+            output_parts.append(chunk)
+            await send_event(
+                self.websocket,
+                "text_delta",
+                {"index": len(output_parts) - 1, "content": chunk},
+            )
+        output = "".join(output_parts).strip()
+        if not output:
+            return False
+
+        await self._send_model_reply(
+            output=output,
+            model_name=gateway.model,
+            tool_calls=[],
+            complete_payload={
+{%- if cookiecutter.use_database %}
+                "conversation_id": self.current_conversation_id,
+{%- endif %}
+                "mode": "ai",
+                "intent": intent,
+            },
+            streamed=True,
+        )
+        self.conversation_history.append({"role": "user", "content": user_message})
+        self.conversation_history.append({"role": "assistant", "content": output})
+        return True
+
+    async def _reload_conversation_history(self) -> None:
+        """Reload recent persisted turns so runtime model switches keep conversation context."""
         if not self.current_conversation_id:
-            await send_event(self.websocket, "error", {"message": error_message})
+            return
+        try:
+            async with get_db_context() as db:
+                conversation_service = get_conversation_service(db)
+                messages, _ = await conversation_service.list_messages(
+                    self.current_conversation_id,
+                    skip=0,
+                    limit=20,
+                )
+        except Exception:
+            logger.exception("Failed to reload conversation history")
             return
 
-        output = self._demo_fallback_text(user_message)
-        await send_event(self.websocket, "model_request_start", {})
-        await send_event(self.websocket, "text_delta", {"index": 0, "content": output})
+        self.conversation_history = [
+            {"role": str(message.role), "content": str(message.content)}
+            for message in messages
+            if getattr(message, "role", None) in {"user", "assistant"}
+            and str(getattr(message, "content", "") or "").strip()
+        ]
+
+    async def _send_model_reply(
+        self,
+        *,
+        output: str,
+        model_name: str,
+        tool_calls: list[dict[str, Any]],
+        complete_payload: dict[str, Any],
+        streamed: bool = False,
+    ) -> None:
+        """Finalize and persist a completed assistant reply."""
+        if not streamed:
+            await send_event(self.websocket, "model_request_start", {})
+            await send_event(self.websocket, "text_delta", {"index": 0, "content": output})
         await send_event(self.websocket, "final_result", {"output": output})
 
+{%- if cookiecutter.use_database %}
+        assistant_msg_id: str | None = None
+        if self.current_conversation_id:
+            assistant_msg_id = await persist_assistant_turn(
+                self.current_conversation_id,
+                output,
+                model_name,
+                tool_calls,
+            )
+        if assistant_msg_id:
+            await send_event(
+                self.websocket,
+                "message_saved",
+                {
+                    "message_id": assistant_msg_id,
+                    "conversation_id": self.current_conversation_id,
+                },
+            )
+{%- endif %}
+        await send_event(self.websocket, "complete", complete_payload)
+
+{%- endif %}
+
+    async def _send_workflow_reply(
+        self,
+        *,
+        output: str,
+        intent: str,
+        title: str,
+        summary: str,
+        actions: list[dict[str, Any]],
+    ) -> None:
+        """Send a deterministic assistant reply with an action card."""
+{%- if cookiecutter.use_database %}
+        if not self.current_conversation_id:
+            await send_event(self.websocket, "model_request_start", {})
+            await send_event(self.websocket, "text_delta", {"index": 0, "content": output})
+            await send_event(self.websocket, "final_result", {"output": output})
+            await send_event(self.websocket, "complete", {"mode": "workflow", "intent": intent})
+            return
+{%- endif %}
+
+        await send_event(self.websocket, "model_request_start", {})
+        await send_event(self.websocket, "text_delta", {"index": 0, "content": output})
+        await send_event(
+            self.websocket,
+            "requirement_action",
+            {
+                "action_type": intent,
+                "title": title,
+                "summary": summary,
+                "payload": {"intent": intent},
+                "actions": actions,
+            },
+        )
+        await send_event(self.websocket, "final_result", {"output": output})
+
+{%- if cookiecutter.use_database %}
         assistant_msg_id = await persist_assistant_turn(
             self.current_conversation_id,
             output,
-            "demo-fallback",
+            "workflow-router",
             [],
         )
         await send_event(
@@ -228,18 +582,44 @@ class AgentSession:
         await send_event(
             self.websocket,
             "complete",
-            {"conversation_id": self.current_conversation_id, "fallback": True},
+            {"conversation_id": self.current_conversation_id, "mode": "workflow", "intent": intent},
         )
+{%- else %}
+        await send_event(self.websocket, "complete", {"mode": "workflow", "intent": intent})
+{%- endif %}
 
-    @staticmethod
-    def _demo_fallback_text(user_message: str) -> str:
-        topic = user_message.strip() or "这个需求"
-        return (
-            "我会按需求知识库的工作方式处理这个问题。\n\n"
-            f"当前输入: {topic}\n\n"
-            "如果这是新需求, 请补充业务目标, 使用角色, 业务边界和验收标准; "
-            "如果这是查询, 请先选择对应需求项目或来源文档, 我会基于已入库内容回答. "
-            "信息不足时, 我会直接给出需要澄清的问题."
+    async def _send_offline_assistant_response(
+        self,
+        user_message: str,
+        intent: str,
+        error_message: str,
+    ) -> None:
+        """Return a transparent offline assistant state when the model is unavailable."""
+        output = (
+            "模型服务暂不可用, 我现在不能生成新的 AI 分析.\n\n"
+            "你仍然可以先打开需求工作台、选择知识库、上传来源文档, 或稍后重试这一轮对话."
+        )
+        actions = [
+            {"id": "retry", "label": "重试本轮", "kind": "retry", "payload": {"message": user_message}},
+            *_chat_actions(intent),
+        ]
+        await send_event(
+            self.websocket,
+            "assistant_offline",
+            {
+                "message": output,
+                "intent": intent,
+                "retryable": True,
+                "actions": actions,
+                "error": error_message,
+            },
+        )
+        await self._send_workflow_reply(
+            output=output,
+            intent=intent,
+            title="离线助手",
+            summary="当前只提供导航和重试, 不会伪造需求草稿或来源结论.",
+            actions=actions,
         )
 
 {%- if cookiecutter.enable_billing and cookiecutter.enable_teams and cookiecutter.enable_credits_system and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}

@@ -15,10 +15,12 @@ import json
 import re
 import urllib.error
 import urllib.request
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from typing import Any
 
 from app.core.config import settings
+from app.services.ai_runtime_config import get_ai_runtime_config
 
 
 REQUIREMENT_AI_SYSTEM_PROMPT = """你是公司内部需求知识库系统的 AI 需求分析引擎。
@@ -69,32 +71,61 @@ class RequirementAIError(RuntimeError):
 class RequirementAIService:
     """Small Anthropic Messages-compatible client for Req KB workflows."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        model_override: str | None = None,
+        thinking_effort_override: str | None = None,
+    ) -> None:
+        runtime_config = get_ai_runtime_config()
         self.enabled = bool(getattr(settings, "REQUIREMENT_AI_ENABLED", True))
-        self.base_url = getattr(settings, "ANTHROPIC_BASE_URL", "https://api.anthropic.com")
+        self.base_url = runtime_config.base_url or getattr(
+            settings, "ANTHROPIC_BASE_URL", "https://api.anthropic.com"
+        )
         self.token = (
             getattr(settings, "ANTHROPIC_AUTH_TOKEN", "")
             or getattr(settings, "ANTHROPIC_API_KEY", "")
         )
+        available_models = {model.id for model in runtime_config.models}
+        requested_model = (model_override or "").strip()
         self.model = (
-            getattr(settings, "ANTHROPIC_MODEL", "")
+            requested_model if requested_model and requested_model in available_models else ""
+        ) or (
+            runtime_config.effective_model
+            or runtime_config.model
+            or getattr(settings, "ANTHROPIC_MODEL", "")
+            or getattr(settings, "ANTHROPIC_DEFAULT_SONNET_MODEL", "")
+            or getattr(settings, "ANTHROPIC_REASONING_MODEL", "")
+            or getattr(settings, "ANTHROPIC_DEFAULT_HAIKU_MODEL", "")
+            or getattr(settings, "ANTHROPIC_DEFAULT_OPUS_MODEL", "")
             or getattr(settings, "AI_MODEL", "")
             or "claude-sonnet-4-5"
         )
+        runtime_models = [model.id for model in runtime_config.models]
         self.fallback_models = [
             model
             for model in (
                 getattr(settings, "ANTHROPIC_DEFAULT_SONNET_MODEL", ""),
                 getattr(settings, "ANTHROPIC_DEFAULT_HAIKU_MODEL", ""),
                 getattr(settings, "ANTHROPIC_DEFAULT_OPUS_MODEL", ""),
+                getattr(settings, "ANTHROPIC_REASONING_MODEL", ""),
+                *runtime_models,
             )
             if model and model != self.model
         ]
+        self.temperature = runtime_config.temperature
+        requested_effort = (thinking_effort_override or "").strip()
+        self.thinking_effort = (
+            requested_effort
+            if requested_effort in {"off", "low", "medium", "high"}
+            else runtime_config.thinking_effort
+        )
+        self.max_tokens = runtime_config.max_tokens
         self.timeout_seconds = float(getattr(settings, "REQUIREMENT_AI_TIMEOUT_SECONDS", 45))
 
     @property
     def is_configured(self) -> bool:
-        return self.enabled and bool(self.base_url and self.token and self.model)
+        return self.enabled and bool(self.base_url and self.token and self.token != "dummy" and self.model)
 
     async def create_from_text(
         self,
@@ -211,6 +242,53 @@ class RequirementAIService:
 """
         return await self._complete_text(prompt, max_tokens=1800)
 
+    async def complete_chat(
+        self,
+        *,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        max_tokens: int = 1800,
+    ) -> str | None:
+        """Complete a normal chat turn through the configured Anthropic-compatible gateway."""
+        if not self.is_configured:
+            return None
+        normalized_messages = [
+            {"role": message["role"], "content": message["content"]}
+            for message in messages
+            if message.get("role") in {"user", "assistant"} and str(message.get("content") or "").strip()
+        ]
+        if not normalized_messages:
+            raise RequirementAIError("Chat AI request has no messages.")
+        return await self._complete_messages(
+            system_prompt=system_prompt,
+            messages=normalized_messages,
+            max_tokens=max(max_tokens, self.max_tokens),
+        )
+
+    async def stream_chat(
+        self,
+        *,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        max_tokens: int = 1800,
+    ) -> AsyncIterator[str]:
+        """Stream a normal chat turn through the configured gateway."""
+        if not self.is_configured:
+            return
+        normalized_messages = [
+            {"role": message["role"], "content": message["content"]}
+            for message in messages
+            if message.get("role") in {"user", "assistant"} and str(message.get("content") or "").strip()
+        ]
+        if not normalized_messages:
+            raise RequirementAIError("Chat AI request has no messages.")
+        async for chunk in self._stream_messages(
+            system_prompt=system_prompt,
+            messages=normalized_messages,
+            max_tokens=max(max_tokens, self.max_tokens),
+        ):
+            yield chunk
+
     async def _complete_json(self, prompt: str, *, max_tokens: int) -> dict[str, Any]:
         text = await self._complete_text(prompt, max_tokens=max_tokens)
         match = _JSON_RE.search(text)
@@ -228,22 +306,144 @@ class RequirementAIService:
         if not self.is_configured:
             raise RequirementAIError("Requirement AI is not configured.")
 
+        return await self._complete_messages(
+            system_prompt=REQUIREMENT_AI_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+        )
+
+    async def _complete_messages(
+        self,
+        *,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        max_tokens: int,
+    ) -> str:
         errors: list[str] = []
         for model in [self.model, *self.fallback_models]:
-            payload = {
-                "model": model,
-                "max_tokens": max_tokens,
-                "system": REQUIREMENT_AI_SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": prompt}],
-            }
+            payload = self._build_messages_payload(
+                model=model,
+                system_prompt=system_prompt,
+                messages=messages,
+                max_tokens=max_tokens,
+            )
             try:
                 text = await asyncio.to_thread(self._post_messages, payload)
             except RequirementAIError as exc:
+                if "thinking" in payload or "reasoning_effort" in payload:
+                    retry_payload = {
+                        key: value
+                        for key, value in payload.items()
+                        if key not in {"thinking", "reasoning_effort"}
+                    }
+                    try:
+                        text = await asyncio.to_thread(self._post_messages, retry_payload)
+                    except RequirementAIError as retry_exc:
+                        errors.append(f"{model}: {exc}; no-thinking retry: {retry_exc}")
+                        continue
+                    self.model = model
+                    return text
                 errors.append(f"{model}: {exc}")
                 continue
             self.model = model
             return text
         raise RequirementAIError("; ".join(errors) or "Requirement AI endpoint request failed.")
+
+    async def _stream_messages(
+        self,
+        *,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        max_tokens: int,
+    ) -> AsyncIterator[str]:
+        errors: list[str] = []
+        for model in [self.model, *self.fallback_models]:
+            payload = self._build_messages_payload(
+                model=model,
+                system_prompt=system_prompt,
+                messages=messages,
+                max_tokens=max_tokens,
+            )
+            payload["stream"] = True
+            yielded = False
+            try:
+                async for chunk in self._run_streaming_request(payload):
+                    yielded = True
+                    yield chunk
+            except RequirementAIError as exc:
+                if yielded:
+                    raise
+                if "thinking" in payload or "reasoning_effort" in payload:
+                    retry_payload = {
+                        key: value
+                        for key, value in payload.items()
+                        if key not in {"thinking", "reasoning_effort"}
+                    }
+                    retry_yielded = False
+                    try:
+                        async for chunk in self._run_streaming_request(retry_payload):
+                            retry_yielded = True
+                            yield chunk
+                    except RequirementAIError as retry_exc:
+                        if retry_yielded:
+                            raise
+                        errors.append(f"{model}: {exc}; no-thinking retry: {retry_exc}")
+                        continue
+                    if retry_yielded:
+                        self.model = model
+                        return
+                    errors.append(f"{model}: stream returned no text")
+                    continue
+                errors.append(f"{model}: {exc}")
+                continue
+            if yielded:
+                self.model = model
+                return
+            errors.append(f"{model}: stream returned no text")
+        raise RequirementAIError("; ".join(errors) or "Requirement AI endpoint stream failed.")
+
+    def _build_messages_payload(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        max_tokens: int,
+    ) -> dict[str, Any]:
+        thinking_budget = self._thinking_budget_tokens()
+        request_max_tokens = max(max_tokens, thinking_budget + 512) if thinking_budget else max_tokens
+        payload: dict[str, Any] = {
+            "model": model,
+            "max_tokens": request_max_tokens,
+            "system": system_prompt,
+            "messages": messages,
+        }
+        if self.temperature is not None:
+            payload["temperature"] = self.temperature
+        if self.thinking_effort == "off" and self._supports_thinking_toggle(model):
+            payload["thinking"] = {"type": "disabled"}
+        elif self.thinking_effort != "off":
+            payload["thinking"] = {"type": "enabled"}
+            if thinking_budget:
+                payload["thinking"]["budget_tokens"] = thinking_budget
+            if self._supports_reasoning_effort(model):
+                payload["reasoning_effort"] = self.thinking_effort
+        return payload
+
+    def _thinking_budget_tokens(self) -> int:
+        return {
+            "low": 1024,
+            "medium": 2048,
+            "high": 4096,
+        }.get(self.thinking_effort, 0)
+
+    @staticmethod
+    def _supports_reasoning_effort(model: str) -> bool:
+        return model.lower().startswith("glm-5")
+
+    @staticmethod
+    def _supports_thinking_toggle(model: str) -> bool:
+        return model.lower().startswith("glm-")
 
     def _post_messages(self, payload: dict[str, Any]) -> str:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -292,6 +492,109 @@ class RequirementAIService:
         if isinstance(decoded.get("text"), str):
             return decoded["text"].strip()
         raise RequirementAIError("Requirement AI endpoint returned no text content.")
+
+    async def _run_streaming_request(self, payload: dict[str, Any]) -> AsyncIterator[str]:
+        queue: asyncio.Queue[object] = asyncio.Queue()
+        done = object()
+        loop = asyncio.get_running_loop()
+
+        def worker() -> None:
+            try:
+                for chunk in self._post_messages_stream(payload):
+                    loop.call_soon_threadsafe(queue.put_nowait, chunk)
+            except Exception as exc:
+                loop.call_soon_threadsafe(queue.put_nowait, exc)
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, done)
+
+        task = asyncio.create_task(asyncio.to_thread(worker))
+        try:
+            while True:
+                item = await queue.get()
+                if item is done:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+                yield str(item)
+        finally:
+            await task
+
+    def _post_messages_stream(self, payload: dict[str, Any]) -> Iterator[str]:
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        request = urllib.request.Request(
+            self._messages_url(),
+            data=data,
+            method="POST",
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream",
+                "anthropic-version": "2023-06-01",
+                "x-api-key": self.token,
+                "Authorization": f"Bearer {self.token}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                for raw_line in response:
+                    line = raw_line.decode("utf-8", errors="replace").strip()
+                    if not line or line.startswith(":") or line.startswith("event:"):
+                        continue
+                    if not line.startswith("data:"):
+                        continue
+                    data_line = line.removeprefix("data:").strip()
+                    if data_line == "[DONE]":
+                        break
+                    try:
+                        decoded = json.loads(data_line)
+                    except json.JSONDecodeError:
+                        continue
+                    text = self._stream_text_from_event(decoded)
+                    if text:
+                        yield text
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            message = body[:500] if body else exc.reason
+            raise RequirementAIError(
+                f"Requirement AI endpoint returned HTTP {exc.code}: {message}"
+            ) from exc
+        except (TimeoutError, OSError, urllib.error.URLError) as exc:
+            raise RequirementAIError("Requirement AI endpoint stream failed.") from exc
+
+    @staticmethod
+    def _stream_text_from_event(event: Any) -> str:
+        if not isinstance(event, dict):
+            return ""
+
+        delta = event.get("delta")
+        if isinstance(delta, dict):
+            text = delta.get("text") or delta.get("content")
+            if isinstance(text, str):
+                return text
+
+        content_block = event.get("content_block")
+        if isinstance(content_block, dict) and isinstance(content_block.get("text"), str):
+            return content_block["text"]
+
+        choices = event.get("choices")
+        if isinstance(choices, list) and choices:
+            choice = choices[0]
+            if isinstance(choice, dict):
+                choice_delta = choice.get("delta")
+                if isinstance(choice_delta, dict) and isinstance(choice_delta.get("content"), str):
+                    return choice_delta["content"]
+                if isinstance(choice.get("text"), str):
+                    return choice["text"]
+
+        content = event.get("content")
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            return "".join(
+                str(part.get("text", ""))
+                for part in content
+                if isinstance(part, dict) and part.get("type") == "text"
+            )
+        return ""
 
     def _messages_url(self) -> str:
         base = self.base_url.rstrip("/")

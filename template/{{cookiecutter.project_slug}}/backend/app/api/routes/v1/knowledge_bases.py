@@ -37,22 +37,38 @@ from app.schemas.knowledge_base import (
 {%- if cookiecutter.use_postgresql or cookiecutter.use_sqlite %}
 from app.schemas.rag import (
 {%- if cookiecutter.use_postgresql %}
+    RequirementAuditLogList,
     RequirementBreakdownResponse,
     RequirementChangeRequest,
     RequirementChangeResponse,
+    RequirementClarificationRequest,
+    RequirementClarificationResponse,
+    RequirementClarificationSession,
+    RequirementDraftCommentItem,
+    RequirementDraftCommentList,
+    RequirementDraftCommentRequest,
+    RequirementDraftReviewRequest,
     RequirementDocumentDiffResponse,
     RequirementDocumentVersionList,
     RequirementIntakeRequest,
     RequirementIntakeResponse,
+    RequirementNotificationList,
     RequirementQueryRequest,
     RequirementQueryResponse,
+    RequirementRollbackRequest,
 {%- endif %}
     RAGIngestResponse,
     RAGSyncResponse,
     RAGTrackedDocumentList,
 )
 {%- if cookiecutter.use_postgresql %}
-from app.services.agent import agent_connection_manager
+from app.services.requirement_notification import (
+    list_requirement_notifications as list_requirement_notification_items,
+    mark_all_requirement_notifications_read,
+    mark_requirement_notification_read,
+    persist_requirement_notification,
+    publish_requirement_event,
+)
 {%- endif %}
 from app.schemas.sync_source import (
     ConnectorList,
@@ -70,14 +86,20 @@ router = APIRouter()
 
 async def _broadcast_requirement_event(
     response: RequirementIntakeResponse | RequirementChangeResponse,
+    *,
+    db: Any | None = None,
+    actor_user_id: UUID | None = None,
+    organization_id: UUID | None = None,
 ) -> None:
     """Fan out requirement workflow notifications to connected WS clients."""
-    if response.notification_event is None:
-        return
-    await agent_connection_manager.broadcast_event(
-        "requirement_notification",
-        response.notification_event.model_dump(),
-    )
+    if db is not None and actor_user_id is not None:
+        await persist_requirement_notification(
+            db,
+            event=response.notification_event,
+            actor_user_id=actor_user_id,
+            organization_id=organization_id,
+        )
+    await publish_requirement_event(response.notification_event)
 
 
 @router.get("/", response_model=KnowledgeBaseList)
@@ -265,7 +287,12 @@ async def create_requirement_from_text(
         user_id=current_user.id,
         organization_id=active_org.id,
     )
-    await _broadcast_requirement_event(response)
+    await _broadcast_requirement_event(
+        response,
+        db=workflow_service.db,
+        actor_user_id=current_user.id,
+        organization_id=active_org.id,
+    )
     return response
 
 
@@ -291,6 +318,85 @@ async def break_down_requirement_document(
         doc_id=doc_id,
         role=requirement_role,
     )
+
+
+@router.get(
+    "/{kb_id}/documents/{doc_id}/clarifications",
+    response_model=RequirementClarificationSession,
+)
+async def get_requirement_clarifications(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+) -> Any:
+    """Get persisted clarification state for one requirement document."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.get_clarification_session(
+        kb_id=kb.id,
+        doc_id=doc_id,
+        organization_id=active_org.id,
+    )
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/clarifications",
+    response_model=RequirementClarificationResponse,
+)
+async def answer_requirement_clarifications(
+    kb_id: UUID,
+    doc_id: UUID,
+    data: RequirementClarificationRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Persist clarification answers and update the requirement document."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    response = await workflow_service.answer_clarifications(
+        kb_id=kb.id,
+        doc_id=doc_id,
+        answers=data.answers,
+        apply=data.apply,
+        user_id=current_user.id,
+        role=requirement_role,
+        is_app_admin=False,
+        organization_id=active_org.id,
+    )
+    if response.change is not None:
+        await _broadcast_requirement_event(
+            response.change,
+            db=workflow_service.db,
+            actor_user_id=current_user.id,
+            organization_id=active_org.id,
+        )
+    return response
+
+
+@router.get(
+    "/{kb_id}/documents/drafts",
+    response_model=RequirementDocumentVersionList,
+)
+async def list_requirement_drafts(
+    kb_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+) -> Any:
+    """List draft requirement document versions waiting for product review."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.list_pending_drafts(kb_id=kb.id)
 
 
 @router.get(
@@ -338,6 +444,165 @@ async def diff_requirement_document_versions(
     )
 
 
+@router.get(
+    "/{kb_id}/audit-logs",
+    response_model=RequirementAuditLogList,
+)
+async def list_requirement_audit_logs(
+    kb_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    limit: int = Query(50, ge=1, le=100),
+) -> Any:
+    """List requirement audit events for this knowledge base."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.list_requirement_audit_logs(
+        kb_id=kb.id,
+        organization_id=active_org.id,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/{kb_id}/notifications",
+    response_model=RequirementNotificationList,
+)
+async def list_requirement_notifications(
+    kb_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    limit: int = Query(50, ge=1, le=100),
+) -> Any:
+    """List persisted requirement notifications with read state."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await list_requirement_notification_items(
+        workflow_service.db,
+        kb_id=kb.id,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+        limit=limit,
+    )
+
+
+@router.post(
+    "/{kb_id}/notifications/{notification_id}/read",
+    response_model=RequirementNotificationList,
+)
+async def mark_requirement_notification_as_read(
+    kb_id: UUID,
+    notification_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+) -> Any:
+    """Mark one persisted requirement notification as read."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    await mark_requirement_notification_read(
+        workflow_service.db,
+        notification_id=notification_id,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+    return await list_requirement_notification_items(
+        workflow_service.db,
+        kb_id=kb.id,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+
+
+@router.post(
+    "/{kb_id}/notifications/read-all",
+    response_model=RequirementNotificationList,
+)
+async def mark_all_requirement_notifications_as_read(
+    kb_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+) -> Any:
+    """Mark all visible KB notifications as read for the current user."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    await mark_all_requirement_notifications_read(
+        workflow_service.db,
+        kb_id=kb.id,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+    return await list_requirement_notification_items(
+        workflow_service.db,
+        kb_id=kb.id,
+        user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+
+
+@router.get(
+    "/{kb_id}/documents/{doc_id}/comments",
+    response_model=RequirementDraftCommentList,
+)
+async def list_requirement_draft_comments(
+    kb_id: UUID,
+    doc_id: UUID,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    limit: int = Query(50, ge=1, le=100),
+) -> Any:
+    """List the comment stream for one requirement draft."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.list_draft_comments(
+        kb_id=kb.id,
+        draft_doc_id=doc_id,
+        organization_id=active_org.id,
+        limit=limit,
+    )
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/comments",
+    response_model=RequirementDraftCommentItem,
+)
+async def add_requirement_draft_comment(
+    kb_id: UUID,
+    doc_id: UUID,
+    data: RequirementDraftCommentRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Append a role-tagged comment to one requirement draft."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    return await workflow_service.add_draft_comment(
+        kb_id=kb.id,
+        draft_doc_id=doc_id,
+        user_id=current_user.id,
+        role=requirement_role,
+        body=data.body,
+    )
+
+
 @router.post(
     "/{kb_id}/documents/{doc_id}/change",
     response_model=RequirementChangeResponse,
@@ -365,7 +630,12 @@ async def change_requirement_document(
         role=requirement_role,
         is_app_admin=False,
     )
-    await _broadcast_requirement_event(response)
+    await _broadcast_requirement_event(
+        response,
+        db=workflow_service.db,
+        actor_user_id=current_user.id,
+        organization_id=active_org.id,
+    )
     return response
 
 
@@ -393,7 +663,82 @@ async def apply_requirement_draft(
         role=requirement_role,
         is_app_admin=False,
     )
-    await _broadcast_requirement_event(response)
+    await _broadcast_requirement_event(
+        response,
+        db=workflow_service.db,
+        actor_user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+    return response
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/reject-draft",
+    response_model=RequirementChangeResponse,
+)
+async def reject_requirement_draft(
+    kb_id: UUID,
+    doc_id: UUID,
+    data: RequirementDraftReviewRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Reject a draft requirement document and keep the current latest version."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    response = await workflow_service.reject_draft(
+        kb_id=kb.id,
+        draft_doc_id=doc_id,
+        user_id=current_user.id,
+        role=requirement_role,
+        is_app_admin=False,
+        reason=data.reason,
+    )
+    await _broadcast_requirement_event(
+        response,
+        db=workflow_service.db,
+        actor_user_id=current_user.id,
+        organization_id=active_org.id,
+    )
+    return response
+
+
+@router.post(
+    "/{kb_id}/documents/{doc_id}/rollback",
+    response_model=RequirementChangeResponse,
+)
+async def rollback_requirement_document(
+    kb_id: UUID,
+    doc_id: UUID,
+    data: RequirementRollbackRequest,
+    service: KnowledgeBaseSvc,
+    workflow_service: RequirementWorkflowSvc,
+    current_user: CurrentUser,
+    active_org: ActiveOrg,
+    requirement_role: RequirementDemoRole,
+) -> Any:
+    """Create a new latest requirement version from a historical version."""
+    kb = await service.get(
+        kb_id, user_id=current_user.id, organization_id=active_org.id
+    )
+    response = await workflow_service.rollback_document(
+        kb_id=kb.id,
+        target_doc_id=doc_id,
+        user_id=current_user.id,
+        role=requirement_role,
+        is_app_admin=False,
+        reason=data.reason,
+    )
+    await _broadcast_requirement_event(
+        response,
+        db=workflow_service.db,
+        actor_user_id=current_user.id,
+        organization_id=active_org.id,
+    )
     return response
 
 

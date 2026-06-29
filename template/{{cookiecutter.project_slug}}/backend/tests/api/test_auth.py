@@ -144,6 +144,27 @@ async def test_register_success(client_with_mock_service: AsyncClient):
 
 
 @pytest.mark.anyio
+async def test_register_forces_public_product_role(
+    client_with_mock_service: AsyncClient,
+    mock_user_service: MagicMock,
+):
+    """Public registration must not create admin users from client input."""
+    response = await client_with_mock_service.post(
+        f"{settings.API_V1_STR}/auth/register",
+        json={
+            "email": "new@example.com",
+            "password": "password123",
+            "full_name": "New User",
+            "role": "admin",
+        },
+    )
+
+    assert response.status_code == 201
+    registered_user = mock_user_service.register.call_args.args[0]
+    assert registered_user.role == "product"
+
+
+@pytest.mark.anyio
 async def test_register_duplicate_email(
     client_with_mock_service: AsyncClient,
     mock_user_service: MagicMock,

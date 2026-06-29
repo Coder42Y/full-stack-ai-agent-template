@@ -53,13 +53,16 @@ Implemented demo workflow:
 - Product creates a requirement project.
 - Product uploads requirement documents or creates a requirement from one sentence.
 - The backend stores full Markdown source in `RAGDocument.markdown_content`.
-- The requirement AI asks clarification questions and can rewrite Markdown.
+- The requirement AI asks clarification questions, persists clarification rounds,
+  and can rewrite Markdown.
 - Developer/tester queries return answers with `[来源: 文档名 > 章节名]` citations.
 - Documents can be broken down by section with source labels.
 - Developer changes are suggestion-only; product changes create drafts or new versions.
-- Version history, Markdown diff, and draft approval endpoints are generated.
+- Version history, Markdown diff, draft review queues, draft approval, and
+  audited rollback endpoints are generated.
 - Requirement events are returned as `notification_event` payloads and broadcast
   as `requirement_notification` over the existing WebSocket manager.
+- Redis-enabled builds fan requirement notifications out across app processes.
 - The generated Chinese workbench has five modes: 录入, 查询, 拆解, 变更, 历史.
 
 Core generated endpoints:
@@ -69,9 +72,15 @@ POST /api/v1/kb/{kb_id}/requirements/from-text
 POST /api/v1/kb/{kb_id}/query
 GET  /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown
 POST /api/v1/kb/{kb_id}/documents/{doc_id}/change
+GET  /api/v1/kb/{kb_id}/documents/drafts
 POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/reject-draft
+GET  /api/v1/kb/{kb_id}/documents/{doc_id}/comments
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/comments
 GET  /api/v1/kb/{kb_id}/documents/{doc_id}/versions
 GET  /api/v1/kb/{kb_id}/documents/{doc_id}/diff
+POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback
+GET  /api/v1/kb/{kb_id}/audit-logs
 ```
 
 The requirement AI adapter reads Anthropic Messages-compatible settings:
@@ -244,8 +253,8 @@ New requirement KB workflow:
 - The requirement KB flow is an MVP/demo path, not a complete production approval system.
 - Requirement-specific workflow routes are generated for the PostgreSQL RAG + teams path.
 - SQLite is kept as a guard path and intentionally does not expose the PostgreSQL-only requirement workflow routes.
-- Persistent multi-turn clarification state, structured red/green approval UI,
-  Redis cross-process notification fan-out, and read receipts are follow-up work.
+- Confirmation-before-ingest clarification, threaded/resolved draft comments,
+  organization-member notification filtering, and cross-KB notification aggregation are follow-up work.
 - Payment providers other than Stripe are modeled as options, but Stripe is the fully implemented billing path.
 
 ## License

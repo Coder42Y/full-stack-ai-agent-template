@@ -84,7 +84,17 @@ check_frontend_templates() {
   test -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/requirements/from-text/route.ts" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/query/route.ts" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/breakdown/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/clarifications/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/drafts/route.ts" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/change/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/apply-draft/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/reject-draft/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/rollback/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/documents/[docId]/comments/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/audit-logs/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/notifications/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/notifications/[notificationId]/read/route.ts" \
+    -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/kb/[id]/notifications/read-all/route.ts" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/app/api/auth/demo-admin/route.ts" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/components/requirements/requirement-project-list.tsx" \
     -a -f "$REPO/template/{{cookiecutter.project_slug}}/frontend/src/components/requirements/requirement-workbench.tsx"
@@ -134,13 +144,13 @@ tmux log: $LOG
 ## Implemented demo scope
 
 - PRD and feature-split specs are tracked under docs/.
-- M0/M1: Markdown source storage, version metadata, project_name, product/developer/tester roles, DOCX Mammoth markdown ingestion.
-- M2: one-sentence requirement intake is AI-first through an Anthropic Messages-compatible adapter with primary/fallback model routing, creates a tracked Markdown document, returns clarification questions, and the frontend can apply clarification answers as a new version.
-- M3: grounded query returns source-labelled excerpts, prioritizes clarified answer sections, can ask the requirement AI to answer from those sources, and falls back to stored Markdown when vector retrieval is unavailable.
+- M0/M1: Markdown source storage, version metadata, project_name, product/developer/tester roles, DOCX Mammoth markdown ingestion, quality warnings, and LlamaParse fallback in all-parser builds.
+- M2: one-sentence requirement intake is AI-first through an Anthropic Messages-compatible adapter with primary/fallback model routing, creates a tracked Markdown document, returns clarification questions, persists clarification state/rounds through the audit stream, and the frontend can apply clarification answers as a new version.
+- M3: grounded query returns source-labelled excerpts, prioritizes clarified answer sections, can ask the requirement AI to answer from those sources, falls back to stored Markdown when vector retrieval is unavailable, and returns source-bound tester focus notes for tester queries.
 - M4: requirement breakdown returns section-level citations and tester-focused notes.
-- M5/M6: change workflow records developer suggestions, creates drafts, applies product version snapshots, and lets product apply draft versions from history.
+- M5/M6: change workflow records developer suggestions, creates drafts, exposes a pending draft review queue, applies product version snapshots, exposes structured red/green diffs, lets product apply draft versions or roll back to historical versions from history, exposes a role-tagged draft comment stream, records requirement audit events, exposes a KB-scoped audit log view, and rebuilds latest-version vectors while deleting the previous vector document.
 - M7: MVP role selection uses X-Requirement-Role; product can write, developer can query/break down/suggest but not directly mutate documents.
-- M8: intake/change/draft-approval flows return notification_event payloads and broadcast them over the existing WebSocket manager as requirement_notification.
+- M8: intake/change/draft-approval flows return notification_event payloads, persist notifications and read receipts through the audit stream, broadcast over the existing WebSocket manager as requirement_notification, and use Redis pub/sub fan-out when Redis is enabled.
 - Frontend BFF route templates, hooks/types, Chinese requirement project list/workbench, product/developer role selector, and MVP demo-admin auto-auth are present for the demo workflow.
 
 ## Verification
@@ -158,8 +168,8 @@ tmux log: $LOG
 
 - Full generated-project pytest is intentionally outside this fast verifier; the generated core Req KB/RBAC tests are included.
 - Live FastAPI startup and HTTP demo flow are separate from this static verifier; see docs/product/req-kb/mvp-demo.md.
-- Redis/pubsub cross-process notification fan-out, read receipts, and toast notification center remain follow-up.
-- Persistent multi-turn clarification state and structured red/green diff approval UI remain follow-up.
+- Organization-member notification filtering and cross-KB notification center aggregation remain follow-up.
+- Confirmation-before-ingest clarification and threaded/resolved draft comments remain follow-up.
 
 Overall exit status: $status
 EOF

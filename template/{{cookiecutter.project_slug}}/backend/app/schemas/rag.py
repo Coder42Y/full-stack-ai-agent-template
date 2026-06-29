@@ -107,7 +107,10 @@ class RequirementQueryRequest(BaseModel):
     query: str = Field(..., min_length=1, description="Natural language requirement question")
     limit: int = Field(default=5, ge=1, le=10, description="Maximum source chunks to inspect")
     min_score: float = Field(default=0.0, ge=0.0, le=1.0)
-    role: str | None = Field(default=None, description="MVP selected role: product or developer")
+    role: str | None = Field(
+        default=None,
+        description="MVP selected role: product, developer, or tester",
+    )
 
 
 class RequirementQuerySource(BaseModel):
@@ -127,6 +130,19 @@ class RequirementQueryResponse(BaseModel):
     answer: str
     sources: list[RequirementQuerySource] = Field(default_factory=list)
     is_grounded: bool = False
+    grounding_status: str = Field(
+        default="no_source",
+        description="Grounding quality: grounded, partial, low_confidence, or no_source",
+    )
+    confidence: str = Field(
+        default="low",
+        description="Answer confidence derived from evidence quality: high, medium, or low",
+    )
+    facts: list[str] = Field(default_factory=list)
+    inferences: list[str] = Field(default_factory=list)
+    follow_up_questions: list[str] = Field(default_factory=list)
+    test_focus: list[str] = Field(default_factory=list)
+    retrieval_debug: dict[str, Any] | None = None
     message: str | None = None
     ai_used: bool = False
     ai_model: str | None = None
@@ -143,6 +159,30 @@ class RequirementNotificationEvent(BaseModel):
     version: int | None = None
     status: str | None = None
     diff_summary: str | None = None
+
+
+class RequirementNotificationItem(BaseModel):
+    """One persisted requirement notification for the current user."""
+    id: str
+    event_type: str
+    kb_id: str
+    document_id: str
+    filename: str
+    message: str
+    version: int | None = None
+    status: str | None = None
+    diff_summary: str | None = None
+    actor_user_id: str
+    read: bool = False
+    created_at: str | None = None
+    read_at: str | None = None
+
+
+class RequirementNotificationList(BaseModel):
+    """Persisted requirement notifications for the current user."""
+    items: list[RequirementNotificationItem] = Field(default_factory=list)
+    total: int = 0
+    unread_count: int = 0
 
 
 class RequirementIntakeRequest(BaseModel):
@@ -162,6 +202,41 @@ class RequirementIntakeResponse(BaseModel):
     ai_used: bool = False
     ai_model: str | None = None
     ai_error: str | None = None
+
+
+class RequirementClarificationAnswer(BaseModel):
+    """One answer to a requirement clarification question."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    answer: str = Field(..., min_length=1, max_length=2000)
+
+
+class RequirementClarificationRequest(BaseModel):
+    """Persist one round of clarification answers and update the requirement."""
+    answers: list[RequirementClarificationAnswer] = Field(default_factory=list)
+    apply: bool = True
+
+
+class RequirementClarificationRound(BaseModel):
+    """One persisted clarification round."""
+    id: str
+    round: int
+    answers: list[RequirementClarificationAnswer] = Field(default_factory=list)
+    actor_user_id: str
+    created_at: str | None = None
+
+
+class RequirementClarificationSession(BaseModel):
+    """Persistent clarification state for one requirement document."""
+    session_id: str | None = None
+    kb_id: str
+    document_id: str
+    filename: str
+    state: str
+    questions: list[str] = Field(default_factory=list)
+    rounds: list[RequirementClarificationRound] = Field(default_factory=list)
+    latest_round: int = 0
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class RequirementBreakdownItem(BaseModel):
@@ -190,6 +265,21 @@ class RequirementChangeRequest(BaseModel):
     apply: bool = Field(default=False, description="Apply immediately instead of creating a draft")
 
 
+class RequirementDraftReviewRequest(BaseModel):
+    """Request to approve or reject a draft requirement document."""
+    reason: str | None = Field(default=None, max_length=1000)
+
+
+class RequirementDraftCommentRequest(BaseModel):
+    """Request to append a comment to a draft requirement document."""
+    body: str = Field(..., min_length=1, max_length=2000)
+
+
+class RequirementRollbackRequest(BaseModel):
+    """Request to roll a requirement document back to an earlier version."""
+    reason: str | None = Field(default=None, max_length=1000)
+
+
 class RequirementChangeResponse(BaseModel):
     """Response for requirement change workflow."""
     action: str
@@ -205,6 +295,12 @@ class RequirementChangeResponse(BaseModel):
     ai_error: str | None = None
 
 
+class RequirementClarificationResponse(BaseModel):
+    """Response after a clarification round is persisted."""
+    session: RequirementClarificationSession
+    change: RequirementChangeResponse | None = None
+
+
 class RequirementDocumentVersionItem(BaseModel):
     """One version in a requirement document version chain."""
     document_id: str
@@ -215,6 +311,7 @@ class RequirementDocumentVersionItem(BaseModel):
     previous_version_id: str | None = None
     modified_by: str | None = None
     has_markdown_content: bool = False
+    review_note: str | None = None
     created_at: str | None = None
     completed_at: str | None = None
 
@@ -223,6 +320,24 @@ class RequirementDocumentVersionList(BaseModel):
     """Version history for one requirement document chain."""
     items: list[RequirementDocumentVersionItem] = Field(default_factory=list)
     total: int = 0
+
+
+class RequirementDocumentDiffLine(BaseModel):
+    """One structured line in a Markdown diff."""
+    kind: str = Field(description="Line kind: added, removed, or context")
+    content: str
+    old_line_number: int | None = None
+    new_line_number: int | None = None
+
+
+class RequirementDocumentDiffHunk(BaseModel):
+    """One structured hunk in a Markdown diff."""
+    header: str
+    old_start: int | None = None
+    old_count: int | None = None
+    new_start: int | None = None
+    new_count: int | None = None
+    lines: list[RequirementDocumentDiffLine] = Field(default_factory=list)
 
 
 class RequirementDocumentDiffResponse(BaseModel):
@@ -234,6 +349,41 @@ class RequirementDocumentDiffResponse(BaseModel):
     to_version: int
     summary: str
     diff_lines: list[str] = Field(default_factory=list)
+    structured_changes: list[RequirementDocumentDiffHunk] = Field(default_factory=list)
+
+
+class RequirementAuditLogItem(BaseModel):
+    """One requirement audit log entry scoped to a KB."""
+    id: str
+    action: str
+    actor_user_id: str
+    organization_id: str | None = None
+    target_type: str | None = None
+    target_id: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
+    created_at: str | None = None
+
+
+class RequirementAuditLogList(BaseModel):
+    """Requirement audit log entries for review."""
+    items: list[RequirementAuditLogItem] = Field(default_factory=list)
+    total: int = 0
+
+
+class RequirementDraftCommentItem(BaseModel):
+    """One comment attached to a requirement draft."""
+    id: str
+    document_id: str
+    author_user_id: str
+    role: str
+    body: str
+    created_at: str | None = None
+
+
+class RequirementDraftCommentList(BaseModel):
+    """Comment stream for one requirement draft."""
+    items: list[RequirementDraftCommentItem] = Field(default_factory=list)
+    total: int = 0
 
 
 class RAGRetryResponse(BaseModel):

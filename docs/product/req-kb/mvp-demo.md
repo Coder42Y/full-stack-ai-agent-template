@@ -14,9 +14,12 @@ This demo path is AI-first for requirement drafting/query wording and keeps a de
 - Developer queries the requirement with original-source citations.
 - Developer requests section-level breakdowns and submits suggestion-only changes.
 - Product applies a versioned requirement change.
+- Product can load a pending draft review queue from the history panel and apply or reject draft versions.
+- Product can roll back from a historical version; the backend creates a new latest version and records an audit event.
 - Backend reads `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, and `ANTHROPIC_MODEL` for an Anthropic Messages-compatible requirement AI adapter.
 - Responses expose `ai_used`, `ai_model`, and `ai_error`; the frontend shows AI 已响应 or 本地兜底.
-- Responses include `notification_event` payloads and the backend broadcasts them over the existing WebSocket connection as `requirement_notification`.
+- Responses include `notification_event` payloads; the backend broadcasts them over the existing WebSocket connection as `requirement_notification` and uses Redis pub/sub fan-out when Redis is enabled.
+- The workbench records requirement events, shows toast notifications for remote events, and lets users mark the current event feed as read.
 - Frontend `/kb` is a requirement-project entry point; `/kb/{id}` is a four-mode workbench: 录入、查询、拆解、变更.
 
 ## Generate A Demo Project
@@ -187,6 +190,7 @@ X-Requirement-Role: product
 ## Current Limits
 
 - The automated verifier runs generated-project core tests, not the full generated-project pytest suite.
-- WebSocket fan-out is wired to the existing agent socket for the demo; Redis/pubsub cross-process fan-out and read receipts remain production follow-up.
-- Persistent multi-turn clarification state and production diff approval UI are still follow-up work.
+- WebSocket fan-out is wired to the existing agent socket for the demo; Redis/pubsub cross-process fan-out is enabled when Redis is configured.
+- The workbench supports persisted requirement notifications, unread counts, and single/all read receipts for the current KB.
+- Clarification state and answer rounds are persisted for the current document; confirmation-before-ingest clarification, threaded/resolved draft comments, organization-member notification filtering, and a cross-KB notification center are still follow-up work.
 - The configured primary model currently returns 503 because no upstream accounts are available; the requirement AI automatically falls back to `deepseek-v4-flash`.

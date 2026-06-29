@@ -55,7 +55,10 @@ def get_retrieval_service() -> "BaseRetrievalService":
 
 def _format_results(results: list) -> str:
     if not results:
-        return "No relevant documents found in the knowledge base."
+        return (
+            "未找到可引用的知识库片段。不要把该问题回答为确定事实; "
+            "请说明缺少来源, 并列出需要用户补充的文档或澄清项。"
+        )
     formatted = []
     for i, result in enumerate(results, start=1):
         source = result.metadata.get("filename", "unknown")
@@ -66,10 +69,15 @@ def _format_results(results: list) -> str:
         chunk_info = f", chunk {chunk}" if chunk else ""
         col_info = f" [{col}]" if col else ""
         formatted.append(
-            f"[{i}] Source: {source}{page_info}{chunk_info}{col_info} (score: {result.score:.3f})\n"
+            f"[{i}] 来源: {source}{page_info}{chunk_info}{col_info} (score: {result.score:.3f})\n"
             f"{result.content}"
         )
-    return "Search results (cite sources using [1], [2], etc. in your response):\n\n" + "\n\n".join(formatted)
+    return (
+        "以下是知识库检索片段, 只能基于这些片段回答。\n"
+        "回答规则: 关键结论必须引用 [1]、[2] 等来源; 如果片段只能支撑部分结论, "
+        "请把“已确认信息”“谨慎推断”“待确认问题”分开; 不要编造片段外的需求、接口、字段或验收标准。\n\n"
+        + "\n\n".join(formatted)
+    )
 
 
 {%- if cookiecutter.enable_teams %}
@@ -102,6 +110,24 @@ async def search_knowledge_base(
     resolved = kb_collection_names if kb_collection_names else (_active_kb_collections.get() or [])
     if not resolved:
         return "No active knowledge bases selected for this conversation."
+
+    {%- if cookiecutter.use_postgresql and cookiecutter.use_jwt %}
+    try:
+        from app.db.session import get_db_context
+        from app.services.requirement_query import RequirementQueryService
+
+        async with get_db_context() as db:
+            grounded = await RequirementQueryService(db=db).query_collections(
+                collection_names=resolved,
+                query=query,
+                role="developer",
+                limit=top_k,
+            )
+        if grounded.sources:
+            return grounded.answer
+    except Exception as e:
+        logger.warning("Grounded requirement search failed, falling back to vector search: %s", e)
+    {%- endif %}
 
     service: Any = get_retrieval_service()
     try:

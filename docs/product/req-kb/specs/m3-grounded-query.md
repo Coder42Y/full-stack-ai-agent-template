@@ -59,12 +59,12 @@ query
 - 命中完整 Markdown 时，回答中包含 `[来源：filename > page N > chunk M]`。
 - 未找到完整 Markdown 时，返回 chunk 级 fallback，并提示来源不够精确。
 - 如果向量检索不可用或没有 embedding key，查询会退回到 KB 最新 `markdown_content` 的确定性检索，仍返回章节级来源引用，便于离线 demo。
+- Agent session 和 RAG tool 层已复用 `RequirementQueryService.query_collections`，对话场景在选中需求项目后也走同一套 grounded query。
+- tester 角色查询时返回 `test_focus`，测试关注点只从已命中的原文来源生成，并在没有来源覆盖时要求产品确认。
 
 待实现增强：
 
-- Agent tool 层直接复用 `RequirementQueryService`，让对话场景也走同一套 grounded query。
 - 章节标题级定位（例如 `模块 > 小节 > 条款`），当前 MVP 只定位到 page/chunk。
-- tester 查询时追加测试关注点提示。
 
 ## 验收标准
 

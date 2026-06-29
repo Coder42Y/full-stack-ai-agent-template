@@ -31,7 +31,7 @@ li { margin:5px 0; }
 <p>&gt; 来源文档：[prd.md](prd.md)</p>
 <p>&gt; 基线骨架：<code>template/{{cookiecutter.project_slug}}/</code></p>
 <h2>0. 文档导航</h2>
-<p>本文档把 PRD 拆解为 9 个可实施功能模块。每个模块单独成 spec，包含数据模型、API、文件范围、依赖和验收标准。</p>
+<p>本文档把 PRD 拆解为 10 个可实施功能模块。每个模块单独成 spec，包含数据模型、API、文件范围、依赖和验收标准。</p>
 <p><code>| 模块 | Spec | 优先级 | 状态 |</code></p>
 <p><code>|------|------|--------|------|</code></p>
 <p><code>| M0 基础模型与权限底座 | [m0-foundation.md](m0-foundation.md) | P0 | in_progress |</code></p>
@@ -42,8 +42,9 @@ li { margin:5px 0; }
 <p><code>| M5 文档修改、diff 与草稿审批 | [m5-change-management.md](m5-change-management.md) | P0 | in_progress |</code></p>
 <p><code>| M6 文档版本管理 | [m6-versioning.md](m6-versioning.md) | P0 | in_progress |</code></p>
 <p><code>| M7 角色权限与 AI 行为边界 | [m7-rbac-ai-boundary.md](m7-rbac-ai-boundary.md) | P0 | draft |</code></p>
-<p><code>| M8 WebSocket 变更通知 | [m8-notifications.md](m8-notifications.md) | P1 | in_progress |</code></p>
-<p><code>| M9 前端需求工作台与产品/开发 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |</code></p>
+<p><code>| M8 WebSocket 变更通知 | [m8-notifications.md](m8-notifications.md) | P1 | implemented |</code></p>
+<p><code>| M9 前端需求工作台与产品/开发/测试 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |</code></p>
+<p><code>| M10 前端界面规范与响应式验收 | [m10-frontend-ui-guidelines.md](m10-frontend-ui-guidelines.md) | P0 | active |</code></p>
 <h2>1. 依赖顺序</h2>
 <pre><code>
 M0 基础模型/权限
@@ -88,13 +89,13 @@ M0 基础模型/权限
 <li>M2：<code>POST /api/v1/kb/{kb_id}/requirements/from-text</code> 支持 AI-first 一句话创建 Markdown 需求并返回澄清问题；模型未配置时使用本地 fallback。</li>
 <li>M3：<code>POST /api/v1/kb/{kb_id}/query</code> 支持从完整 <code>markdown_content</code> 兜底检索和来源引用，并可调用需求 AI 基于来源组织回答。</li>
 <li>M4：<code>GET /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown</code> 按 Markdown 章节拆解并引用来源。</li>
-<li>M5/M6：<code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/change</code> 支持建议、草稿和应用新版本；旧版标记 <code>is_latest=false</code>。</li>
+<li>M5/M6：<code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/change</code> 支持建议、草稿和应用新版本；<code>GET /api/v1/kb/{kb_id}/documents/drafts</code> 支持待审批草稿队列；<code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft</code> 支持产品审批草稿为最新版本；<code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback</code> 支持从历史版本复制出新的最新版本并记录审计；旧版标记 <code>is_latest=false</code>，产品应用新版本/回滚后重建最新版向量索引、删除上一版向量块；diff API 返回结构化红绿变更并在前端历史页展示。</li>
 <li>M7：MVP 前端用 <code>X-Requirement-Role</code> 在产品/开发间切换；产品可写，开发只能读、拆解或提出建议。</li>
-<li>M8：变更和入库响应返回轻量 <code>notification_event</code>，后续可接 WebSocket fan-out。</li>
+<li>M8：变更和入库响应返回 <code>notification_event</code>，后端通过现有 WebSocket manager 广播 <code>requirement_notification</code>，Redis 开启时通过 pub/sub 跨进程 fan-out，前端工作台实时接收同 KB 事件、toast 提示并支持标记已读。</li>
 </ul>
-<p>当前仍未完成完整生产态：持久化多轮澄清状态机、真实 diff 审批 UI、WebSocket 广播、历史版本列表、向量旧版清理和生产态登录角色映射。</p>
+<p>当前仍未完成完整生产态：持久化多轮澄清状态机、草稿评论流、通知已读持久化/独立通知中心和生产态登录角色映射。</p>
 <h2>4. 前端 MVP 调整</h2>
-<p>MVP 阶段前端不做登录鉴权拆分，但提供产品/开发两个身份选择。详见 [M9 前端需求工作台与产品/开发 MVP](m9-frontend-workbench.md)。</p></section><section class="doc" id="spec-req-kb-m0-foundation"><div class="file">m0-foundation.md</div><p>---</p>
+<p>MVP 阶段前端不做生产态登录鉴权拆分，但提供产品/开发/测试三个业务身份选择。详见 [M9 前端需求工作台与产品/开发/测试 MVP](m9-frontend-workbench.md) 和 [M10 前端界面规范与响应式验收](m10-frontend-ui-guidelines.md)。</p></section><section class="doc" id="spec-req-kb-m0-foundation"><div class="file">m0-foundation.md</div><p>---</p>
 <p>type: spec</p>
 <p>source: prd.md</p>
 <p>created: 2026-06-11</p>
@@ -397,10 +398,10 @@ query
 <li>命中完整 Markdown 时，回答中包含 <code>[来源：filename &gt; page N &gt; chunk M]</code>。</li>
 <li>未找到完整 Markdown 时，返回 chunk 级 fallback，并提示来源不够精确。</li>
 <li>如果向量检索不可用或没有 embedding key，查询会退回到 KB 最新 <code>markdown_content</code> 的确定性检索，仍返回章节级来源引用，便于离线 demo。</li>
+<li>Agent session 和 RAG tool 层已复用 <code>RequirementQueryService.query_collections</code>，对话场景在选中需求项目后也走同一套 grounded query。</li>
 </ul>
 <p>待实现增强：</p>
 <ul>
-<li>Agent tool 层直接复用 <code>RequirementQueryService</code>，让对话场景也走同一套 grounded query。</li>
 <li>章节标题级定位（例如 <code>模块 &gt; 小节 &gt; 条款</code>），当前 MVP 只定位到 page/chunk。</li>
 <li>tester 查询时追加测试关注点提示。</li>
 </ul>
@@ -508,13 +509,17 @@ POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes/{change_id}/reject
 <li>新增 <code>POST /api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/change</code>。</li>
 <li>developer/tester 调用时只返回 <code>suggestion_recorded</code>，不创建新版本。</li>
 <li>product/admin 可创建 <code>draft</code> 版本，或 <code>apply=true</code> 时直接创建 <code>done</code> 新版本并把旧版标为 <code>is_latest=false</code>。</li>
+<li>新增 <code>GET /api/v1/kb/{kb_id}/documents/drafts</code>，产品可在工作台历史页加载待审批草稿列表并批量处理队列中的草稿。</li>
+<li>新增 <code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft</code>，产品可把 <code>status=draft</code> 的版本审批为最新 <code>done</code> 版本。</li>
+<li>新增 <code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/reject-draft</code>，产品可拒绝草稿并记录拒绝原因，草稿状态变为 <code>rejected</code>，当前最新版保持不变。</li>
+<li>产品直接应用变更或审批草稿时会重建最新版 Markdown 的 RAG 向量索引，并删除上一版向量块。</li>
+<li>前端历史页可加载版本链，对草稿版本执行“应用草稿”或“拒绝草稿”，并展示审批说明。</li>
+<li>diff API 除 <code>diff_lines</code> 外返回 <code>structured_changes</code>，包含 added/removed/context 行、旧/新行号和 hunk 元数据；前端历史页优先渲染结构化红绿 diff。</li>
 <li>响应返回 diff 摘要、Markdown preview 和轻量通知 payload。</li>
 </ul>
 <p>待实现增强：</p>
 <ul>
-<li>小改 diff 的结构化红绿对比。</li>
-<li>大改草稿审批列表和确认接口。</li>
-<li>RAG 向量索引只保留最新版的真实重建逻辑。</li>
+<li>草稿评论流。</li>
 </ul>
 <h2>验收标准</h2>
 <ul>
@@ -561,12 +566,15 @@ GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&amp;to=2
 <li><code>RAGDocument.version/is_latest/previous_version_id/modified_by</code> 已落库。</li>
 <li>product/admin 通过 change API 应用修改时，会把旧版标为历史版本并创建新版本。</li>
 <li>查询 fallback 只读取 <code>is_latest=true</code> 且有 <code>markdown_content</code> 的 KB 文档。</li>
+<li>新增版本链 API <code>GET /api/v1/kb/{kb_id}/documents/{doc_id}/versions</code>。</li>
+<li>新增版本对比 API <code>GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff</code>，返回 Markdown unified diff。</li>
+<li>前端历史页可加载版本链、对比最近两版或单个版本与上一版。</li>
+<li>product/admin 直接应用变更或审批草稿后，会重建最新版 Markdown 的向量索引，并删除上一版 <code>vector_document_id</code> 对应的向量块；重建失败时保留 SQL Markdown fallback。</li>
+<li>新增回滚入口 <code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback</code>：从选中的历史版本复制出新的最新版本，保留旧最新版为历史版本，重建最新版向量，并写入 <code>requirement.rollback</code> 审计日志。</li>
 </ul>
 <p>待实现增强：</p>
 <ul>
-<li>历史版本列表/对比 API。</li>
-<li>向量索引删除旧版、重建新版。</li>
-<li>审计日志和回滚入口。</li>
+<li>更完整的回滚对比视图和审计日志查询页。</li>
 </ul>
 <h2>验收标准</h2>
 <ul>
@@ -670,18 +678,20 @@ GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&amp;to=2
 <p><code>| `app/services/requirement_notification.py` | 生成通知 payload |</code></p>
 <p><code>| `app/services/agent_session.py` | 复用 WebSocket 事件发送 |</code></p>
 <p><code>| `frontend/src/hooks/use-websocket.ts` | 接收通知事件 |</code></p>
-<p><code>| `frontend/src/app/[locale]/(dashboard)/settings/notifications/page.tsx` | 展示通知列表 |</code></p>
+<p><code>| `frontend/src/components/requirements/requirement-workbench.tsx` | 展示工作台事件流、toast 和已读状态 |</code></p>
 <h2>当前实现状态</h2>
-<p>已完成离线 demo 层的轻量事件 payload：</p>
+<p>已完成 demo fan-out：</p>
 <ul>
 <li>一句话入库、变更草稿、应用新版本、开发建议都会返回 <code>notification_event</code>。</li>
-<li>事件包含 <code>event_type/kb_id/document_id/filename/message</code>，可直接被前端或 WebSocket fan-out 使用。</li>
+<li>事件包含 <code>event_type/kb_id/document_id/filename/message/version/status/diff_summary</code>。</li>
+<li>后端复用现有 <code>/api/v1/ws/agent</code> 连接管理器广播 <code>requirement_notification</code>。</li>
+<li>Redis 开启时，需求通知会发布到 <code>requirement_notifications</code> pub/sub channel；每个应用进程启动 listener 后再转发给本进程 WebSocket 连接，实现跨进程 fan-out。</li>
+<li>前端需求工作台建立 WebSocket 连接，收到同 KB 远端事件后写入“事件回执”、弹出 toast、标记为未读，并可在当前工作台批量标记已读。</li>
 </ul>
 <p>待实现增强：</p>
 <ul>
-<li>将 <code>notification_event</code> 发布到现有 WebSocket/Redis 通道。</li>
-<li>前端通知列表和 toast。</li>
-<li>通知已读状态和组织成员广播。</li>
+<li>独立通知中心和已读状态持久化。</li>
+<li>按组织成员过滤，避免当前修改人重复收到自己触发的提示。</li>
 </ul>
 <h2>验收标准</h2>
 <ul>
@@ -743,11 +753,11 @@ GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&amp;to=2
 <li><code>change</code>：选择文档，输入修改说明；产品可直接应用生成新版本，开发只能提交修改建议。</li>
 </ul>
 <h2>4. MVP 角色策略</h2>
-<p>MVP 前端不做登录鉴权拆分，但展示产品/开发两个业务身份。</p>
+<p>MVP 前端不做生产态登录鉴权拆分，但展示产品/开发/测试三个业务身份。</p>
 <ul>
 <li>默认身份为产品，可创建需求项目、上传文档、录入一句话需求、回答澄清并应用版本变更。</li>
-<li>切换为开发后，录入和上传入口禁用，查询/拆解可用。</li>
-<li>开发在变更页提交的是修改建议，后端不会直接生成新版本。</li>
+<li>切换为开发或测试后，录入和上传入口禁用，查询/拆解可用。</li>
+<li>开发/测试在变更页提交的是修改建议，后端不会直接生成新版本。</li>
 <li>前端通过 <code>X-Requirement-Role</code> 传递 MVP 角色；后端 demo 依赖解析该 header。</li>
 <li>后端现有 JWT/RBAC 暂不拆，前端演示流程继续使用 demo admin 自动登录获取会话。</li>
 </ul>
@@ -801,17 +811,17 @@ GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&amp;to=2
 <li>工作台支持需求查询，并展示 <code>is_grounded</code>、answer 和来源引用。已实现。</li>
 <li>工作台支持选择文档拆解，并展示章节、原文摘录和测试关注点。已实现。</li>
 <li>工作台支持选择文档应用变更，并展示 action、diff 摘要、新版本 ID 和事件。已实现。</li>
+<li>工作台支持版本历史、最近两版结构化 diff、实时事件流、toast 和当前事件 feed 已读状态。已实现。</li>
 <li>前端导航将 KB 命名为“需求项目”或“需求”，移动端同步更新。已实现。</li>
 <li>M9 相关用户可见文案默认中文，浏览器演示不出现英文主界面。已实现。</li>
 <li>生成项目的 frontend type-check 或 build 至少一项通过。已通过 <code>npm run type-check</code>。</li>
-<li>工作台支持产品/开发身份切换，并将身份透传给 BFF/FastAPI。已实现。</li>
-<li>开发身份下创建/上传入口禁用，变更提交为建议而不是新版本。已实现。</li>
+<li>工作台支持产品/开发/测试身份切换，并将身份透传给 BFF/FastAPI。已实现。</li>
+<li>开发/测试身份下创建/上传入口禁用，变更提交为建议而不是新版本。已实现。</li>
 </ul>
 <h2>9. 后续迭代</h2>
 <ul>
 <li>恢复生产态真实登录用户、组织成员角色和 tester 身份。</li>
 <li>对话式多轮澄清。</li>
-<li>小改 diff 可视化确认、大改草稿审批列表。</li>
-<li>WebSocket 实时事件流。</li>
-<li>历史版本列表和版本对比。</li>
+<li>草稿评论流和独立通知中心。</li>
+<li>通知已读状态持久化和组织成员级过滤。</li>
 </ul></section></main></div></body></html>

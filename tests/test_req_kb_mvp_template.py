@@ -59,6 +59,25 @@ def sqlite_req_kb_project(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return generate_project(config, output_dir)
 
 
+@pytest.fixture(scope="module")
+def pg_redis_req_kb_project(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Generate the PostgreSQL+Redis combo for cross-process notifications."""
+    output_dir = tmp_path_factory.mktemp("req_kb_pg_redis")
+    config = ProjectConfig(
+        project_name="req_kb_contract_pg_redis",
+        database=DatabaseType.POSTGRESQL,
+        frontend=FrontendType.NONE,
+        python_version="3.11",
+        background_tasks=BackgroundTaskType.NONE,
+        enable_redis=True,
+        enable_docker=True,
+        enable_teams=True,
+        enable_websockets=True,
+        rag_features=RAGFeatures(enable_rag=True, vector_store=VectorStoreType.PGVECTOR),
+    )
+    return generate_project(config, output_dir)
+
+
 class TestRequirementKbMvpGeneratedOutput:
     """The generated PostgreSQL app should expose the demo MVP workflow."""
 
@@ -73,9 +92,19 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "RequirementDemoRole" in routes
         assert "RequirementQuerySvc" in routes
         assert "RequirementWorkflowSvc" in routes
+        assert "/{kb_id}/documents/drafts" in routes
+        assert "/{kb_id}/documents/{doc_id}/clarifications" in routes
         assert "/{kb_id}/documents/{doc_id}/apply-draft" in routes
+        assert "/{kb_id}/documents/{doc_id}/rollback" in routes
+        assert "/{kb_id}/audit-logs" in routes
+        assert "/{kb_id}/documents/{doc_id}/comments" in routes
+        assert "/{kb_id}/notifications" in routes
+        assert "/{kb_id}/notifications/{notification_id}/read" in routes
+        assert "/{kb_id}/notifications/read-all" in routes
         assert "_broadcast_requirement_event" in routes
-        assert "agent_connection_manager.broadcast_event" in routes
+        assert "persist_requirement_notification" in routes
+        assert "publish_requirement_event(response.notification_event)" in routes
+        assert "RequirementClarificationRequest" in routes
 
     def test_pg_backend_persists_markdown_and_version_metadata(
         self, pg_req_kb_project: Path
@@ -116,31 +145,145 @@ class TestRequirementKbMvpGeneratedOutput:
         assert "create_from_text" in workflow
         assert "break_down_document" in workflow
         assert "list_document_versions" in workflow
+        assert "list_pending_drafts" in workflow
         assert "diff_document_versions" in workflow
+        assert "list_requirement_audit_logs" in workflow
+        assert "list_draft_comments" in workflow
+        assert "add_draft_comment" in workflow
         assert "apply_draft" in workflow
+        assert "rollback_document" in workflow
+        assert "record_audit" in workflow
+        assert "requirement.draft_commented" in workflow
+        assert "requirement.rollback" in workflow
+        assert "requirement.draft_applied" in workflow
+        assert "requirement.draft_rejected" in workflow
         assert "difflib.unified_diff" in workflow
         assert "draft_created" in workflow
         assert "version_created" in workflow
         assert "draft_applied" in workflow
+        assert "version_rolled_back" in workflow
         assert "RequirementNotificationEvent" in workflow
 
         assert "class RequirementQueryService" in query
         assert "ai_service.answer_query" in query
+        assert "retrieval_service=retrieval_service" in _read(
+            pg_req_kb_project / "backend/app/api/deps.py"
+        )
+        rag_documents = _read(pg_req_kb_project / "backend/app/services/rag/documents.py")
+        assert "_docx_quality_warnings" in rag_documents
+        assert "docx_quality_warnings" in rag_documents
+        assert "grounding_status" in _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        assert "confidence" in _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        assert "facts" in _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        assert "follow_up_questions" in _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        assert "test_focus" in _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        assert "_query_variants" in query
+        assert "_grounding_status" in query
+        assert "_tester_focus_from_sources" in query
+        assert "use_reranker=True" in query
         assert "ai_model" in query
         assert "_markdown_fallback" in query
         assert "get_latest_markdown_for_kb" in query
         assert "[来源:" in query
 
+    def test_pg_backend_chat_router_handles_lightweight_and_offline_turns(
+        self, pg_req_kb_project: Path
+    ) -> None:
+        session = _read(pg_req_kb_project / "backend/app/services/agent_session.py")
+        prompts = _read(pg_req_kb_project / "backend/app/agents/prompts.py")
+
+        assert "_classify_chat_intent" in session
+        assert "_maybe_handle_lightweight_turn" in session
+        assert "_send_offline_assistant_response" in session
+        assert "_maybe_handle_grounded_query" in session
+        assert "RequirementQueryService" in session
+        assert "query_collections" in session
+        assert "assistant_status" in session
+        assert "assistant_offline" in session
+        assert "requirement_action" in session
+        assert "模型服务暂不可用" in session
+        assert "当前输入:" not in session
+        assert "不要强行要求业务目标" in prompts
+
+    def test_pg_backend_public_register_defaults_to_product_role(
+        self, pg_req_kb_project: Path
+    ) -> None:
+        auth_routes = _read(pg_req_kb_project / "backend/app/api/routes/v1/auth.py")
+        user_service = _read(pg_req_kb_project / "backend/app/services/user.py")
+        cli = _read(pg_req_kb_project / "backend/cli/commands.py")
+        auth_tests = _read(pg_req_kb_project / "backend/tests/api/test_auth.py")
+
+        assert 'model_copy(update={"role": UserRole.PRODUCT})' in auth_routes
+        assert "role=UserRole.ADMIN.value if is_first_user else" not in user_service
+        assert "is_app_admin=is_first_user" not in user_service
+        assert "requested_role = user_in.role.value" in user_service
+        assert "is_admin = requested_role == UserRole.ADMIN.value" in user_service
+        assert "is_app_admin=is_admin" in user_service
+        assert 'click.Choice(["user", "admin", "product", "developer", "tester"])' in cli
+        assert "user.is_app_admin = True" in cli
+        assert "test_register_forces_public_product_role" in auth_tests
+        assert 'registered_user.role == "product"' in auth_tests
+
     def test_pg_backend_includes_service_tests(self, pg_req_kb_project: Path) -> None:
         tests = _read(pg_req_kb_project / "backend/tests/test_requirement_query.py")
+        rag_schemas = _read(pg_req_kb_project / "backend/app/schemas/rag.py")
+        workflow_service = _read(
+            pg_req_kb_project / "backend/app/services/requirement_workflow.py"
+        )
 
         assert "test_query_falls_back_to_markdown_without_vector_hits" in tests
         assert "test_create_from_text_persists_markdown_and_questions" in tests
-        assert "test_developer_change_creates_reviewable_draft" in tests
+        assert "test_developer_change_records_suggestion_only" in tests
+        assert "test_tester_change_records_suggestion_only" in tests
         assert "test_product_apply_change_creates_latest_version" in tests
         assert "test_product_applies_draft_as_latest_version" in tests
+        assert "test_tester_query_returns_source_bound_test_focus" in tests
+        assert "test_product_rejects_draft_keeps_latest_version" in tests
+        assert "test_list_pending_drafts_returns_review_queue" in tests
+        assert "test_product_rolls_back_to_historical_version" in tests
+        assert "test_list_requirement_audit_logs_filters_current_kb" in tests
+        assert "test_add_draft_comment_records_audit_event" in tests
+        assert "test_list_draft_comments_reads_audit_stream" in tests
+        assert "test_create_from_text_records_clarification_session" in tests
+        assert "test_answer_clarifications_records_round_and_updates_requirement" in tests
+        assert "ingestion.remove_document.assert_awaited_once_with" in tests
+        assert "assert new_doc.vector_document_id == \"vector-v2\"" in tests
+        assert "audit.assert_awaited_once" in tests
         assert "test_requirement_notification_helper_broadcasts_payload" in tests
+        assert "test_requirement_notification_persists_actor_read_receipt" in tests
+        assert "test_list_requirement_notifications_merges_read_state" in tests
         assert "test_diff_document_versions_returns_unified_diff" in tests
+        assert "assert result.structured_changes" in tests
+        assert "class RequirementDocumentDiffHunk" in rag_schemas
+        assert "structured_changes=_structured_diff(diff_lines)" in workflow_service
+        assert "RequirementClarificationSession" in rag_schemas
+        assert "requirement.clarification_started" in workflow_service
+        assert "answer_clarifications" in workflow_service
+
+    def test_pg_redis_backend_wires_requirement_notification_bus(
+        self,
+        pg_redis_req_kb_project: Path,
+    ) -> None:
+        notification_service = _read(
+            pg_redis_req_kb_project / "backend/app/services/requirement_notification.py"
+        )
+        main = _read(pg_redis_req_kb_project / "backend/app/main.py")
+        routes = _read(
+            pg_redis_req_kb_project / "backend/app/api/routes/v1/knowledge_bases.py"
+        )
+
+        assert "REQUIREMENT_NOTIFICATION_CHANNEL = \"requirement_notifications\"" in notification_service
+        assert "REQUIREMENT_NOTIFICATION_CREATED = \"requirement.notification_created\"" in notification_service
+        assert "REQUIREMENT_NOTIFICATION_READ = \"requirement.notification_read\"" in notification_service
+        assert "persist_requirement_notification" in notification_service
+        assert "list_requirement_notifications" in notification_service
+        assert "mark_requirement_notification_read" in notification_service
+        assert "mark_all_requirement_notifications_read" in notification_service
+        assert "await client.publish(REQUIREMENT_NOTIFICATION_CHANNEL" in notification_service
+        assert "async def _listen_requirement_notifications" in notification_service
+        assert "start_requirement_notification_listener" in main
+        assert "stop_requirement_notification_listener" in main
+        assert "publish_requirement_event(response.notification_event)" in routes
 
     def test_sqlite_combo_does_not_expose_pg_only_workflow_routes(
         self, sqlite_req_kb_project: Path
@@ -165,17 +308,26 @@ class TestRequirementKbMvpFrontendTemplate:
             "app/api/kb/[id]/requirements/from-text/route.ts",
             "app/api/kb/[id]/query/route.ts",
             "app/api/kb/[id]/documents/[docId]/breakdown/route.ts",
+            "app/api/kb/[id]/documents/[docId]/clarifications/route.ts",
+            "app/api/kb/[id]/documents/drafts/route.ts",
             "app/api/kb/[id]/documents/[docId]/change/route.ts",
             "app/api/kb/[id]/documents/[docId]/apply-draft/route.ts",
+            "app/api/kb/[id]/documents/[docId]/reject-draft/route.ts",
+            "app/api/kb/[id]/documents/[docId]/rollback/route.ts",
             "app/api/kb/[id]/documents/[docId]/versions/route.ts",
             "app/api/kb/[id]/documents/[docId]/diff/route.ts",
+            "app/api/kb/[id]/audit-logs/route.ts",
+            "app/api/kb/[id]/documents/[docId]/comments/route.ts",
+            "app/api/kb/[id]/notifications/route.ts",
+            "app/api/kb/[id]/notifications/[notificationId]/read/route.ts",
+            "app/api/kb/[id]/notifications/read-all/route.ts",
         ]
 
         for route_path in route_paths:
             route = _read(self.template_root / route_path)
             assert "backendFetch" in route
             assert "/api/v1/kb/" in route
-            if route_path.endswith(("change/route.ts", "breakdown/route.ts", "query/route.ts", "from-text/route.ts")):
+            if route_path.endswith(("change/route.ts", "clarifications/route.ts", "breakdown/route.ts", "query/route.ts", "from-text/route.ts")):
                 assert "requirementRoleHeaders" in route
 
     def test_frontend_hooks_and_types_are_present(self) -> None:
@@ -189,7 +341,18 @@ class TestRequirementKbMvpFrontendTemplate:
             "breakDownDocument",
             "changeRequirementDocument",
             "applyRequirementDraft",
+            "rejectRequirementDraft",
+            "rollbackRequirementVersion",
             "fetchDocumentVersions",
+            "fetchPendingDrafts",
+            "fetchRequirementClarifications",
+            "answerRequirementClarifications",
+            "fetchRequirementAuditLogs",
+            "fetchDraftComments",
+            "fetchRequirementNotifications",
+            "markRequirementNotificationRead",
+            "markAllRequirementNotificationsRead",
+            "addDraftComment",
             "diffDocumentVersions",
         ):
             assert method in hook
@@ -201,15 +364,44 @@ class TestRequirementKbMvpFrontendTemplate:
             "RequirementQueryResponse",
             "RequirementBreakdownResponse",
             "RequirementChangeResponse",
+            "RequirementClarificationSession",
+            "RequirementClarificationResponse",
+            "RequirementClarificationInput",
             "RequirementDocumentVersionList",
             "RequirementDocumentDiffResponse",
+            "RequirementDocumentDiffHunk",
+            "RequirementAuditLogList",
+            "RequirementDraftCommentList",
+            "RequirementDraftCommentItem",
             "RequirementNotificationEvent",
+            "RequirementNotificationList",
+            "RequirementNotificationItem",
             "RequirementRole",
         ):
             assert type_name in types
 
         assert "ai_used" in types
         assert "ai_error" in types
+        assert "grounding_status" in types
+        assert "confidence" in types
+        assert "follow_up_questions" in types
+        assert "test_focus" in types
+        chat_types = _read(self.template_root / "types/chat.ts")
+        use_chat = _read(self.template_root / "hooks/use-chat.ts")
+        action_card = _read(
+            self.template_root / "components/chat/requirement-action-card.tsx"
+        )
+
+        assert "assistant_offline" in chat_types
+        assert "requirement_action" in chat_types
+        assert "ChatAction" in chat_types
+        assert "RequirementActionCard" in chat_types
+        assert "intent_hint" in use_chat
+        assert "assistant_offline" in use_chat
+        assert "requirement_action" in use_chat
+        assert "模型服务暂不可用" not in action_card
+        assert "离线助手" in action_card
+        assert "重试本轮" not in action_card
 
         assert 'export * from "./knowledge-base";' in type_index
 
@@ -233,6 +425,8 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "当前身份" in workbench
         assert "产品" in workbench
         assert "开发" in workbench
+        assert "测试" in workbench
+        assert '"tester"' in workbench
         assert "RoleSelector" in workbench
         assert "AIStatusBadge" in workbench
         assert "AI 已响应" in workbench
@@ -244,18 +438,27 @@ class TestRequirementKbMvpFrontendTemplate:
         assert 'label: "历史"' in workbench
         assert "用一句话创建需求" in workbench
         assert "查询有来源的需求答案" in workbench
+        assert "groundingStatusLabel" in workbench
+        assert "已确认信息" in workbench
+        assert "谨慎推断" in workbench
+        assert "待产品确认" in workbench
         assert "应用版本变更" in workbench
         assert "提交修改建议" in workbench
         assert "查看版本历史与差异" in workbench
         assert "加载版本历史" in workbench
         assert "对比最近两版" in workbench
+        assert "StructuredDiffViewer" in workbench
+        assert "DiffLineRow" in workbench
         assert "澄清问题与回答" in workbench
         assert "在每个问题下方填写回答" in workbench
         assert "用这些回答更新需求版本" in workbench
         assert "firstClarificationInputRef" in workbench
         assert "onAnswerClarifications" in workbench
-        assert "根据以下澄清回答更新需求文档" in workbench
+        assert "onFetchClarifications" in workbench
+        assert "structuredAnswers" in workbench
         assert "澄清回答已应用" in workbench
+        assert "持久澄清记录" in workbench
+        assert "clarificationStateLabel" in workbench
         assert 'htmlFor="requirement-title"' in workbench
         assert 'id="requirement-description"' in workbench
         assert 'htmlFor="requirement-query"' in workbench
@@ -268,15 +471,84 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "onBreakdown" in workbench
         assert "onChange" in workbench
         assert "onApplyDraft" in workbench
+        assert "onRejectDraft" in workbench
+        assert "onRollbackVersion" in workbench
         assert "onFetchVersions" in workbench
+        assert "onFetchPendingDrafts" in workbench
+        assert "onFetchClarifications" in workbench
+        assert "answerRequirementClarifications" in detail_page
+        assert "fetchRequirementClarifications" in detail_page
+        assert "onFetchAuditLogs" in workbench
+        assert "onFetchDraftComments" in workbench
+        assert "onFetchNotifications" in workbench
+        assert "onMarkNotificationRead" in workbench
+        assert "onMarkAllNotificationsRead" in workbench
+        assert "onAddDraftComment" in workbench
         assert "onDiffVersions" in workbench
         assert "useWebSocket" in workbench
         assert "requirement_notification" in workbench
+        assert 'import { toast } from "sonner";' in workbench
+        assert "RequirementEventFeedItem" in workbench
+        assert "toast.info(event.message" in workbench
+        assert 'read: false, source: "remote", showToast: true' in workbench
         assert "通知连接" in workbench
+        assert "通知中心" in workbench
+        assert "NotificationCenter" in workbench
+        assert "notificationItemToFeedItem" in workbench
+        assert "持久通知" in workbench
+        assert "标记已读" in workbench
+        assert "fetchRequirementNotifications" in detail_page
+        assert "markRequirementNotificationRead" in detail_page
+        assert "markAllRequirementNotificationsRead" in detail_page
+        assert "items={result.test_focus}" in workbench
+        assert "全部标记已读" in workbench
+        assert "未读" in workbench
+        assert "已读" in workbench
         assert "应用草稿" in workbench
         assert "草稿已应用" in workbench
+        assert "拒绝草稿" in workbench
+        assert "草稿已拒绝" in workbench
+        assert "待审批草稿" in workbench
+        assert "审计日志" in workbench
+        assert "AuditLogCard" in workbench
+        assert "草稿评论流" in workbench
+        assert "DraftCommentList" in workbench
+        assert "添加评论" in workbench
+        assert "暂无草稿评论" in workbench
+        assert "回滚到此版" in workbench
+        assert "版本已回滚" in workbench
+        assert "审批说明" in workbench
         assert "export { RequirementProjectList }" in component_index
         assert "export { RequirementWorkbench }" in component_index
+
+    def test_frontend_auth_role_login_and_open_registration(self) -> None:
+        auth_roles = _read(self.template_root / "lib/auth-roles.ts")
+        login_form = _read(self.template_root / "components/auth/login-form.tsx")
+        register_form = _read(self.template_root / "components/auth/register-form.tsx")
+        login_route = _read(self.template_root / "app/api/auth/login/route.ts")
+        register_route = _read(self.template_root / "app/api/auth/register/route.ts")
+        auth_types = _read(self.template_root / "types/auth.ts")
+        auth_guard = _read(self.template_root / "components/layout/auth-guard.tsx")
+
+        assert 'export type LoginRole = "admin" | "developer" | "tester" | "product";' in auth_roles
+        for label in ("Admin", "Developer", "Test", "PM"):
+            assert label in auth_roles
+        assert "LOGIN_ROLES.map" in login_form
+        assert "登录身份" in login_form
+        assert "await login({ email, password, role })" in login_form
+        assert "isLoginRole(selectedRole)" in login_route
+        assert "roleLabel(selectedRole)" in login_route
+        assert "user.role !== selectedRole" in login_route
+        assert "请选择登录身份" in login_route
+        assert "请选择匹配的身份" in login_route
+        assert 'role: "product"' in register_route
+        assert "用户名" in register_form
+        assert 'await register({ email, password, full_name: name })' in register_form
+        assert "注册后默认以 PM 身份进入需求工作台" in register_form
+        assert 'role: "admin" | "developer" | "tester" | "product";' in auth_types
+        assert "full_name: string;" in auth_types
+        assert 'NEXT_PUBLIC_AUTO_DEMO_ADMIN !== "true"' in auth_guard
+        assert "router.replace(ROUTES.LOGIN)" in auth_guard
 
     def test_frontend_requirement_feedback_is_chinese(self) -> None:
         hook = _read(self.template_root / "hooks/use-knowledge-bases.ts")
@@ -381,7 +653,11 @@ class TestRequirementKbMvpFrontendTemplate:
         assert "admin-demo@example.com" in demo_admin_route
         assert "DemoAdmin123!" in demo_admin_route
         assert "access_token" in demo_admin_route
+        assert "/api/v1/auth/register" not in demo_admin_route
+        assert "演示管理员账号不可用" in demo_admin_route
         assert 'apiClient.post<User & { access_token?: string }>("/auth/demo-admin")' in auth_guard
+        assert 'NEXT_PUBLIC_AUTO_DEMO_ADMIN !== "true"' in auth_guard
+        assert "router.replace(ROUTES.LOGIN)" in auth_guard
         assert "setAccessToken(access_token ?? null)" in auth_guard
         assert "useAuthStore.getState().setAccessToken(null)" in auth_guard
         assert "useState(true)" in auth_guard

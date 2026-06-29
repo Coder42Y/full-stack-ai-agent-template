@@ -8,13 +8,16 @@ import { ArrowRight } from "lucide-react";
 import { OAuthButtons, OAuthDivider } from "@/components/auth/oauth-buttons";
 import { Button, Input, Label } from "@/components/ui";
 import { useAuth } from "@/hooks";
+import { LOGIN_ROLES, type LoginRole } from "@/lib/auth-roles";
 import { ApiError } from "@/lib/api-client";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginForm() {
   const { login } = useAuth();
+  const [role, setRole] = useState<LoginRole>("product");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,7 +32,7 @@ export function LoginForm() {
     setError("");
 
     try {
-      await login({ email, password });
+      await login({ email, password, role });
       toast.success("登录成功");
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "登录失败，请重试。";
@@ -60,6 +63,39 @@ export function LoginForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label className="text-foreground/80 text-xs font-medium tracking-wider uppercase">
+            登录身份
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {LOGIN_ROLES.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setRole(item.value)}
+                disabled={isLoading}
+                className={cn(
+                  "rounded-md border px-3 py-2 text-left transition-colors",
+                  "hover:border-foreground/30 hover:bg-foreground/[0.03]",
+                  role === item.value
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-foreground/10 bg-card text-foreground",
+                )}
+              >
+                <span className="block text-sm font-semibold">{item.label}</span>
+                <span
+                  className={cn(
+                    "mt-0.5 block text-[11px] leading-snug",
+                    role === item.value ? "text-background/70" : "text-foreground/55",
+                  )}
+                >
+                  {item.description}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-1.5">
           <Label
             htmlFor="email"

@@ -42,6 +42,7 @@ function AuthenticatedChatContainer() {
     connect,
     disconnect,
     sendMessage,
+    cancelGeneration,
     clearMessages,
     queuedMessages,
     cancelQueued,
@@ -200,6 +201,23 @@ function AuthenticatedChatContainer() {
     [messages, sendMessage],
   );
 
+  const handleRetryAction = useCallback(
+    (message?: string) => {
+      if (message && message.trim()) {
+        sendMessage(message.trim());
+        return;
+      }
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const m = messages[i];
+        if (m && m.role === "assistant") {
+          handleRegenerate(m.id);
+          return;
+        }
+      }
+    },
+    [handleRegenerate, messages, sendMessage],
+  );
+
   // Slash command handlers — passed down to ChatInput so the / palette can
   // run them locally without going through the agent.
   const slashContext = {
@@ -215,8 +233,7 @@ function AuthenticatedChatContainer() {
       }
     },
     openSettings: () => {
-      // Best-effort: focus the settings popover trigger if it's mounted.
-      document.querySelector<HTMLButtonElement>("[data-chat-settings-trigger]")?.click();
+      window.dispatchEvent(new CustomEvent("chat:open-controls", { detail: { tab: "settings" } }));
     },
   };
 
@@ -229,10 +246,12 @@ function AuthenticatedChatContainer() {
         currentConversationId !== null && isConversationLoading && messages.length === 0
       }
       sendMessage={sendMessage}
+      onCancelGeneration={cancelGeneration}
       onModelChange={setModel}
       onTemperatureChange={setTemperature}
       onThinkingEffortChange={setThinkingEffort}
       onRegenerate={handleRegenerate}
+      onRetryAction={handleRetryAction}
       slashContext={slashContext}
       {%- if cookiecutter.use_auth %}
       slashCommands={slashCommands}
@@ -257,11 +276,14 @@ interface ChatUIProps {
     content: string,
     fileIds?: string[],
     files?: import("@/types").ChatMessageFile[],
+    options?: import("@/hooks/use-chat").SendChatOptions,
   ) => void;
+  onCancelGeneration?: () => void;
   onModelChange?: (model: string | null) => void;
   onTemperatureChange?: (temperature: number | null) => void;
   onThinkingEffortChange?: (effort: "low" | "medium" | "high" | null) => void;
   onRegenerate?: (messageId: string) => void;
+  onRetryAction?: (message?: string) => void;
   slashContext?: import("./slash-commands").SlashCommandContext;
   slashCommands?: import("./slash-commands").SlashCommand[];
   queuedMessages?: import("@/hooks/use-chat").QueuedMessage[];
@@ -278,10 +300,12 @@ function ChatUI({
   isProcessing,
   isLoadingConversation,
   sendMessage,
+  onCancelGeneration,
   onModelChange,
   onTemperatureChange,
   onThinkingEffortChange,
   onRegenerate,
+  onRetryAction,
   slashContext,
   slashCommands,
   queuedMessages,
@@ -291,6 +315,17 @@ function ChatUI({
   pendingApproval,
   onResumeDecisions,
 }: ChatUIProps) {
+  useEffect(() => {
+    if (!isProcessing || !onCancelGeneration) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      onCancelGeneration();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isProcessing, onCancelGeneration]);
+
   return (
     <div className="flex h-full w-full">
       <div className="mx-auto flex h-full max-w-4xl min-w-0 flex-1 flex-col">
@@ -302,10 +337,18 @@ function ChatUI({
             <ConversationSkeleton />
           ) : messages.length === 0 ? (
             <div className="flex h-full items-center">
-              <ChatEmptyState onPick={(prompt) => sendMessage(prompt)} />
+              <ChatEmptyState
+                onPick={(prompt, intent) =>
+                  sendMessage(prompt, undefined, undefined, { intentHint: intent })
+                }
+              />
             </div>
           ) : (
-            <MessageList messages={messages} onRegenerate={onRegenerate} />
+            <MessageList
+              messages={messages}
+              onRegenerate={onRegenerate}
+              onRetryAction={onRetryAction}
+            />
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -330,7 +373,8 @@ function ChatUI({
             <div className="px-3 pt-3 sm:px-4 sm:pt-4">
               <ChatInput
                 onSend={sendMessage}
-                disabled={!isConnected || !!pendingApproval}
+                onCancel={onCancelGeneration}
+                disabled={!!pendingApproval}
                 isProcessing={isProcessing}
                 slashContext={slashContext}
                 commands={slashCommands}

@@ -19,10 +19,18 @@ import type {
   RequirementBreakdownResponse,
   RequirementChangeInput,
   RequirementChangeResponse,
+  RequirementClarificationInput,
+  RequirementClarificationResponse,
+  RequirementClarificationSession,
+  RequirementAuditLogList,
   RequirementDocumentDiffResponse,
   RequirementDocumentVersionList,
+  RequirementDraftCommentInput,
+  RequirementDraftCommentItem,
+  RequirementDraftCommentList,
   RequirementIntakeInput,
   RequirementIntakeResponse,
+  RequirementNotificationList,
   RequirementQueryResponse,
   RequirementRole,
 } from "@/types";
@@ -254,6 +262,36 @@ export function useKBDetail(id: string | null) {
     [id, refresh],
   );
 
+  const fetchRequirementClarifications = useCallback(
+    async (docId: string): Promise<RequirementClarificationSession | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementClarificationSession>(
+        `/kb/${id}/documents/${docId}/clarifications`,
+      );
+    },
+    [id],
+  );
+
+  const answerRequirementClarifications = useCallback(
+    async (
+      docId: string,
+      input: RequirementClarificationInput,
+      role: RequirementRole = "product",
+    ): Promise<RequirementClarificationResponse | null> => {
+      if (!id) return null;
+      const response = await apiClient.post<RequirementClarificationResponse>(
+        `/kb/${id}/documents/${docId}/clarifications`,
+        input,
+        { headers: requirementRoleHeader(role) },
+      );
+      if (response.change?.document_id) {
+        await refresh();
+      }
+      return response;
+    },
+    [id, refresh],
+  );
+
   const applyRequirementDraft = useCallback(
     async (
       docId: string,
@@ -263,6 +301,42 @@ export function useKBDetail(id: string | null) {
       const response = await apiClient.post<RequirementChangeResponse>(
         `/kb/${id}/documents/${docId}/apply-draft`,
         {},
+        { headers: requirementRoleHeader(role) },
+      );
+      await refresh();
+      return response;
+    },
+    [id, refresh],
+  );
+
+  const rejectRequirementDraft = useCallback(
+    async (
+      docId: string,
+      reason: string,
+      role: RequirementRole = "product",
+    ): Promise<RequirementChangeResponse | null> => {
+      if (!id) return null;
+      const response = await apiClient.post<RequirementChangeResponse>(
+        `/kb/${id}/documents/${docId}/reject-draft`,
+        { reason },
+        { headers: requirementRoleHeader(role) },
+      );
+      await refresh();
+      return response;
+    },
+    [id, refresh],
+  );
+
+  const rollbackRequirementVersion = useCallback(
+    async (
+      docId: string,
+      reason: string,
+      role: RequirementRole = "product",
+    ): Promise<RequirementChangeResponse | null> => {
+      if (!id) return null;
+      const response = await apiClient.post<RequirementChangeResponse>(
+        `/kb/${id}/documents/${docId}/rollback`,
+        { reason },
         { headers: requirementRoleHeader(role) },
       );
       await refresh();
@@ -281,6 +355,14 @@ export function useKBDetail(id: string | null) {
     [id],
   );
 
+  const fetchPendingDrafts = useCallback(
+    async (): Promise<RequirementDocumentVersionList | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementDocumentVersionList>(`/kb/${id}/documents/drafts`);
+    },
+    [id],
+  );
+
   const diffDocumentVersions = useCallback(
     async (
       docId: string,
@@ -294,6 +376,75 @@ export function useKBDetail(id: string | null) {
       return apiClient.get<RequirementDocumentDiffResponse>(
         `/kb/${id}/documents/${docId}/diff`,
         { params },
+      );
+    },
+    [id],
+  );
+
+  const fetchRequirementAuditLogs = useCallback(
+    async (limit = 50): Promise<RequirementAuditLogList | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementAuditLogList>(`/kb/${id}/audit-logs`, {
+        params: { limit: String(limit) },
+      });
+    },
+    [id],
+  );
+
+  const fetchDraftComments = useCallback(
+    async (docId: string, limit = 50): Promise<RequirementDraftCommentList | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementDraftCommentList>(
+        `/kb/${id}/documents/${docId}/comments`,
+        { params: { limit: String(limit) } },
+      );
+    },
+    [id],
+  );
+
+  const fetchRequirementNotifications = useCallback(
+    async (limit = 50): Promise<RequirementNotificationList | null> => {
+      if (!id) return null;
+      return apiClient.get<RequirementNotificationList>(`/kb/${id}/notifications`, {
+        params: { limit: String(limit) },
+      });
+    },
+    [id],
+  );
+
+  const markRequirementNotificationRead = useCallback(
+    async (notificationId: string): Promise<RequirementNotificationList | null> => {
+      if (!id) return null;
+      return apiClient.post<RequirementNotificationList>(
+        `/kb/${id}/notifications/${notificationId}/read`,
+        {},
+      );
+    },
+    [id],
+  );
+
+  const markAllRequirementNotificationsRead = useCallback(
+    async (): Promise<RequirementNotificationList | null> => {
+      if (!id) return null;
+      return apiClient.post<RequirementNotificationList>(
+        `/kb/${id}/notifications/read-all`,
+        {},
+      );
+    },
+    [id],
+  );
+
+  const addDraftComment = useCallback(
+    async (
+      docId: string,
+      input: RequirementDraftCommentInput,
+      role: RequirementRole = "product",
+    ): Promise<RequirementDraftCommentItem | null> => {
+      if (!id) return null;
+      return apiClient.post<RequirementDraftCommentItem>(
+        `/kb/${id}/documents/${docId}/comments`,
+        input,
+        { headers: requirementRoleHeader(role) },
       );
     },
     [id],
@@ -359,9 +510,20 @@ export function useKBDetail(id: string | null) {
     queryRequirements,
     breakDownDocument,
     changeRequirementDocument,
+    fetchRequirementClarifications,
+    answerRequirementClarifications,
     applyRequirementDraft,
+    rejectRequirementDraft,
+    rollbackRequirementVersion,
     fetchDocumentVersions,
+    fetchPendingDrafts,
     diffDocumentVersions,
+    fetchRequirementAuditLogs,
+    fetchDraftComments,
+    fetchRequirementNotifications,
+    markRequirementNotificationRead,
+    markAllRequirementNotificationsRead,
+    addDraftComment,
     createSyncSource,
     triggerSyncSource,
     deleteSyncSource,

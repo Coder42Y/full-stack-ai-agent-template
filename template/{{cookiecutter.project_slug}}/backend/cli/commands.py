@@ -219,7 +219,12 @@ def user_cli():
 @user_cli.command("create")
 @click.option("--email", prompt=True, help="User email")
 @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True, help="User password")
-@click.option("--role", type=click.Choice(["user", "admin"]), default="user", help="User role")
+@click.option(
+    "--role",
+    type=click.Choice(["user", "admin", "product", "developer", "tester"]),
+    default="user",
+    help="User role",
+)
 @click.option("--superuser", is_flag=True, default=False, help="Create as superuser")
 def user_create(email: str, password: str, role: str, superuser: bool):
     """Create a new user."""
@@ -240,6 +245,7 @@ def user_create(email: str, password: str, role: str, superuser: bool):
 
                 if superuser:
                     user.role = UserRole.ADMIN.value
+                    user.is_app_admin = True
                     session.add(user)
 
                 await session.commit()
@@ -259,6 +265,7 @@ def user_create(email: str, password: str, role: str, superuser: bool):
 
                 if superuser:
                     user.role = UserRole.ADMIN.value
+                    user.is_app_admin = True
                     session.add(user)
 
                 session.commit()
@@ -276,6 +283,7 @@ def user_create(email: str, password: str, role: str, superuser: bool):
 
             if superuser:
                 user.role = UserRole.ADMIN.value
+                user.is_app_admin = True
                 await user.save()
 
             return user
@@ -367,7 +375,12 @@ def user_create_admin(email: str, password: str):
 
 @user_cli.command("set-role")
 @click.argument("email")
-@click.option("--role", type=click.Choice(["user", "admin"]), required=True, help="New role")
+@click.option(
+    "--role",
+    type=click.Choice(["user", "admin", "product", "developer", "tester"]),
+    required=True,
+    help="New role",
+)
 def user_set_role(email: str, role: str):
     """Change a user's role."""
     import asyncio
@@ -383,6 +396,8 @@ def user_set_role(email: str, role: str):
             try:
                 user = await user_service.get_by_email(email)
                 user.role = UserRole(role).value
+                if user.role == UserRole.ADMIN.value:
+                    user.is_app_admin = True
                 session.add(user)
                 await session.commit()
                 return user
@@ -399,6 +414,8 @@ def user_set_role(email: str, role: str):
         try:
             user = user_service.get_by_email(email)
             user.role = UserRole(role).value
+            if user.role == UserRole.ADMIN.value:
+                user.is_app_admin = True
             session.add(user)
             session.commit()
         except NotFoundError:
@@ -411,6 +428,8 @@ def user_set_role(email: str, role: str):
         try:
             user = await user_service.get_by_email(email)
             user.role = UserRole(role).value
+            if user.role == UserRole.ADMIN.value:
+                user.is_app_admin = True
             await user.save()
             return user
         except NotFoundError:

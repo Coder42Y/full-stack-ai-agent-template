@@ -34,7 +34,7 @@ from app.schemas.password_reset import (
 )
 {%- endif %}
 from app.schemas.token import RefreshTokenRequest, Token
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,8 @@ async def register(
 
     Raises AlreadyExistsError if email is already registered.
     """
-    user = await user_service.register(user_in)
+    public_user = user_in.model_copy(update={"role": UserRole.PRODUCT})
+    user = await user_service.register(public_user)
     return user
 
 

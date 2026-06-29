@@ -8,10 +8,14 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 {%- if cookiecutter.use_postgresql %}
+{%- if cookiecutter.enable_oauth %}
 from sqlalchemy import func, select
+{%- endif %}
 from sqlalchemy.ext.asyncio import AsyncSession
 {%- elif cookiecutter.use_sqlite %}
+{%- if cookiecutter.enable_oauth %}
 from sqlalchemy import func, select
+{%- endif %}
 from sqlalchemy.orm import Session
 {%- endif %}
 
@@ -157,9 +161,8 @@ class UserService:
     async def register(self, user_in: UserCreate) -> User:
         """Register a new user.
 
-        The very first user to register is auto-promoted to app-admin so that a
-        fresh deployment has someone who can reach the /admin pages without an
-        extra CLI step.
+        Public registration stores the requested role. Admin accounts must be
+        created explicitly, for example via the CLI create-admin command.
 
         Raises:
             AlreadyExistsError: If email is already registered.
@@ -171,26 +174,16 @@ class UserService:
                 details={"email": user_in.email},
             )
 
-{%- if cookiecutter.use_postgresql %}
-        existing_count = (
-            await self.db.execute(select(func.count()).select_from(User))
-        ).scalar_one()
-        is_first_user = existing_count == 0
-{%- elif cookiecutter.use_sqlite %}
-        existing_count = self.db.execute(select(func.count()).select_from(User)).scalar_one()
-        is_first_user = existing_count == 0
-{%- else %}
-        is_first_user = not await user_repo.has_any()
-{%- endif %}
-
         hashed_password = get_password_hash(user_in.password)
+        requested_role = user_in.role.value
+        is_admin = requested_role == UserRole.ADMIN.value
         user = await self._repo(
             user_repo.create,
             email=user_in.email,
             hashed_password=hashed_password,
             full_name=user_in.full_name,
-            role=UserRole.ADMIN.value if is_first_user else user_in.role.value,
-            is_app_admin=is_first_user,
+            role=requested_role,
+            is_app_admin=is_admin,
         )
 {%- if cookiecutter.enable_teams %}
 {%- if cookiecutter.use_mongodb %}

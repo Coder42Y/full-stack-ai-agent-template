@@ -66,7 +66,7 @@ function RequirementProjectRow({
       />
       <div className="pointer-events-none grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_150px_150px_48px] sm:items-center">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand/12 text-foreground ring-1 ring-foreground/10">
+          <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-foreground/[0.04] text-foreground ring-1 ring-foreground/10">
             <FolderKanban className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -75,7 +75,7 @@ function RequirementProjectRow({
                 {title}
               </h2>
               {project.is_default && (
-                <span className="rounded-sm bg-brand/12 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                <span className="rounded-sm border border-foreground/10 bg-background/70 px-1.5 py-0.5 text-[10px] font-medium text-foreground/65">
                   默认
                 </span>
               )}

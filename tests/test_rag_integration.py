@@ -404,6 +404,27 @@ class TestRAGWithPDFParsers:
         content = rag_config.read_text()
         assert "llamaparse" in content.lower()
 
+    def test_rag_with_all_pdf_parsers_wires_docx_llamaparse_fallback(self, tmp_path) -> None:
+        """All-parser projects should fall back from low-quality Mammoth DOCX output."""
+        config = ProjectConfig(
+            project_name="rag_all_parsers",
+            database=DatabaseType.POSTGRESQL,
+            background_tasks=BackgroundTaskType.CELERY,
+            enable_redis=True,
+            rag_features=RAGFeatures(enable_rag=True, pdf_parser=PdfParserType.ALL),
+            enable_docker=True,
+        )
+        project = generate_project(config, tmp_path)
+
+        documents = project / "backend" / "app" / "services" / "rag" / "documents.py"
+        content = documents.read_text()
+
+        assert "def _docx_quality_warnings" in content
+        assert "docx_quality_warnings" in content
+        assert "fallback_parser=self.llamaparse_parser" in content
+        assert "falling back to LlamaParse" in content
+        assert "docx_fallback_from=\"mammoth\"" in content
+
 
 class TestRAGCodePatterns:
     """Tests for verifying code patterns in generated RAG files."""

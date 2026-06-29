@@ -24,7 +24,7 @@ export default function KBPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] space-y-6 pb-8">
+    <div className="mx-auto w-full max-w-[1800px] space-y-6 px-0 pb-8 2xl:max-w-[calc(100vw-4rem)]">
       <header className="surface-panel overflow-hidden rounded-lg">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="p-6 sm:p-7">
@@ -35,7 +35,7 @@ export default function KBPage() {
               需求知识库
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-foreground/62">
-              MVP 阶段使用产品/开发两个业务身份。每个项目集中管理 PRD 文件、一句话需求、
+              MVP 阶段使用产品/开发/测试三个业务身份。每个项目集中管理 PRD 文件、一句话需求、
               有来源的问答、需求拆解、版本变更和事件回执。
             </p>
             <button
@@ -50,7 +50,7 @@ export default function KBPage() {
           <div className="grid grid-cols-3 gap-2 border-t border-foreground/10 bg-foreground/[0.025] p-5 lg:grid-cols-1 lg:border-t-0 lg:border-l">
             <StatPill value={counts.total} label="项目数" />
             <StatPill value={counts.workspace} label="团队范围" />
-            <StatPill value="产品/开发" label="MVP 身份" />
+            <StatPill value="产品/开发/测试" label="MVP 身份" />
           </div>
         </div>
       </header>

@@ -362,6 +362,7 @@ class Settings(BaseSettings):
     AI_TEMPERATURE: float = 0.7
     AI_THINKING_ENABLED: bool = False
     AI_THINKING_EFFORT: str = "medium"  # "low", "medium", "high"
+    AI_RUNTIME_CONFIG_PATH: Path = Path("./runtime_ai_config.json")
 {%- if cookiecutter.use_all_providers %}
     AI_AVAILABLE_MODELS: list[str] = [
         # OpenAI

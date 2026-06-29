@@ -12,7 +12,7 @@ depends_on: m0-foundation.md
 
 ## 功能概述
 
-用角色控制需求知识库读写权限，同时把角色传入需求 AI 上下文，确保 developer 的修改意图只记录建议，不直接变更文档。MVP 前端暂只暴露产品和开发两个身份选择，不做登录鉴权拆分。
+用角色控制需求知识库读写权限，同时把角色传入需求 AI 上下文，确保 developer/tester 的修改意图只记录建议，不直接变更文档。MVP 前端暴露产品、开发、测试三个业务身份选择，不做登录鉴权拆分。
 
 ## 权限矩阵
 
@@ -41,20 +41,21 @@ depends_on: m0-foundation.md
 已完成 MVP 权限边界：
 
 - `UserRole` 已包含 `product/developer/tester`。
-- `app/api/deps.py` 新增 `RequirementDemoRole` 和 `CurrentRequirementDemoWriter`，读取 `X-Requirement-Role`，MVP 中产品可写、开发不可写。
+- `app/api/deps.py` 新增 `RequirementDemoRole` 和 `CurrentRequirementDemoWriter`，读取 `X-Requirement-Role`，MVP 中产品可写，开发/测试不可写。
 - `app/api/routes/v1/knowledge_bases.py` 的创建/更新/删除 KB、上传/删除文档、创建/触发/删除 sync source 写接口已接入 `CurrentRequirementDemoWriter`。
-- 查询、文档列表和拆解保持可读；查询/拆解把当前产品或开发角色传入 AI 上下文。
-- 变更接口在开发身份下调用 suggestion-only 路径，返回“建议已记录”，不生成新版本。
+- 查询、文档列表和拆解保持可读；查询/拆解把当前产品、开发或测试角色传入 AI 上下文。
+- 变更接口在开发/测试身份下调用 suggestion-only 路径，返回“建议已记录”，不生成新版本。
+- 前端需求工作台暴露产品/开发/测试三个身份；测试身份下拆解会突出验收场景、边界值、异常提示和回归风险。
 - 新增单元测试覆盖 product/admin 可写、developer/tester/user 不可写。
 
 待实现增强：
 
 - 恢复生产态真实用户身份和组织成员角色，不再依赖前端 demo header。
-- tester 角色 UI 和测试视角拆解开关。
+- 将测试视角拆解从角色隐式触发升级为可独立选择的拆解视角开关。
 
 ## 验收标准
 
 1. product/admin 可上传和修改需求。
-2. developer 调用写接口返回权限错误或前端禁用入口。
-3. developer 在工作台中提出修改时，AI 回复“建议已记录”类信息，不生成 diff/草稿。
+2. developer/tester 调用写接口返回权限错误或前端禁用入口。
+3. developer/tester 在工作台中提出修改时，AI 回复“建议已记录”类信息，不生成 diff/草稿。
 4. admin 仍可管理用户。

@@ -44,12 +44,16 @@ GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff?from=1&to=2
 - `RAGDocument.version/is_latest/previous_version_id/modified_by` 已落库。
 - product/admin 通过 change API 应用修改时，会把旧版标为历史版本并创建新版本。
 - 查询 fallback 只读取 `is_latest=true` 且有 `markdown_content` 的 KB 文档。
+- 新增版本链 API `GET /api/v1/kb/{kb_id}/documents/{doc_id}/versions`。
+- 新增版本对比 API `GET /api/v1/kb/{kb_id}/documents/{doc_id}/diff`，返回 Markdown unified diff。
+- 前端历史页可加载版本链、对比最近两版或单个版本与上一版。
+- product/admin 直接应用变更或审批草稿后，会重建最新版 Markdown 的向量索引，并删除上一版 `vector_document_id` 对应的向量块；重建失败时保留 SQL Markdown fallback。
+- 新增回滚入口 `POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback`：从选中的历史版本复制出新的最新版本，保留旧最新版为历史版本，重建最新版向量，并写入 `requirement.rollback` 审计日志。
+- 新增审计查询入口 `GET /api/v1/kb/{kb_id}/audit-logs`，工作台历史面板可查看当前 KB 的需求版本审计记录。
 
 待实现增强：
 
-- 历史版本列表/对比 API。
-- 向量索引删除旧版、重建新版。
-- 审计日志和回滚入口。
+- 更完整的回滚对比视图。
 
 ## 验收标准
 

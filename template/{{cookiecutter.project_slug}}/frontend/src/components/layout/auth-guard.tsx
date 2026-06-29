@@ -23,6 +23,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         setUser(user as User);
         useAuthStore.getState().setAccessToken(access_token ?? null);
       } catch {
+        if (process.env.NEXT_PUBLIC_AUTO_DEMO_ADMIN !== "true") {
+          if (!cancelled) {
+            setUser(null);
+            useAuthStore.getState().setAccessToken(null);
+            router.replace(ROUTES.LOGIN);
+          }
+          return;
+        }
+
         try {
           const data = await apiClient.post<User & { access_token?: string }>("/auth/demo-admin");
           const { access_token, ...demoUser } = data;
@@ -32,6 +41,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           router.refresh();
         } catch {
           if (cancelled) return;
+          setUser(null);
           useAuthStore.getState().setAccessToken(null);
           router.replace(ROUTES.LOGIN);
         }

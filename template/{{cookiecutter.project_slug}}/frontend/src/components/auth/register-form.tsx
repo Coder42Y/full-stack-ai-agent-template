@@ -65,7 +65,7 @@ export function RegisterForm() {
 
     setIsLoading(true);
     try {
-      await register({ email, password, full_name: name || undefined });
+      await register({ email, password, full_name: name });
       toast.success("账号创建成功");
       router.push(ROUTES.LOGIN + "?registered=true");
     } catch (err) {
@@ -82,7 +82,7 @@ export function RegisterForm() {
     <div className="space-y-6">
       <div className="space-y-2">
         <p className="font-mono text-[11px] uppercase tracking-wider text-foreground/50">
-          创建演示账号
+          开放注册
         </p>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           创建需求工作台账号
@@ -104,7 +104,7 @@ export function RegisterForm() {
             htmlFor="name"
             className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
           >
-            姓名（可选）
+            用户名
           </Label>
           <Input
             id="name"
@@ -112,6 +112,7 @@ export function RegisterForm() {
             placeholder="希望如何称呼你？"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
             disabled={isLoading}
             autoComplete="name"
             className="h-10 rounded-md"
@@ -242,21 +243,7 @@ export function RegisterForm() {
         </Button>
 
         <p className="text-foreground/50 text-center text-xs">
-          创建账号即表示你同意我们的{" "}
-          <Link
-            href="/legal/terms"
-            className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
-          >
-            服务条款
-          </Link>{" "}
-          和{" "}
-          <Link
-            href="/legal/privacy"
-            className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
-          >
-            隐私政策
-          </Link>
-          。
+          当前 MVP 注册开放，注册后默认以 PM 身份进入需求工作台。
         </p>
       </form>
 

@@ -9,9 +9,12 @@ import { useChatStore, useAuthStore, useKBSelectionStore } from "@/stores";
 import { useChatStore, useAuthStore } from "@/stores";
 {%- endif %}
 import type {
+  ChatAction,
+  ChatIntent,
   ChatMessageFile,
   Decision,
   PendingApproval,
+  RequirementActionCard,
   ToolCall,
   WSEvent,
 } from "@/types";
@@ -24,6 +27,11 @@ export interface QueuedMessage {
   content: string;
   fileIds?: string[];
   files?: ChatMessageFile[];
+  intentHint?: ChatIntent;
+}
+
+export interface SendChatOptions {
+  intentHint?: ChatIntent;
 }
 
 interface UseChatOptions {
@@ -58,6 +66,8 @@ export function useChat(options: UseChatOptions = {}) {
     currentMessageIdRef.current = id;
   }, []);
   const currentGroupIdRef = useRef<string | null>(null);
+  const currentModeRef = useRef<"ai" | "offline" | "workflow">("ai");
+  const currentIntentRef = useRef<ChatIntent>("agent");
   // Outbound queue: messages typed while agent is busy / socket offline. Held
   // here (not in the chat history) so the UI can surface them as cancellable
   // "pending" entries above the input. The ref is the source of truth for the
@@ -102,6 +112,8 @@ export function useChat(options: UseChatOptions = {}) {
           groupId: currentGroupIdRef.current || undefined,
           conversationId: effectiveConversationId,
           isTemporaryId: true,
+          mode: currentModeRef.current,
+          intent: currentIntentRef.current,
         });
         setCurrentMessageId(newMsgId);
         return newMsgId;
@@ -161,6 +173,42 @@ export function useChat(options: UseChatOptions = {}) {
         case "model_request_start": {
           // PydanticAI/LangChain - create message immediately
           createNewMessage("");
+          break;
+        }
+
+        case "assistant_status": {
+          const data = wsEvent.data as {
+            mode?: "ai" | "offline" | "workflow";
+            intent?: ChatIntent;
+          };
+          currentModeRef.current = data.mode ?? "ai";
+          currentIntentRef.current = data.intent ?? "agent";
+          if (currentMessageIdRef.current) {
+            updateMessage(currentMessageIdRef.current, (msg) => ({
+              ...msg,
+              mode: currentModeRef.current,
+              intent: currentIntentRef.current,
+            }));
+          }
+          break;
+        }
+
+        case "assistant_offline": {
+          const data = wsEvent.data as {
+            message: string;
+            intent?: ChatIntent;
+            actions?: ChatAction[];
+          };
+          currentModeRef.current = "offline";
+          currentIntentRef.current = data.intent ?? "agent";
+          if (currentMessageIdRef.current) {
+            updateMessage(currentMessageIdRef.current, (msg) => ({
+              ...msg,
+              mode: "offline",
+              intent: currentIntentRef.current,
+              actions: data.actions,
+            }));
+          }
           break;
         }
 
@@ -363,6 +411,23 @@ export function useChat(options: UseChatOptions = {}) {
           break;
         }
 
+        case "requirement_action": {
+          const actionCard = wsEvent.data as RequirementActionCard;
+          if (!currentMessageIdRef.current) {
+            createNewMessage("");
+          }
+          if (currentMessageIdRef.current) {
+            updateMessage(currentMessageIdRef.current, (msg) => ({
+              ...msg,
+              actionCard,
+              actions: actionCard.actions ?? msg.actions,
+              mode: msg.mode ?? "workflow",
+              intent: actionCard.action_type,
+            }));
+          }
+          break;
+        }
+
         case "error": {
           // Handle error
           if (currentMessageIdRef.current) {
@@ -418,11 +483,29 @@ export function useChat(options: UseChatOptions = {}) {
           setIsProcessing(false);
           // Clear currentMessageId after complete (message_saved should have handled ID mapping)
           setCurrentMessageId(null);
+          currentModeRef.current = "ai";
+          currentIntentRef.current = "agent";
           // The turn just debited credits server-side — nudge any mounted
           // billing view to refetch so the user doesn't see stale numbers.
           if (typeof window !== "undefined") {
             window.dispatchEvent(new Event("billing:refresh"));
           }
+          break;
+        }
+
+        case "cancelled": {
+          if (currentMessageIdRef.current) {
+            updateMessage(currentMessageIdRef.current, (msg) => ({
+              ...msg,
+              content: msg.content || "已终止本轮生成。",
+              isStreaming: false,
+            }));
+          }
+          setIsProcessing(false);
+          setCurrentMessageId(null);
+          currentGroupIdRef.current = null;
+          currentModeRef.current = "ai";
+          currentIntentRef.current = "agent";
           break;
         }
       }
@@ -464,7 +547,12 @@ export function useChat(options: UseChatOptions = {}) {
   });
 
   const doSend = useCallback(
-    (content: string, fileIds?: string[], files?: ChatMessageFile[]) => {
+    (
+      content: string,
+      fileIds?: string[],
+      files?: ChatMessageFile[],
+      options?: SendChatOptions,
+    ) => {
       addMessage({
         id: nanoid(),
         role: "user",
@@ -479,6 +567,7 @@ export function useChat(options: UseChatOptions = {}) {
         message: content,
         conversation_id: conversationId || null,
       };
+      if (options?.intentHint) payload.intent_hint = options.intentHint;
       if (fileIds?.length) payload.file_ids = fileIds;
       if (modelRef.current) payload.model = modelRef.current;
       if (temperatureRef.current !== null) payload.temperature = temperatureRef.current;
@@ -493,17 +582,28 @@ export function useChat(options: UseChatOptions = {}) {
   );
 
   const sendChatMessage = useCallback(
-    (content: string, fileIds?: string[], files?: ChatMessageFile[]) => {
+    (
+      content: string,
+      fileIds?: string[],
+      files?: ChatMessageFile[],
+      options?: SendChatOptions,
+    ) => {
       // Queue when the agent is busy OR the socket is offline. The queue is
       // surfaced above the input as pending entries the user can cancel; the
       // drainer effect below pops the head as soon as the agent is idle.
       if (isProcessing || !isConnected) {
         const id = nanoid();
-        messageQueueRef.current.push({ id, content, fileIds, files });
+        messageQueueRef.current.push({
+          id,
+          content,
+          fileIds,
+          files,
+          intentHint: options?.intentHint,
+        });
         setQueuedMessages([...messageQueueRef.current]);
         return;
       }
-      doSend(content, fileIds, files);
+      doSend(content, fileIds, files, options);
     },
     [isProcessing, isConnected, doSend],
   );
@@ -517,6 +617,11 @@ export function useChat(options: UseChatOptions = {}) {
     messageQueueRef.current = [];
     setQueuedMessages([]);
   }, []);
+
+  const cancelGeneration = useCallback(() => {
+    if (!isProcessing) return;
+    sendMessage({ type: "cancel" });
+  }, [isProcessing, sendMessage]);
 
   // Human-in-the-Loop: send resume message with user decisions
   const sendResumeDecisions = useCallback(
@@ -571,7 +676,13 @@ export function useChat(options: UseChatOptions = {}) {
       if (next) {
         // Small debounce so the UI shows the queue clearing visibly before
         // the next user bubble lands; also avoids racing the WS state flip.
-        setTimeout(() => doSend(next.content, next.fileIds, next.files), 100);
+        setTimeout(
+          () =>
+            doSend(next.content, next.fileIds, next.files, {
+              intentHint: next.intentHint,
+            }),
+          100,
+        );
       }
     }
   }, [isProcessing, isConnected, doSend]);
@@ -584,6 +695,7 @@ export function useChat(options: UseChatOptions = {}) {
     connect,
     disconnect,
     sendMessage: sendChatMessage,
+    cancelGeneration,
     clearMessages,
     queuedMessages,
     cancelQueued,

@@ -64,6 +64,25 @@ async def get_latest_markdown_for_kb(
     return list(result.scalars().all())
 
 
+async def get_latest_markdown_for_collection(
+    db: AsyncSession,
+    *,
+    collection_name: str,
+) -> list[RAGDocument]:
+    """Return latest collection documents that have stored Markdown originals."""
+    query = (
+        select(RAGDocument)
+        .where(
+            RAGDocument.collection_name == collection_name,
+            RAGDocument.is_latest.is_(True),
+            RAGDocument.markdown_content.is_not(None),
+        )
+        .order_by(RAGDocument.created_at.desc())
+    )
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
 async def get_all(
     db: AsyncSession,
     collection_name: str | None = None,
@@ -156,6 +175,24 @@ async def get_version_chain_for_document(
                 changed = True
 
     return [item for item in chain if item.id in linked_ids]
+
+
+async def get_pending_drafts_for_kb(
+    db: AsyncSession,
+    *,
+    knowledge_base_id: UUID,
+) -> list[RAGDocument]:
+    """Return draft requirement document versions waiting for product review."""
+    query = (
+        select(RAGDocument)
+        .where(
+            RAGDocument.knowledge_base_id == knowledge_base_id,
+            RAGDocument.status == "draft",
+        )
+        .order_by(RAGDocument.created_at.desc())
+    )
+    result = await db.execute(query)
+    return list(result.scalars().all())
 {%- endif %}
 
 

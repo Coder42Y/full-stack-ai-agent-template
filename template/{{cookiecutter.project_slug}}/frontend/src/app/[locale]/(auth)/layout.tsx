@@ -52,7 +52,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 </p>
                 <span className="inline-flex items-center gap-1.5 rounded-md border border-foreground/10 px-2 py-1 text-[11px] text-foreground/55">
                   <CircleDot className="h-3 w-3 text-brand" />
-                  管理员演示
+                  身份选择
                 </span>
               </div>
               <h2 className="mt-5 text-2xl font-semibold leading-tight tracking-tight text-foreground">
@@ -91,7 +91,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <div>
                 <p className="text-sm font-medium text-foreground">MVP 阶段</p>
                 <p className="mt-1 text-xs leading-relaxed text-foreground/55">
-                  暂不拆真实鉴权角色，统一使用管理员身份体验产品和开发工作流。
+                  开放注册默认 PM 身份；登录时需选择和账号匹配的 Admin、Developer、Test 或 PM。
                 </p>
               </div>
             </div>

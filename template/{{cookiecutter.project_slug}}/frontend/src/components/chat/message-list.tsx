@@ -6,9 +6,10 @@ import { MessageItem } from "./message-item";
 interface MessageListProps {
   messages: ChatMessage[];
   onRegenerate?: (messageId: string) => void;
+  onRetryAction?: (message?: string) => void;
 }
 
-export function MessageList({ messages, onRegenerate }: MessageListProps) {
+export function MessageList({ messages, onRegenerate, onRetryAction }: MessageListProps) {
   // Calculate group positions for timeline connector
   const getGroupPosition = (
     message: ChatMessage,
@@ -45,6 +46,7 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
               ? () => onRegenerate(message.id)
               : undefined
           }
+          onRetryAction={onRetryAction}
         />
       ))}
     </div>

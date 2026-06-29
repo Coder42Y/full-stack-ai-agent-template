@@ -38,7 +38,7 @@ const workflow = [
   },
   {
     title: "拆解与版本变更",
-    description: "按章节拆解实现/测试关注点，产品可确认变更，开发只提交建议。",
+    description: "按章节拆解实现和验收关注点，产品可确认变更，开发与测试提交建议。",
     icon: GitBranch,
   },
 ];
@@ -54,7 +54,7 @@ const focusItems = [
   {
     label: "待拆解",
     value: "2",
-    note: "开发可直接生成实现关注点",
+    note: "开发和测试可生成关注点",
     focus: "breakdown",
     action: "进入拆解",
   },
@@ -64,6 +64,24 @@ const focusItems = [
     note: "产品决定是否应用草案",
     focus: "change",
     action: "确认变更",
+  },
+] as const;
+
+const roleSummaries = [
+  {
+    label: "产品",
+    status: "可写",
+    description: "录入需求、回答澄清、确认并应用版本变更。",
+  },
+  {
+    label: "开发",
+    status: "可建议",
+    description: "查询原文来源、拆解实现任务、提交修改建议。",
+  },
+  {
+    label: "测试",
+    status: "可验证",
+    description: "拆解验收场景、边界值、异常路径和回归风险。",
   },
 ] as const;
 
@@ -78,17 +96,17 @@ export default function DashboardPage() {
 
   const stats = useMemo(
     () => [
-      { label: "需求项目", value: kbs.length },
-      { label: "团队范围", value: kbs.filter((kb) => kb.scope === "org").length },
-      { label: "MVP 身份", value: "产品/开发" },
+      { label: "需求项目", value: kbs.length, note: "当前可访问" },
+      { label: "组织项目", value: kbs.filter((kb) => kb.scope === "org").length, note: "团队范围" },
+      { label: "业务身份", value: roleSummaries.length, note: "产品、开发、测试" },
     ],
     [kbs],
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1360px] space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-[1600px] space-y-6 pb-10">
       <section className="surface-panel overflow-hidden rounded-lg">
-        <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="flex flex-col justify-between p-6 sm:p-8">
             <div className="max-w-3xl">
               <p className="section-label">
@@ -98,7 +116,7 @@ export default function DashboardPage() {
                 从想法到可执行需求，保持同一条上下文。
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-foreground/62">
-                产品录入和确认，开发查询、拆解并提交建议。所有问题、回答、版本和来源都围绕需求项目组织。
+                产品录入和确认，开发查询拆解，测试确认验收风险。所有问题、回答、版本和来源都围绕需求项目组织。
               </p>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-2">
@@ -144,30 +162,21 @@ export default function DashboardPage() {
                 </Link>
               ))}
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(108px,1fr))] gap-2">
               {stats.map((stat) => (
-                <div
+                <DashboardStat
                   key={stat.label}
-                  className="metric-tile rounded-md px-3 py-3"
-                >
-                  <p
-                    className={
-                      typeof stat.value === "string"
-                        ? "whitespace-nowrap text-lg font-semibold tabular-nums text-foreground"
-                        : "text-xl font-semibold tabular-nums text-foreground"
-                    }
-                  >
-                    {stat.value}
-                  </p>
-                  <p className="mt-1 text-[11px] text-foreground/45">{stat.label}</p>
-                </div>
+                  label={stat.label}
+                  value={stat.value}
+                  note={stat.note}
+                />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {workflow.map((item) => (
           <div
             key={item.title}
@@ -182,7 +191,7 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="surface-panel rounded-lg">
           <div className="flex items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4">
             <div>
@@ -202,16 +211,16 @@ export default function DashboardPage() {
           <div className="p-5">
             {isLoading ? (
               <div className="grid gap-3 sm:grid-cols-2">
-              {[1, 2].map((item) => (
-                <div key={item} className="h-28 animate-pulse rounded-md bg-foreground/[0.06]" />
-              ))}
+                {[1, 2].map((item) => (
+                  <div key={item} className="h-28 animate-pulse rounded-md bg-foreground/[0.06]" />
+                ))}
               </div>
             ) : kbs.length === 0 ? (
               <div className="rounded-md border border-dashed border-foreground/15 bg-background/60 p-5 text-sm text-foreground/60">
                 还没有需求项目。先创建一个项目，再把一句话需求或 PRD 文档放进工作台。
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
                 {kbs.slice(0, 4).map((kb) => (
                   <ProjectTile key={kb.id} kb={kb} />
                 ))}
@@ -229,16 +238,40 @@ export default function DashboardPage() {
             <CheckCircle2 className="h-4 w-4 text-brand" />
           </div>
           <p className="mt-3 text-sm leading-relaxed text-foreground/62">
-            登录用户：{user?.email ?? "MVP 管理员"}。真实权限先不拆，需求工作台内提供
-            <span className="whitespace-nowrap">产品/开发</span>
-            切换：产品可写入和确认版本，开发可查询、拆解并提交修改建议。
+            登录用户：{user?.email ?? "MVP 管理员"}。当前账号负责访问系统，需求工作台内的业务身份决定写入、建议和测试视角。
           </p>
-          <div className="mt-4 space-y-2">
-            <RoleRow label="产品" value="录入需求、回答澄清、应用新版本" />
-            <RoleRow label="开发" value="查询来源、拆解任务、提交建议" />
+          <div className="mt-4 grid gap-2">
+            {roleSummaries.map((role) => (
+              <RoleRow
+                key={role.label}
+                label={role.label}
+                status={role.status}
+                value={role.description}
+              />
+            ))}
           </div>
         </aside>
       </section>
+    </div>
+  );
+}
+
+function DashboardStat({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: number;
+  note: string;
+}) {
+  return (
+    <div className="metric-tile min-w-0 rounded-md px-3 py-3">
+      <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-1 text-[11px] text-foreground/45">{label}</p>
+      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-foreground/45">
+        {note}
+      </p>
     </div>
   );
 }
@@ -290,11 +323,26 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-function RoleRow({ label, value }: { label: string; value: string }) {
+function RoleRow({
+  label,
+  status,
+  value,
+}: {
+  label: string;
+  status?: string;
+  value: string;
+}) {
   return (
-    <div className="surface-raised rounded-md px-3 py-2">
-      <p className="text-sm font-medium text-foreground">{label}</p>
-      <p className="mt-1 text-xs leading-relaxed text-foreground/55">{value}</p>
+    <div className="surface-raised min-w-0 rounded-md px-3 py-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {status ? (
+          <span className="rounded-full border border-foreground/10 px-2 py-0.5 text-[11px] text-foreground/55">
+            {status}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-1 break-words text-xs leading-relaxed text-foreground/55">{value}</p>
     </div>
   );
 }
@@ -356,9 +404,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1360px] space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-[1600px] space-y-6 pb-10">
       <section className="surface-panel overflow-hidden rounded-lg">
-        <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="grid min-h-[260px] lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="flex flex-col justify-between p-6 sm:p-8">
             <div className="max-w-3xl">
               <p className="section-label">
@@ -407,24 +455,20 @@ export default function DashboardPage() {
                 </Link>
               ))}
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(108px,1fr))] gap-2">
               {stats.map((stat) => (
-                <div
+                <DashboardStat
                   key={stat.label}
-                  className="metric-tile rounded-md px-3 py-3"
-                >
-                  <p className="whitespace-nowrap text-lg font-semibold tabular-nums text-foreground">
-                    {stat.value}
-                  </p>
-                  <p className="mt-1 text-[11px] text-foreground/45">{stat.label}</p>
-                </div>
+                  label={stat.label}
+                  value={stat.value}
+                />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {workflow.map((item) => (
           <div
             key={item.title}
@@ -439,7 +483,7 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="surface-panel rounded-lg">
           <div className="flex items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4">
             <div>
@@ -533,6 +577,17 @@ function ActionTile({
         <ArrowRight className="h-4 w-4 shrink-0 text-foreground/35 transition-transform group-hover:translate-x-0.5" />
       </div>
     </Link>
+  );
+}
+
+function DashboardStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="metric-tile min-w-0 rounded-md px-3 py-3">
+      <p className="break-words text-lg font-semibold tabular-nums text-foreground">
+        {value}
+      </p>
+      <p className="mt-1 text-[11px] text-foreground/45">{label}</p>
+    </div>
   );
 }
 

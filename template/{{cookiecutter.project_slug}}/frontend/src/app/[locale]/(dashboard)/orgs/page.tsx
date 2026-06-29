@@ -101,7 +101,7 @@ export default function OrgsPage() {
         <EmptyState
           icon={Building2}
           title="还没有协作空间"
-          description="创建一个空间后，可以把需求项目、产品/开发成员和后续通知边界放到同一处管理。"
+          description="创建一个空间后，可以把需求项目、产品/开发/测试成员和后续通知边界放到同一处管理。"
           cta={{ label: "创建协作空间", onClick: () => setCreateOpen(true) }}
         />
       ) : (

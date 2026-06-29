@@ -18,7 +18,7 @@ export const SITE = {
   tagline: "需求知识库与 AI 协作工作台",
   /** One-paragraph default description (≤160 chars for SERP truncation). */
   description:
-    "面向产品和开发的需求知识库：录入一句话需求、回答澄清问题，并基于来源完成查询、拆解和变更管理。",
+    "面向产品、开发和测试的需求知识库：录入一句话需求、回答澄清问题，并基于来源完成查询、拆解和变更管理。",
   /** Canonical absolute origin. NO trailing slash. */
   url:
     (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") as string | undefined) ??

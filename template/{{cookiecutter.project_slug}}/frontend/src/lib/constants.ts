@@ -47,8 +47,25 @@ export const ROUTES = {
   PRICING: "/pricing",
 } as const;
 
+const DEFAULT_BACKEND_PORT = "{{ cookiecutter.backend_port }}";
+
+function publicBackendUrl(kind: "http" | "ws") {
+  const explicit =
+    kind === "ws" ? process.env.NEXT_PUBLIC_WS_URL : process.env.NEXT_PUBLIC_API_URL;
+  if (explicit) return explicit;
+
+  if (typeof window !== "undefined") {
+    const isHttps = window.location.protocol === "https:";
+    const protocol = kind === "ws" ? (isHttps ? "wss" : "ws") : isHttps ? "https" : "http";
+    const port = process.env.NEXT_PUBLIC_BACKEND_PORT || DEFAULT_BACKEND_PORT;
+    return `${protocol}://${window.location.hostname}:${port}`;
+  }
+
+  return `${kind}://localhost:${DEFAULT_BACKEND_PORT}`;
+}
+
 // WebSocket URL (for chat - direct to backend, use wss:// in production)
-export const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:{{ cookiecutter.backend_port }}";
+export const WS_URL = publicBackendUrl("ws");
 
 // Backend API URL (public, for direct links like API docs)
-export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:{{ cookiecutter.backend_port }}";
+export const BACKEND_URL = publicBackendUrl("http");

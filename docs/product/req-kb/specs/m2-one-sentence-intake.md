@@ -75,11 +75,12 @@ drafting
 - 响应返回 2-3 个澄清问题、生成的 Markdown 和轻量通知 payload。
 - `app/services/requirement_ai.py` 接入 Anthropic Messages-compatible 接口，读取 `ANTHROPIC_AUTH_TOKEN`/`ANTHROPIC_BASE_URL`/`ANTHROPIC_MODEL`。
 - `RequirementWorkflowService` 优先调用 AI 生成草案和应用澄清回答；模型未配置或失败时使用本地 fallback。
-- 前端在澄清问题下提供回答输入框，提交后调用 change workflow 生成新版本。
+- `GET/POST /api/v1/kb/{kb_id}/documents/{doc_id}/clarifications` 通过审计事件流持久化澄清 session、状态和多轮回答。
+- 前端在澄清问题下提供回答输入框，提交后保存澄清轮次并调用 change workflow 生成新版本。
 
 待实现增强：
 
-- 对话式多轮澄清状态机。
+- 产品确认后再入库的完整澄清状态机。
 - 产品确认后再入库，而不是 MVP 版先创建可追踪文档再用澄清回答生成新版本。
 - Agent WebSocket 事件接入。
 

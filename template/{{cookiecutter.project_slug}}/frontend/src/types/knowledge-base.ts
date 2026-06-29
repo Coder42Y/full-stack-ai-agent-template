@@ -1,5 +1,5 @@
 export type KBScope = "personal" | "org" | "app";
-export type RequirementRole = "product" | "developer";
+export type RequirementRole = "product" | "developer" | "tester";
 
 export interface KnowledgeBase {
   id: string;
@@ -64,6 +64,20 @@ export interface RequirementNotificationEvent {
   diff_summary: string | null;
 }
 
+export interface RequirementNotificationItem extends RequirementNotificationEvent {
+  id: string;
+  actor_user_id: string;
+  read: boolean;
+  created_at: string | null;
+  read_at: string | null;
+}
+
+export interface RequirementNotificationList {
+  items: RequirementNotificationItem[];
+  total: number;
+  unread_count: number;
+}
+
 export interface RequirementIntakeInput {
   description: string;
   title?: string | null;
@@ -81,6 +95,42 @@ export interface RequirementIntakeResponse {
   ai_error: string | null;
 }
 
+export interface RequirementClarificationAnswer {
+  question: string;
+  answer: string;
+}
+
+export interface RequirementClarificationInput {
+  answers: RequirementClarificationAnswer[];
+  apply?: boolean;
+}
+
+export interface RequirementClarificationRound {
+  id: string;
+  round: number;
+  answers: RequirementClarificationAnswer[];
+  actor_user_id: string;
+  created_at: string | null;
+}
+
+export interface RequirementClarificationSession {
+  session_id: string | null;
+  kb_id: string;
+  document_id: string;
+  filename: string;
+  state: "drafting" | "clarifying" | "awaiting_confirmation" | "ingested" | string;
+  questions: string[];
+  rounds: RequirementClarificationRound[];
+  latest_round: number;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface RequirementClarificationResponse {
+  session: RequirementClarificationSession;
+  change: RequirementChangeResponse | null;
+}
+
 export interface RequirementQuerySource {
   document_id: string;
   vector_document_id: string | null;
@@ -96,6 +146,13 @@ export interface RequirementQueryResponse {
   answer: string;
   sources: RequirementQuerySource[];
   is_grounded: boolean;
+  grounding_status: "grounded" | "partial" | "low_confidence" | "no_source";
+  confidence: "high" | "medium" | "low";
+  facts: string[];
+  inferences: string[];
+  follow_up_questions: string[];
+  test_focus: string[];
+  retrieval_debug: Record<string, unknown> | null;
   message: string | null;
   ai_used: boolean;
   ai_model: string | null;
@@ -125,6 +182,10 @@ export interface RequirementChangeInput {
   apply?: boolean;
 }
 
+export interface RequirementRollbackInput {
+  reason?: string | null;
+}
+
 export interface RequirementChangeResponse {
   action: string;
   message: string;
@@ -148,6 +209,7 @@ export interface RequirementDocumentVersionItem {
   previous_version_id: string | null;
   modified_by: string | null;
   has_markdown_content: boolean;
+  review_note: string | null;
   created_at: string | null;
   completed_at: string | null;
 }
@@ -155,6 +217,22 @@ export interface RequirementDocumentVersionItem {
 export interface RequirementDocumentVersionList {
   items: RequirementDocumentVersionItem[];
   total: number;
+}
+
+export interface RequirementDocumentDiffLine {
+  kind: "added" | "removed" | "context" | string;
+  content: string;
+  old_line_number: number | null;
+  new_line_number: number | null;
+}
+
+export interface RequirementDocumentDiffHunk {
+  header: string;
+  old_start: number | null;
+  old_count: number | null;
+  new_start: number | null;
+  new_count: number | null;
+  lines: RequirementDocumentDiffLine[];
 }
 
 export interface RequirementDocumentDiffResponse {
@@ -165,4 +243,39 @@ export interface RequirementDocumentDiffResponse {
   to_version: number;
   summary: string;
   diff_lines: string[];
+  structured_changes: RequirementDocumentDiffHunk[];
+}
+
+export interface RequirementAuditLogItem {
+  id: string;
+  action: string;
+  actor_user_id: string;
+  organization_id: string | null;
+  target_type: string | null;
+  target_id: string | null;
+  details: Record<string, unknown>;
+  created_at: string | null;
+}
+
+export interface RequirementAuditLogList {
+  items: RequirementAuditLogItem[];
+  total: number;
+}
+
+export interface RequirementDraftCommentInput {
+  body: string;
+}
+
+export interface RequirementDraftCommentItem {
+  id: string;
+  document_id: string;
+  author_user_id: string;
+  role: RequirementRole;
+  body: string;
+  created_at: string | null;
+}
+
+export interface RequirementDraftCommentList {
+  items: RequirementDraftCommentItem[];
+  total: number;
 }

@@ -103,6 +103,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[{% if cookiecutter.enable_red
     await redis_client.connect()
     state["redis"] = redis_client
 {%- endif %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and cookiecutter.use_postgresql %}
+    from app.services.requirement_notification import start_requirement_notification_listener
+    requirement_notification_task = await start_requirement_notification_listener()
+{%- endif %}
 
 {%- if cookiecutter.enable_caching and cookiecutter.enable_redis %}
     from app.core.cache import setup_cache
@@ -280,6 +284,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[{% if cookiecutter.enable_red
 {%- endif %}
 
     # === Shutdown ===
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and cookiecutter.use_postgresql %}
+    from app.services.requirement_notification import stop_requirement_notification_listener
+    await stop_requirement_notification_listener(requirement_notification_task)
+{%- endif %}
 {%- if cookiecutter.enable_redis %}
     if "redis" in state:
         await state["redis"].close()

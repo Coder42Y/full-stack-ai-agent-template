@@ -163,7 +163,6 @@ export default function AdminOverviewPage() {
             label="24 小时活跃"
             value={(stats?.active_users_24h ?? 0).toLocaleString()}
             icon={Activity}
-            featured
           />
 {%- if cookiecutter.use_ai %}
           <StatCard

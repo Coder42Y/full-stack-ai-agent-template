@@ -27,7 +27,18 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
     breakDownDocument,
     changeRequirementDocument,
     applyRequirementDraft,
+    rejectRequirementDraft,
+    rollbackRequirementVersion,
     fetchDocumentVersions,
+    fetchPendingDrafts,
+    fetchRequirementClarifications,
+    answerRequirementClarifications,
+    fetchRequirementAuditLogs,
+    fetchDraftComments,
+    fetchRequirementNotifications,
+    markRequirementNotificationRead,
+    markAllRequirementNotificationsRead,
+    addDraftComment,
     diffDocumentVersions,
   } = useKBDetail(id);
 
@@ -59,7 +70,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
   if (!kb) return null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 pb-8">
+    <div className="mx-auto w-full max-w-[1800px] space-y-5 px-0 pb-8 2xl:max-w-[calc(100vw-4rem)]">
       <Link
         href="/kb"
         className="inline-flex h-9 items-center gap-2 rounded-md border border-foreground/10 bg-background/70 px-3 text-sm font-medium text-foreground/60 transition-colors hover:border-foreground/25 hover:text-foreground"
@@ -77,7 +88,18 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
         onBreakdown={breakDownDocument}
         onChange={changeRequirementDocument}
         onApplyDraft={applyRequirementDraft}
+        onRejectDraft={rejectRequirementDraft}
+        onRollbackVersion={rollbackRequirementVersion}
         onFetchVersions={fetchDocumentVersions}
+        onFetchPendingDrafts={fetchPendingDrafts}
+        onFetchClarifications={fetchRequirementClarifications}
+        onAnswerClarifications={answerRequirementClarifications}
+        onFetchAuditLogs={fetchRequirementAuditLogs}
+        onFetchDraftComments={fetchDraftComments}
+        onFetchNotifications={fetchRequirementNotifications}
+        onMarkNotificationRead={markRequirementNotificationRead}
+        onMarkAllNotificationsRead={markAllRequirementNotificationsRead}
+        onAddDraftComment={addDraftComment}
         onDiffVersions={diffDocumentVersions}
         onRefresh={refresh}
       />

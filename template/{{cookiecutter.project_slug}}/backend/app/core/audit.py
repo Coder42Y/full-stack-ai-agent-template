@@ -22,7 +22,7 @@ async def record_audit(
     target_id: str | None = None,
     details: dict[str, Any] | None = None,
     ip_address: str | None = None,
-) -> None:
+) -> Any | None:
     """Persist an audit log entry. Failures are logged but do not raise."""
     try:
         from app.db.models.audit_log import AppAdminAuditLog
@@ -38,8 +38,10 @@ async def record_audit(
         )
         db.add(entry)
         await db.flush()
+        return entry
     except Exception:
         logger.exception("Failed to write audit log for action=%s actor=%s", action, actor_user_id)
+        return None
 
 {%- elif cookiecutter.use_sqlite %}
 

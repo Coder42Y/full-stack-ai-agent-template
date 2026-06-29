@@ -27,13 +27,28 @@ const _frameAncestors = _embedOrigins.length > 0
 const _frameAncestors = "frame-ancestors 'none';";
 {%- endif %}
 
+function cspOrigin(url: string | undefined) {
+  if (!url) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const _connectOrigins = [
+  cspOrigin(process.env.NEXT_PUBLIC_API_URL),
+  cspOrigin(process.env.NEXT_PUBLIC_WS_URL),
+  cspOrigin(process.env.BACKEND_URL),
+].filter((origin): origin is string => Boolean(origin));
+
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline';
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https:;
   font-src 'self' data:;
-  connect-src 'self' ws: wss: http://localhost:* https://localhost:*;
+  connect-src 'self' ws: wss: http://localhost:* https://localhost:* ${_connectOrigins.join(" ")};
   ${_frameAncestors}
   base-uri 'self';
   form-action 'self';

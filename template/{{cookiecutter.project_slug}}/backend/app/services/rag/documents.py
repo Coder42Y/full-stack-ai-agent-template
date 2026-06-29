@@ -27,6 +27,24 @@ from app.services.rag.models import DocumentImage
 logger = logging.getLogger(__name__)
 
 
+def _docx_quality_warnings(markdown: str) -> list[str]:
+    """Return deterministic DOCX Markdown quality warnings."""
+    warnings: list[str] = []
+    stripped = markdown.strip()
+    headings = [line for line in stripped.splitlines() if line.lstrip().startswith("#")]
+    paragraphs = [part for part in stripped.split("\n\n") if part.strip()]
+    if len(stripped) < 200:
+        warnings.append("markdown_content_too_short")
+    if len(headings) == 0 and len(paragraphs) < 3:
+        warnings.append("low_document_structure")
+    return warnings
+
+
+def _merge_metadata_info(metadata: DocumentMetadata, **values: Any) -> DocumentMetadata:
+    metadata.additional_info = {**(metadata.additional_info or {}), **values}
+    return metadata
+
+
 class BaseDocumentParser(ABC):
     """Abstract base class for document parsing strategies.
     Defines the interface that all document parsers must implement.
@@ -135,7 +153,10 @@ class DocxDocumentParser(BaseDocumentParser):
     falls back to python-docx plain text if mammoth cannot parse the file.
     """
 
-    def _parse_docx_file(self, filepath: Path) -> Document:
+    def __init__(self, fallback_parser: BaseDocumentParser | None = None):
+        self.fallback_parser = fallback_parser
+
+    async def _parse_docx_file(self, filepath: Path) -> Document:
         """Extract raw text from the DOCX file.
 
         Args:
@@ -157,11 +178,28 @@ class DocxDocumentParser(BaseDocumentParser):
                     for message in result.messages
                     if getattr(message, "message", None)
                 ]
-                metadata.additional_info = {
-                    **(metadata.additional_info or {}),
-                    "docx_parser": "mammoth",
-                    "docx_warnings": warnings[:20],
-                }
+                quality_warnings = _docx_quality_warnings(markdown)
+                if quality_warnings and self.fallback_parser is not None:
+                    logger.warning(
+                        "mammoth DOCX quality check failed for %s; falling back to LlamaParse: %s",
+                        filepath.name,
+                        ", ".join(quality_warnings),
+                    )
+                    document = await self.fallback_parser.parse(filepath)
+                    _merge_metadata_info(
+                        document.metadata,
+                        docx_parser="llamaparse",
+                        docx_fallback_from="mammoth",
+                        docx_quality_warnings=quality_warnings,
+                        docx_warnings=warnings[:20],
+                    )
+                    return document
+                _merge_metadata_info(
+                    metadata,
+                    docx_parser="mammoth",
+                    docx_quality_warnings=quality_warnings,
+                    docx_warnings=warnings[:20],
+                )
                 page = DocumentPage(page_num=1, content=markdown)
                 return Document(pages=[page], metadata=metadata)
             logger.warning(
@@ -181,10 +219,11 @@ class DocxDocumentParser(BaseDocumentParser):
             page_num=1,
             content="\n\n".join(paragraphs)
         )
-        metadata.additional_info = {
-            **(metadata.additional_info or {}),
-            "docx_parser": "python-docx",
-        }
+        _merge_metadata_info(
+            metadata,
+            docx_parser="python-docx",
+            docx_quality_warnings=["mammoth_parse_failed"],
+        )
         return Document(
             pages=[page],
             metadata=metadata,
@@ -206,7 +245,7 @@ class DocxDocumentParser(BaseDocumentParser):
             raise ValueError(f"Extension {filepath.suffix} not supported by DocxDocumentParser")
 
         if filepath.suffix == ".docx":
-            return self._parse_docx_file(filepath)
+            return await self._parse_docx_file(filepath)
         else:
             raise ValueError(f"Unsupported file extension. Allowed extensions: {self.allowed}")
 
@@ -548,7 +587,7 @@ class DocxDocumentParser(BaseDocumentParser):
     falls back to python-docx plain text if mammoth cannot parse the file.
     """
 
-    def _parse_docx_file(self, filepath: Path) -> Document:
+    async def _parse_docx_file(self, filepath: Path) -> Document:
         """Extract raw text from the DOCX file.
 
         Args:
@@ -570,11 +609,12 @@ class DocxDocumentParser(BaseDocumentParser):
                     for message in result.messages
                     if getattr(message, "message", None)
                 ]
-                metadata.additional_info = {
-                    **(metadata.additional_info or {}),
-                    "docx_parser": "mammoth",
-                    "docx_warnings": warnings[:20],
-                }
+                _merge_metadata_info(
+                    metadata,
+                    docx_parser="mammoth",
+                    docx_quality_warnings=_docx_quality_warnings(markdown),
+                    docx_warnings=warnings[:20],
+                )
                 page = DocumentPage(page_num=1, content=markdown)
                 return Document(pages=[page], metadata=metadata)
             logger.warning(
@@ -594,10 +634,11 @@ class DocxDocumentParser(BaseDocumentParser):
             page_num=1,
             content="\n\n".join(paragraphs)
         )
-        metadata.additional_info = {
-            **(metadata.additional_info or {}),
-            "docx_parser": "python-docx",
-        }
+        _merge_metadata_info(
+            metadata,
+            docx_parser="python-docx",
+            docx_quality_warnings=["mammoth_parse_failed"],
+        )
         return Document(
             pages=[page],
             metadata=metadata,
@@ -619,7 +660,7 @@ class DocxDocumentParser(BaseDocumentParser):
             raise ValueError(f"Extension {filepath.suffix} not supported by DocxDocumentParser")
 
         if filepath.suffix == ".docx":
-            return self._parse_docx_file(filepath)
+            return await self._parse_docx_file(filepath)
         else:
             raise ValueError(f"Unsupported file extension. Allowed extensions: {self.allowed}")
 
@@ -959,7 +1000,12 @@ class DocumentProcessor:
         # Always use Python native parser for plain text
         self.text_parser = TextDocumentParser()
         {%- if cookiecutter.use_all_pdf_parsers %}
-        self.docx_parser = DocxDocumentParser()
+        self.llamaparse_parser = (
+            LlamaParseParser(api_key=settings.pdf_parser.api_key, tier=settings.pdf_parser.tier)
+            if settings.pdf_parser.api_key
+            else None
+        )
+        self.docx_parser = DocxDocumentParser(fallback_parser=self.llamaparse_parser)
         {%- if cookiecutter.enable_rag_image_description %}
         self.image_describer = self._init_image_describer(settings) if settings.enable_image_description else None
         {%- else %}

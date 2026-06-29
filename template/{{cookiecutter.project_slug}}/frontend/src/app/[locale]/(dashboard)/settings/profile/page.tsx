@@ -57,11 +57,11 @@ export default function ProfileSettingsPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           <ProfileFact icon={UserCircle} label="登录账号" value={user.email} />
           <ProfileFact icon={ShieldCheck} label="系统权限" value={user.role === "admin" ? "管理员" : "成员"} />
-          <ProfileFact icon={BadgeCheck} label="业务身份" value="产品 / 开发" />
+          <ProfileFact icon={BadgeCheck} label="业务身份" value="产品 / 开发 / 测试" />
         </div>
         <p className="mt-4 rounded-md border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-sm leading-relaxed text-foreground/65">
           这里的账号只负责进入演示系统。需求录入、澄清、查询、拆解和变更确认，
-          请在需求项目工作台内使用产品/开发身份切换完成。
+          请在需求项目工作台内使用产品/开发/测试身份切换完成。
         </p>
       </SettingsSection>
 
@@ -99,7 +99,7 @@ export default function ProfileSettingsPage() {
               className="h-10"
             />
             <p className="text-xs leading-relaxed text-foreground/55">
-              演示环境会自动修复过期登录会话；修改邮箱不影响需求工作台里的产品/开发身份。
+              演示环境会自动修复过期登录会话；修改邮箱不影响需求工作台里的产品/开发/测试身份。
             </p>
           </div>
         </div>

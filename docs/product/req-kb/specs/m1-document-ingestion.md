@@ -70,11 +70,11 @@ POST /api/v1/kb/{kb_id}/documents
 - `IngestionResult` 返回 `markdown_content` 和 `chunk_count`。
 - API 上传后台任务、Celery/Taskiq/ARQ worker、CLI ingest 都会在完成时写回 `RAGDocument.markdown_content`。
 - DOCX 优先使用 mammoth 输出 Markdown，失败或空内容时回退到 python-docx 文本解析。
+- DOCX 解析会记录 `docx_quality_warnings`；当生成项目选择 `pdf_parser=all` 且配置 `LLAMAPARSE_API_KEY` 时，Mammoth 质量检查失败会兜底 LlamaParse。
 - `/kb/{kb_id}/documents` 上传入口记录 `modified_by`，并由 M7 写权限依赖限制为 product/admin。
 
 待实现增强：
 
-- mammoth 质量检查与 LlamaParse 兜底。
 - 更细粒度的表格转换质量 warning 和人工复核队列。
 
 ## 验收标准

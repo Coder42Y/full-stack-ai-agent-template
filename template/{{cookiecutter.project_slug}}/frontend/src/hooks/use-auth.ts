@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores";
 import { apiClient, ApiError } from "@/lib/api-client";
-import type { User, LoginRequest, RegisterRequest } from "@/types";
+import type { User, LoginRequest, RegisterRequest, RegisterResponse } from "@/types";
 import { ROUTES } from "@/lib/constants";
 
 export function useAuth() {
@@ -54,7 +54,7 @@ export function useAuth() {
   );
 
   const register = useCallback(async (data: RegisterRequest) => {
-    const response = await apiClient.post<{ id: string; email: string }>("/auth/register", data);
+    const response = await apiClient.post<RegisterResponse>("/auth/register", data);
     return response;
   }, []);
 
@@ -65,7 +65,7 @@ export function useAuth() {
       // Ignore logout errors
     } finally {
       logout();
-      toast.success("Logged out");
+      toast.success("已退出登录");
       router.push(ROUTES.LOGIN);
     }
   }, [logout, router]);

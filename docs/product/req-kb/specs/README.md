@@ -14,7 +14,7 @@ scope: 需求知识库系统 — 功能点拆分
 
 ## 0. 文档导航
 
-本文档把 PRD 拆解为 9 个可实施功能模块。每个模块单独成 spec，包含数据模型、API、文件范围、依赖和验收标准。
+本文档把 PRD 拆解为 10 个可实施功能模块。每个模块单独成 spec，包含数据模型、API、文件范围、依赖和验收标准。
 
 | 模块 | Spec | 优先级 | 状态 |
 |------|------|--------|------|
@@ -27,7 +27,8 @@ scope: 需求知识库系统 — 功能点拆分
 | M6 文档版本管理 | [m6-versioning.md](m6-versioning.md) | P0 | in_progress |
 | M7 角色权限与 AI 行为边界 | [m7-rbac-ai-boundary.md](m7-rbac-ai-boundary.md) | P0 | draft |
 | M8 WebSocket 变更通知 | [m8-notifications.md](m8-notifications.md) | P1 | implemented |
-| M9 前端需求工作台与产品/开发 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |
+| M9 前端需求工作台与产品/开发/测试 MVP | [m9-frontend-workbench.md](m9-frontend-workbench.md) | P0 | implemented |
+| M10 前端界面规范与响应式验收 | [m10-frontend-ui-guidelines.md](m10-frontend-ui-guidelines.md) | P0 | active |
 
 ## 1. 依赖顺序
 
@@ -60,15 +61,15 @@ M0 基础模型/权限
 当前实现已覆盖可演示后端闭环：
 
 - M0/M1：扩展 `RAGDocument` 文档全文、版本、最新版和修改人字段；DOCX 优先 Mammoth Markdown 入库；上传完成写回 `markdown_content`。
-- M2：`POST /api/v1/kb/{kb_id}/requirements/from-text` 支持 AI-first 一句话创建 Markdown 需求并返回澄清问题；模型未配置时使用本地 fallback。
+- M2：`POST /api/v1/kb/{kb_id}/requirements/from-text` 支持 AI-first 一句话创建 Markdown 需求并返回澄清问题；`GET/POST /api/v1/kb/{kb_id}/documents/{doc_id}/clarifications` 持久化澄清状态和多轮回答；模型未配置时使用本地 fallback。
 - M3：`POST /api/v1/kb/{kb_id}/query` 支持从完整 `markdown_content` 兜底检索和来源引用，并可调用需求 AI 基于来源组织回答。
 - M4：`GET /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown` 按 Markdown 章节拆解并引用来源。
-- M5/M6：`POST /api/v1/kb/{kb_id}/documents/{doc_id}/change` 支持建议、草稿和应用新版本；`POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft` 支持产品审批草稿为最新版本；旧版标记 `is_latest=false`。
+- M5/M6：`POST /api/v1/kb/{kb_id}/documents/{doc_id}/change` 支持建议、草稿和应用新版本；`GET /api/v1/kb/{kb_id}/documents/drafts` 支持待审批草稿队列；`POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft` 支持产品审批草稿为最新版本；`GET/POST /api/v1/kb/{kb_id}/documents/{doc_id}/comments` 支持草稿评论流；`POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback` 支持从历史版本复制出新的最新版本并记录审计；`GET /api/v1/kb/{kb_id}/audit-logs` 支持工作台审计日志查看；旧版标记 `is_latest=false`，产品应用新版本/回滚后重建最新版向量索引、删除上一版向量块；diff API 返回结构化红绿变更并在前端历史页展示。
 - M7：MVP 前端用 `X-Requirement-Role` 在产品/开发间切换；产品可写，开发只能读、拆解或提出建议。
-- M8：变更和入库响应返回 `notification_event`，后端通过现有 WebSocket manager 广播 `requirement_notification`，前端工作台实时接收同 KB 事件。
+- M8：变更和入库响应返回 `notification_event`，后端通过现有 WebSocket manager 广播 `requirement_notification`，Redis 开启时通过 pub/sub 跨进程 fan-out，并把通知/已读回执持久化到审计事件流；前端工作台实时接收同 KB 事件、toast 提示，并提供持久通知中心与单条/全部标记已读。
 
-当前仍未完成完整生产态：持久化多轮澄清状态机、结构化红绿 diff/拒绝评论流、Redis 跨进程通知、向量旧版清理和生产态登录角色映射。
+当前仍未完成完整生产态：产品确认后再入库的完整澄清状态机、草稿评论线程/解决状态、通知组织成员过滤/跨 KB 汇总和生产态登录角色映射。
 
 ## 4. 前端 MVP 调整
 
-MVP 阶段前端不做登录鉴权拆分，但提供产品/开发两个身份选择。详见 [M9 前端需求工作台与产品/开发 MVP](m9-frontend-workbench.md)。
+MVP 阶段前端不做生产态登录鉴权拆分，但提供产品/开发/测试三个业务身份选择。详见 [M9 前端需求工作台与产品/开发/测试 MVP](m9-frontend-workbench.md) 和 [M10 前端界面规范与响应式验收](m10-frontend-ui-guidelines.md)。

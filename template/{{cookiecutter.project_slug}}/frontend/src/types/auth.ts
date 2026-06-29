@@ -33,6 +33,7 @@ export interface SessionListResponse {
 export interface LoginRequest {
   email: string;
   password: string;
+  role: "admin" | "developer" | "tester" | "product";
 }
 
 export interface LoginResponse {
@@ -45,13 +46,14 @@ export interface LoginResponse {
 export interface RegisterRequest {
   email: string;
   password: string;
-  full_name?: string;
+  full_name: string;
 }
 
 export interface RegisterResponse {
   id: string;
   email: string;
   full_name?: string | null;
+  role?: string;
 }
 
 export interface RefreshTokenRequest {

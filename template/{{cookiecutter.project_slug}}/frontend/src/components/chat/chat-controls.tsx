@@ -51,6 +51,39 @@ interface ChatControlsProps {
   onThinkingEffortChange?: (value: "low" | "medium" | "high" | null) => void;
 }
 
+type ConfigStatus = "idle" | "loading" | "saving" | "saved" | "error";
+
+interface ModelChoice {
+  value: string;
+  label: string;
+  role?: string;
+  supportsThinking?: boolean;
+  supportsReasoningEffort?: boolean;
+}
+
+interface AIRuntimeConfigResponse {
+  model: string;
+  temperature: number | null;
+  thinking_effort: ThinkingEffort;
+  max_tokens: number;
+  effective_model?: string;
+  config_path?: string;
+  models: {
+    id: string;
+    label: string;
+    role?: string;
+    supports_thinking?: boolean;
+    supports_reasoning_effort?: boolean;
+  }[];
+}
+
+type AIConfigPatch = Partial<{
+  model: string;
+  temperature: number | null;
+  thinking_effort: ThinkingEffort;
+  max_tokens: number;
+}>;
+
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
 const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
   personal: { label: "个人", icon: Lock },
@@ -83,6 +116,7 @@ export function ChatControls({
 {%- else %}
   const [tab, setTab] = useState<Tab>("model");
 {%- endif %}
+  const [open, setOpen] = useState(false);
 
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
   // ── KB state ────────────────────────────────────────────────────────────
@@ -122,6 +156,20 @@ export function ChatControls({
     hydrate(conversation.active_knowledge_base_ids ?? null);
   }, [currentConversationId, conversations, hydrate]);
 
+  useEffect(() => {
+    const handleOpenControls = (event: Event) => {
+      const nextTab = (event as CustomEvent<{ tab?: Tab }>).detail?.tab;
+      if (nextTab === "model" || nextTab === "settings") {
+        setTab(nextTab);
+      } else {
+        setTab("kb");
+      }
+      setOpen(true);
+    };
+    window.addEventListener("chat:open-controls", handleOpenControls);
+    return () => window.removeEventListener("chat:open-controls", handleOpenControls);
+  }, []);
+
   const activeIds = useMemo(() => new Set(activeKBIds), [activeKBIds]);
   const grouped = useMemo(
     () =>
@@ -149,31 +197,80 @@ export function ChatControls({
 {%- endif %}
 
   // ── Model state ─────────────────────────────────────────────────────────
-  const [availableModels, setAvailableModels] = useState<{ value: string; label: string }[]>([
-    { value: "", label: "默认模型" },
-  ]);
-  const [selectedModel, setSelectedModel] = useState<{ value: string; label: string }>({
+  const [availableModels, setAvailableModels] = useState<ModelChoice[]>([]);
+  const [selectedModel, setSelectedModel] = useState<ModelChoice>({
     value: "",
-    label: "默认模型",
+    label: "加载中",
   });
+  const [configStatus, setConfigStatus] = useState<ConfigStatus>("loading");
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  const applyAIConfig = (data: AIRuntimeConfigResponse) => {
+    const models =
+      data.models?.map((model) => ({
+        value: model.id,
+        label: model.label || model.id,
+        role: model.role,
+        supportsThinking: model.supports_thinking,
+        supportsReasoningEffort: model.supports_reasoning_effort,
+      })) ?? [];
+    const selected =
+      models.find((model) => model.value === data.model) ??
+      (data.model ? { value: data.model, label: data.model } : models[0]);
+
+    setAvailableModels(models);
+    if (selected) {
+      setSelectedModel(selected);
+    }
+    setTemperature(data.temperature ?? null);
+    setEffort(data.thinking_effort ?? "off");
+  };
+
+  const saveAIConfig = async (patch: AIConfigPatch): Promise<AIRuntimeConfigResponse | null> => {
+    setConfigStatus("saving");
+    setConfigError(null);
+    try {
+      const response = await fetch("/api/v1/agent/config", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update AI config");
+      }
+      const data = (await response.json()) as AIRuntimeConfigResponse;
+      applyAIConfig(data);
+      setConfigStatus("saved");
+      return data;
+    } catch {
+      setConfigStatus("error");
+      setConfigError("配置保存失败");
+      return null;
+    }
+  };
 
   useEffect(() => {
-    // Fetch model list once on mount. `onModelChange` is intentionally NOT in
-    // deps — parents (use-chat) pass an inline arrow each render, so depending
-    // on it triggers a refetch every render → infinite loop during streaming.
-    fetch("/api/v1/agent/models", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.models) {
-          const models = [
-            { value: "", label: `默认 (${data.default})` },
-            ...data.models.map((m: string) => ({ value: m, label: m })),
-          ];
-          setAvailableModels(models);
-          setSelectedModel(models[0]);
-        }
+    let cancelled = false;
+    setConfigStatus("loading");
+    fetch("/api/v1/agent/config", { credentials: "include" })
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch AI config");
+        return r.json();
       })
-      .catch(() => {});
+      .then((data) => {
+        if (cancelled) return;
+        applyAIConfig(data as AIRuntimeConfigResponse);
+        setConfigStatus("idle");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setConfigStatus("error");
+        setConfigError("配置加载失败");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ── Settings state ──────────────────────────────────────────────────────
@@ -187,7 +284,7 @@ export function ChatControls({
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
     if (activeCount > 0) parts.push(`${activeCount} 个知识库`);
 {%- endif %}
-    if (selectedModel.value) parts.push(selectedModel.value);
+    if (selectedModel.value) parts.push(selectedModel.label);
     if (settingsOverridden) parts.push("自定义");
     return parts.length ? parts.join(" · ") : "控制";
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
@@ -198,16 +295,17 @@ export function ChatControls({
 
   const hasOverrides =
 {%- if cookiecutter.enable_teams and cookiecutter.enable_rag %}
-    activeCount > 0 || selectedModel.value !== "" || settingsOverridden;
+    activeCount > 0 || settingsOverridden || configStatus === "saving" || configStatus === "error";
 {%- else %}
-    selectedModel.value !== "" || settingsOverridden;
+    settingsOverridden || configStatus === "saving" || configStatus === "error";
 {%- endif %}
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
+          data-chat-settings-trigger
           aria-label="对话控制"
           className={cn(
             "border-foreground/10 bg-card hover:border-foreground/25 hover:bg-foreground/[0.04] inline-flex items-center gap-1.5 rounded-full border py-1 pr-2 pl-2.5 font-mono text-[11px] tracking-wider uppercase transition-colors",
@@ -284,9 +382,14 @@ export function ChatControls({
             <ModelPanel
               models={availableModels}
               selected={selectedModel}
-              onPick={(m) => {
-                setSelectedModel(m);
-                onModelChange?.(m.value || null);
+              isLoading={configStatus === "loading"}
+              isSaving={configStatus === "saving"}
+              error={configError}
+              onPick={async (m) => {
+                const data = await saveAIConfig({ model: m.value });
+                if (data) {
+                  onModelChange?.(data.model);
+                }
               }}
             />
           )}
@@ -294,13 +397,18 @@ export function ChatControls({
             <SettingsPanel
               temperature={temperature}
               effort={effort}
+              isSaving={configStatus === "saving"}
               onTemperatureChange={(v) => {
                 setTemperature(v);
                 onTemperatureChange?.(v);
               }}
+              onTemperatureCommit={(v) => {
+                void saveAIConfig({ temperature: v });
+              }}
               onEffortChange={(v) => {
                 setEffort(v);
                 onThinkingEffortChange?.(v === "off" ? null : v);
+                void saveAIConfig({ thinking_effort: v });
               }}
             />
           )}
@@ -314,7 +422,13 @@ export function ChatControls({
               className="bg-brand inline-block h-1 w-1 animate-pulse rounded-full"
               {% raw %}style={{ boxShadow: "0 0 6px var(--color-brand)" }}{% endraw %}
             />
-            {currentConversationId ? "已保存到当前对话" : "发送后保存"}
+            {configStatus === "loading"
+              ? "加载 AI 配置"
+              : configStatus === "saving"
+                ? "保存 AI 配置"
+                : configStatus === "error"
+                  ? (configError ?? "AI 配置异常")
+                  : "AI 配置已同步"}
           </span>
           <span>Esc 关闭</span>
         </div>
@@ -457,25 +571,40 @@ function KBPanel({
 function ModelPanel({
   models,
   selected,
+  isLoading,
+  isSaving,
+  error,
   onPick,
 }: {
-  models: { value: string; label: string }[];
-  selected: { value: string; label: string };
-  onPick: (m: { value: string; label: string }) => void;
+  models: ModelChoice[];
+  selected: ModelChoice;
+  isLoading: boolean;
+  isSaving: boolean;
+  error: string | null;
+  onPick: (m: ModelChoice) => void | Promise<void>;
 }) {
+  if (isLoading) {
+    return <p className="text-foreground/55 py-3 text-xs">加载模型配置...</p>;
+  }
+
   return (
     <div>
-      <p className="text-foreground mb-1 text-sm font-semibold">模型</p>
+      <p className="text-foreground mb-1 text-sm font-semibold">默认模型</p>
       <p className="text-foreground/55 mb-4 text-xs leading-relaxed">
-        选择用于处理当前需求对话的模型。
+        选择后会写入后端运行配置，下一轮回复使用该 GLM 模型。
       </p>
+      {error && <p className="text-destructive mb-3 text-xs">{error}</p>}
+      {models.length === 0 && (
+        <p className="text-foreground/55 py-3 text-xs">没有可用模型配置。</p>
+      )}
       <ul className="space-y-1">
         {models.map((m) => {
           const isActive = selected.value === m.value;
           return (
-            <li key={m.value || "default"}>
+            <li key={m.value}>
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => onPick(m)}
                 className={cn(
                   "flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-all",
@@ -484,7 +613,14 @@ function ModelPanel({
                     : "border-foreground/10 text-foreground/75 hover:border-foreground/25 hover:bg-foreground/[0.02] hover:text-foreground",
                 )}
               >
-                <span className="truncate font-medium">{m.label}</span>
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{m.label}</span>
+                  {m.role && (
+                    <span className="text-foreground/45 mt-0.5 block font-mono text-[10px] uppercase">
+                      {m.role}
+                    </span>
+                  )}
+                </span>
                 {isActive && <Check className="text-brand h-3.5 w-3.5 shrink-0" />}
               </button>
             </li>
@@ -499,14 +635,22 @@ function ModelPanel({
 function SettingsPanel({
   temperature,
   effort,
+  isSaving,
   onTemperatureChange,
+  onTemperatureCommit,
   onEffortChange,
 }: {
   temperature: number | null;
   effort: ThinkingEffort;
+  isSaving: boolean;
   onTemperatureChange: (v: number | null) => void;
+  onTemperatureCommit: (v: number | null) => void;
   onEffortChange: (v: ThinkingEffort) => void;
 }) {
+  const commitFromInput = (value: string) => {
+    onTemperatureCommit(parseFloat(value));
+  };
+
   return (
     <div className="space-y-6">
       {/* Temperature */}
@@ -527,10 +671,14 @@ function SettingsPanel({
           id="chat-temp"
           type="range"
           min={0}
-          max={2}
+          max={1}
           step={0.05}
           value={temperature ?? 0.7}
           onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
+          onMouseUp={(e) => commitFromInput(e.currentTarget.value)}
+          onTouchEnd={(e) => commitFromInput(e.currentTarget.value)}
+          onBlur={(e) => commitFromInput(e.currentTarget.value)}
+          disabled={isSaving}
           className="bg-foreground/15 h-1.5 w-full cursor-pointer appearance-none rounded-full accent-[var(--color-brand)]"
         />
         <div className="text-foreground/45 flex justify-between font-mono text-[10px] tracking-wider uppercase">
@@ -540,7 +688,10 @@ function SettingsPanel({
         {temperature !== null && (
           <button
             type="button"
-            onClick={() => onTemperatureChange(null)}
+            onClick={() => {
+              onTemperatureChange(null);
+              onTemperatureCommit(null);
+            }}
             className="text-foreground/55 hover:text-foreground text-[11px] underline-offset-2 hover:underline"
           >
             恢复服务端默认
@@ -559,6 +710,7 @@ function SettingsPanel({
             <button
               key={opt.value}
               type="button"
+              disabled={isSaving}
               onClick={() => onEffortChange(opt.value)}
               className={cn(
                 "rounded-lg px-2 py-1.5 font-mono text-[11px] tracking-wider uppercase transition-colors",
@@ -577,7 +729,7 @@ function SettingsPanel({
       </div>
 
       <p className="text-foreground/45 text-[10px] leading-relaxed">
-        设置仅在当前对话会话中生效。不支持对应参数的模型会忽略这些控制项。
+        设置会写入后端运行配置 JSON，并影响后续 AI 回复。
       </p>
     </div>
   );

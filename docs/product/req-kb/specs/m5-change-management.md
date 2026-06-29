@@ -52,14 +52,17 @@ POST /api/v1/kb/{kb_id}/documents/{doc_id}/changes/{change_id}/reject
 - developer/tester 调用时只返回 `suggestion_recorded`，不创建新版本。
 - product/admin 可创建 `draft` 版本，或 `apply=true` 时直接创建 `done` 新版本并把旧版标为 `is_latest=false`。
 - 新增 `POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft`，产品可把 `status=draft` 的版本审批为最新 `done` 版本。
-- 前端历史页可加载版本链，对草稿版本执行“应用草稿”。
+- 新增 `POST /api/v1/kb/{kb_id}/documents/{doc_id}/reject-draft`，产品可拒绝草稿并记录拒绝原因，草稿状态变为 `rejected`，当前最新版保持不变。
+- 新增 `GET /api/v1/kb/{kb_id}/documents/drafts`，产品可在工作台历史页加载待审批草稿列表并批量处理队列中的草稿。
+- 新增 `GET/POST /api/v1/kb/{kb_id}/documents/{doc_id}/comments`，产品/开发/测试可在草稿上追加角色标记评论，工作台历史页展示草稿评论流。
+- 产品直接应用变更或审批草稿时会重建最新版 Markdown 的 RAG 向量索引，并删除上一版向量块。
+- 前端历史页可加载版本链，对草稿版本执行“应用草稿”或“拒绝草稿”，并展示审批说明。
+- diff API 除 `diff_lines` 外返回 `structured_changes`，包含 added/removed/context 行、旧/新行号和 hunk 元数据；前端历史页优先渲染结构化红绿 diff。
 - 响应返回 diff 摘要、Markdown preview 和轻量通知 payload。
 
 待实现增强：
 
-- 小改 diff 的结构化红绿对比。
-- 草稿审批的拒绝/评论/批量列表。
-- RAG 向量索引只保留最新版的真实重建逻辑。
+- 草稿评论流已实现为审计事件驱动的扁平评论列表；后续可增强为线程、解决状态和成员 mention。
 
 ## 验收标准
 

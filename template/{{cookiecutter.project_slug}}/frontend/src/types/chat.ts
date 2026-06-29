@@ -49,6 +49,38 @@ export interface ChatMessage {
    *  correctly. ``content``/``thinking``/``toolCalls`` are kept in sync as
    *  flat aggregates for copy/persist/rating. */
   parts?: MessagePart[];
+  mode?: "ai" | "offline" | "workflow";
+  intent?: ChatIntent;
+  actions?: ChatAction[];
+  actionCard?: RequirementActionCard;
+}
+
+export type ChatIntent =
+  | "greeting"
+  | "help"
+  | "intake"
+  | "query"
+  | "breakdown"
+  | "change"
+  | "test"
+  | "general"
+  | "agent"
+  | string;
+
+export interface ChatAction {
+  id: string;
+  label: string;
+  kind: "retry" | "navigate" | "select_kb" | "upload" | "open_workbench" | string;
+  href?: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface RequirementActionCard {
+  action_type: string;
+  title: string;
+  summary: string;
+  payload?: Record<string, unknown>;
+  actions?: ChatAction[];
 }
 
 export interface ToolCall {
@@ -117,9 +149,13 @@ export type WSEventType =
   | "final_result_start"
   | "final_result"
   | "complete"
+  | "cancelled"
   | "error"
   | "conversation_created"
   | "message_saved"
+  | "assistant_status"
+  | "assistant_offline"
+  | "requirement_action"
   | "requirement_notification"
   // DeepAgents Human-in-the-Loop event
   | "tool_approval_required"

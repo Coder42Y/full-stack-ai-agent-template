@@ -29,6 +29,21 @@ COOKIE_JAR="${REQ_KB_PREVIEW_COOKIE_JAR:-/tmp/req-kb-preview.cookies}"
 UV_HOME="${REQ_KB_PREVIEW_UV_HOME:-/tmp/req-kb-home}"
 UV_CACHE="${UV_CACHE_DIR:-/tmp/uv-cache}"
 GENERATED_PYTHON="${REQ_KB_PREVIEW_PYTHON:-python3.11}"
+USE_REAL_AI="${REQ_KB_PREVIEW_USE_REAL_AI:-false}"
+PREVIEW_OPENAI_API_KEY="dummy"
+PREVIEW_ANTHROPIC_AUTH_TOKEN="dummy"
+PREVIEW_ANTHROPIC_API_KEY="dummy"
+PREVIEW_ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-https://open.bigmodel.cn/api/anthropic}"
+PREVIEW_ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-glm-4.7}"
+PREVIEW_ANTHROPIC_REASONING_MODEL="${ANTHROPIC_REASONING_MODEL:-glm-5.2}"
+PREVIEW_ANTHROPIC_DEFAULT_HAIKU_MODEL="${ANTHROPIC_DEFAULT_HAIKU_MODEL:-glm-4.5-air}"
+PREVIEW_ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL:-glm-4.7}"
+PREVIEW_ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL:-glm-5.2}"
+if [ "$USE_REAL_AI" = "true" ]; then
+  PREVIEW_OPENAI_API_KEY="${OPENAI_API_KEY:-dummy}"
+  PREVIEW_ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-${ANTHROPIC_API_KEY:-dummy}}"
+  PREVIEW_ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-$PREVIEW_ANTHROPIC_AUTH_TOKEN}"
+fi
 
 backend_url_public="http://$LAN_HOST:$BACKEND_PORT"
 frontend_url="http://$LAN_HOST:$FRONTEND_PORT/kb"
@@ -183,10 +198,39 @@ HOME="$UV_HOME" UV_CACHE_DIR="$UV_CACHE" UV_PYTHON_DOWNLOADS=never \
   POSTGRES_USER="$POSTGRES_USER" \
   POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
   POSTGRES_DB="$POSTGRES_DB" \
-  OPENAI_API_KEY="${OPENAI_API_KEY:-dummy}" \
-  ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-dummy}" \
-  ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://claude.purvar.local}" \
+  OPENAI_API_KEY="$PREVIEW_OPENAI_API_KEY" \
+  ANTHROPIC_AUTH_TOKEN="$PREVIEW_ANTHROPIC_AUTH_TOKEN" \
+  ANTHROPIC_API_KEY="$PREVIEW_ANTHROPIC_API_KEY" \
+  ANTHROPIC_BASE_URL="$PREVIEW_ANTHROPIC_BASE_URL" \
   ./.venv/bin/python -m alembic upgrade head
+)
+
+echo
+echo "== seed preview users =="
+(
+  cd "$BACKEND_DIR"
+  export POSTGRES_HOST="$POSTGRES_HOST"
+  export POSTGRES_PORT="$POSTGRES_PORT"
+  export POSTGRES_USER="$POSTGRES_USER"
+  export POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+  export POSTGRES_DB="$POSTGRES_DB"
+  ./.venv/bin/"$PROJECT_NAME" user create \
+    --email admin-demo@example.com \
+    --password DemoAdmin123! \
+    --role admin \
+    --superuser
+  ./.venv/bin/"$PROJECT_NAME" user create \
+    --email developer@example.com \
+    --password Password123! \
+    --role developer
+  ./.venv/bin/"$PROJECT_NAME" user create \
+    --email tester@example.com \
+    --password Password123! \
+    --role tester
+  ./.venv/bin/"$PROJECT_NAME" user create \
+    --email pm@example.com \
+    --password Password123! \
+    --role product
 )
 
 echo
@@ -199,6 +243,7 @@ echo "== install frontend deps and type-check =="
     BACKEND_URL="$backend_url_local" \
     NEXT_PUBLIC_API_URL="$backend_url_public" \
     NEXT_PUBLIC_WS_URL="ws://$LAN_HOST:$BACKEND_PORT" \
+    NEXT_PUBLIC_BACKEND_PORT="$BACKEND_PORT" \
     npm run build
     mkdir -p .next/standalone/.next
     rm -rf .next/standalone/.next/static
@@ -217,9 +262,17 @@ POSTGRES_PORT=$POSTGRES_PORT
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
-OPENAI_API_KEY=${OPENAI_API_KEY:-dummy}
-ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-dummy}
-ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-http://claude.purvar.local}
+OPENAI_API_KEY=$PREVIEW_OPENAI_API_KEY
+ANTHROPIC_AUTH_TOKEN=$PREVIEW_ANTHROPIC_AUTH_TOKEN
+ANTHROPIC_API_KEY=$PREVIEW_ANTHROPIC_API_KEY
+ANTHROPIC_BASE_URL=$PREVIEW_ANTHROPIC_BASE_URL
+ANTHROPIC_MODEL=$PREVIEW_ANTHROPIC_MODEL
+ANTHROPIC_REASONING_MODEL=$PREVIEW_ANTHROPIC_REASONING_MODEL
+ANTHROPIC_DEFAULT_HAIKU_MODEL=$PREVIEW_ANTHROPIC_DEFAULT_HAIKU_MODEL
+ANTHROPIC_DEFAULT_SONNET_MODEL=$PREVIEW_ANTHROPIC_DEFAULT_SONNET_MODEL
+ANTHROPIC_DEFAULT_OPUS_MODEL=$PREVIEW_ANTHROPIC_DEFAULT_OPUS_MODEL
+REQUIREMENT_AI_TIMEOUT_SECONDS=${REQUIREMENT_AI_TIMEOUT_SECONDS:-45}
+AI_RUNTIME_CONFIG_PATH=$WORK_ROOT/runtime_ai_config.json
 RAG_DETERMINISTIC_EMBEDDINGS=true
 EOF
 chmod 600 "$WORK_ROOT/backend.env"
@@ -229,10 +282,10 @@ tmux new-session -d -s "$BACKEND_SESSION" \
 
 if [ "$FRONTEND_MODE" = "production" ]; then
   tmux new-session -d -s "$FRONTEND_SESSION" \
-    "cd '$FRONTEND_DIR/.next/standalone' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' HOSTNAME='$HOST' PORT='$FRONTEND_PORT' node server.js 2>&1 | tee '$FRONTEND_LOG'"
+    "cd '$FRONTEND_DIR/.next/standalone' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' NEXT_PUBLIC_BACKEND_PORT='$BACKEND_PORT' HOSTNAME='$HOST' PORT='$FRONTEND_PORT' node server.js 2>&1 | tee '$FRONTEND_LOG'"
 else
   tmux new-session -d -s "$FRONTEND_SESSION" \
-    "cd '$FRONTEND_DIR' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' npm run dev -- -H '$HOST' -p '$FRONTEND_PORT' 2>&1 | tee '$FRONTEND_LOG'"
+    "cd '$FRONTEND_DIR' && BACKEND_URL='$backend_url_local' NEXT_PUBLIC_API_URL='$backend_url_public' NEXT_PUBLIC_WS_URL='ws://$LAN_HOST:$BACKEND_PORT' NEXT_PUBLIC_BACKEND_PORT='$BACKEND_PORT' npm run dev -- -H '$HOST' -p '$FRONTEND_PORT' 2>&1 | tee '$FRONTEND_LOG'"
 fi
 
 echo

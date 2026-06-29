@@ -683,7 +683,7 @@ def get_requirement_demo_role(
 ) -> str:
     """Resolve MVP role selected by the frontend without changing auth state."""
     role = (x_requirement_role or current_user.role or "").strip().lower()
-    if role in {UserRole.PRODUCT.value, UserRole.DEVELOPER.value}:
+    if role in {UserRole.PRODUCT.value, UserRole.DEVELOPER.value, UserRole.TESTER.value}:
         return role
     if getattr(current_user, "is_app_admin", False) or current_user.role == UserRole.ADMIN.value:
         return UserRole.PRODUCT.value
@@ -1112,9 +1112,16 @@ from app.services.requirement_query import RequirementQueryService
 from app.services.requirement_workflow import RequirementWorkflowService
 
 
-def get_requirement_query_service(db: DBSession) -> RequirementQueryService:
+def get_requirement_query_service(
+    db: DBSession,
+    retrieval_service: RetrievalSvc,
+) -> RequirementQueryService:
     """Create RequirementQueryService instance."""
-    return RequirementQueryService(db=db, ai_service=RequirementAIService())
+    return RequirementQueryService(
+        db=db,
+        retrieval_service=retrieval_service,
+        ai_service=RequirementAIService(),
+    )
 
 
 def get_requirement_workflow_service(db: DBSession) -> RequirementWorkflowService:

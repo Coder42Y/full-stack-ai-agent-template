@@ -34,22 +34,6 @@ function withAuthCookies(request: NextRequest, user: User, token: LoginResponse)
 
 export async function POST(request: NextRequest) {
   try {
-    try {
-      await backendFetch("/api/v1/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: DEMO_EMAIL,
-          password: DEMO_PASSWORD,
-          full_name: "MVP Admin",
-          role: "admin",
-        }),
-      });
-    } catch (error) {
-      if (!(error instanceof BackendApiError) || error.status !== 409) {
-        throw error;
-      }
-    }
-
     const token = await loginDemoAdmin();
     const user = await backendFetch<User>("/api/v1/auth/me", {
       headers: { Authorization: `Bearer ${token.access_token}` },
@@ -58,8 +42,11 @@ export async function POST(request: NextRequest) {
     return withAuthCookies(request, user, token);
   } catch (error) {
     if (error instanceof BackendApiError) {
-      return NextResponse.json({ detail: error.message }, { status: error.status });
+      return NextResponse.json(
+        { detail: "演示管理员账号不可用，请先通过后端 CLI 创建。" },
+        { status: error.status },
+      );
     }
-    return NextResponse.json({ detail: "Failed to create demo admin session" }, { status: 500 });
+    return NextResponse.json({ detail: "创建演示管理员会话失败" }, { status: 500 });
   }
 }

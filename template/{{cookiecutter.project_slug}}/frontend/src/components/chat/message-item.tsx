@@ -6,6 +6,7 @@ import { ToolCallCard } from "./tool-call-card";
 import { MarkdownContent } from "./markdown-content";
 import { CopyButton } from "./copy-button";
 import { RatingButtons } from "./rating-buttons";
+import { RequirementActionCard } from "./requirement-action-card";
 import { useChatStore, useFilePreviewStore } from "@/stores";
 import { Bot, FileText, Paperclip, RefreshCw, User } from "lucide-react";
 import Image from "next/image";
@@ -16,18 +17,36 @@ interface MessageItemProps {
   message: ChatMessage;
   groupPosition?: "first" | "middle" | "last" | "single";
   onRegenerate?: () => void;
+  onRetryAction?: (message?: string) => void;
 }
 
 function normalizeMessageText(text: string): string {
   return text.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
 }
 
-export function MessageItem({ message, groupPosition, onRegenerate }: MessageItemProps) {
+function copyableMessageText(message: ChatMessage): string {
+  if (message.content.trim()) {
+    return message.content;
+  }
+
+  return (message.parts ?? [])
+    .filter((part) => part.type === "text" && part.content?.trim())
+    .map((part) => part.content)
+    .join("\n\n");
+}
+
+export function MessageItem({
+  message,
+  groupPosition,
+  onRegenerate,
+  onRetryAction,
+}: MessageItemProps) {
   const isUser = message.role === "user";
   const updateMessage = useChatStore((state) => state.updateMessage);
   const openPreview = useFilePreviewStore((s) => s.open);
   const { user: authUser } = useAuthStore();
   const isGrouped = groupPosition && groupPosition !== "single";
+  const copyText = normalizeMessageText(copyableMessageText(message));
 
   return (
     <div
@@ -259,10 +278,24 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
           );
         })()}
 
-        {!message.isStreaming && message.content && (
-          <div className={cn("flex items-center gap-2", isUser && "flex-row-reverse")}>
+        {!isUser && (message.actionCard || message.actions?.length) && (
+          <RequirementActionCard
+            card={message.actionCard}
+            actions={message.actions}
+            mode={message.mode}
+            onRetry={onRetryAction}
+          />
+        )}
+
+        {!message.isStreaming && copyText && (
+          <div
+            className={cn(
+              "text-muted-foreground flex items-center gap-1.5",
+              isUser && "flex-row-reverse",
+            )}
+          >
             {message.timestamp && (
-              <span className="text-muted-foreground text-[10px]">
+              <span className="text-[10px]">
                 {new Date(message.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -270,10 +303,12 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
               </span>
             )}
             <CopyButton
-              text={normalizeMessageText(message.content)}
+              text={copyText}
+              showLabel={!isUser}
               className={cn(
-                "h-6 w-6 rounded-md sm:opacity-0 sm:group-hover:opacity-100",
-                isUser ? "bg-secondary hover:bg-secondary/80" : "bg-muted hover:bg-muted/80",
+                isUser
+                  ? "h-7 w-7 bg-secondary hover:bg-secondary/80"
+                  : "bg-background/70 hover:bg-muted",
               )}
             />
             {!isUser && onRegenerate && (

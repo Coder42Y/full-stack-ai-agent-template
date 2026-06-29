@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Button, Badge, Spinner } from "@/components/ui";
-import { Send, Mic, MicOff, Paperclip, X, FileText } from "lucide-react";
+import { Send, Mic, MicOff, Paperclip, X, FileText, Square } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { uploadFile, getFileUrl, type FileUploadResponse } from "@/lib/file-api";
@@ -16,6 +16,7 @@ import { SlashCommandPalette } from "./slash-command-palette";
 
 interface ChatInputProps {
   onSend: (message: string, fileIds?: string[], files?: FileUploadResponse[]) => void;
+  onCancel?: () => void;
   disabled?: boolean;
   isProcessing?: boolean;
   /** Local actions for slash commands. Wire from <ChatContainer>. */
@@ -26,6 +27,7 @@ interface ChatInputProps {
 
 export function ChatInput({
   onSend,
+  onCancel,
   disabled,
   isProcessing,
   slashContext,
@@ -329,16 +331,30 @@ export function ChatInput({
             className="hidden"
           />
 
-          {/* Send */}
-          <Button
-            type="submit"
-            size="icon"
-            disabled={disabled || isUploading || (!message.trim() && attachedFiles.length === 0)}
-            className="h-9 w-9 rounded-lg"
-          >
-            {isProcessing ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            <span className="sr-only">发送需求消息</span>
-          </Button>
+          {/* Send / stop */}
+          {isProcessing ? (
+            <Button
+              type="button"
+              size="icon"
+              onClick={onCancel}
+              disabled={disabled || !onCancel}
+              className="relative h-9 w-9 rounded-lg before:absolute before:inset-0 before:rounded-lg before:border before:border-foreground/30 before:border-t-foreground before:content-[''] before:animate-spin"
+              title="终止生成（Esc）"
+            >
+              <Square className="h-3.5 w-3.5 fill-current" />
+              <span className="sr-only">终止生成</span>
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="icon"
+              disabled={disabled || isUploading || (!message.trim() && attachedFiles.length === 0)}
+              className="h-9 w-9 rounded-lg"
+            >
+              <Send className="h-4 w-4" />
+              <span className="sr-only">发送需求消息</span>
+            </Button>
+          )}
         </div>
       </div>
     </form>

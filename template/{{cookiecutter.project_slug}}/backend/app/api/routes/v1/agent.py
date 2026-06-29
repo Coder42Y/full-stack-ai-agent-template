@@ -5,6 +5,8 @@ The route is just lifecycle plumbing — auth, accept, dispatch loop, disconnect
 Per-turn orchestration lives in :class:`app.services.agent_session.AgentSession`.
 """
 
+import asyncio
+import contextlib
 import logging
 import secrets
 from typing import Any
@@ -12,14 +14,29 @@ from typing import Any
 from uuid import UUID
 {%- endif %}
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect{%- if cookiecutter.websocket_auth_jwt %}, Depends{%- endif %}{%- if cookiecutter.websocket_auth_api_key %}, Query{%- endif %}
+from fastapi import APIRouter{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}, HTTPException{%- endif %}, WebSocket, WebSocketDisconnect{%- if cookiecutter.websocket_auth_jwt %}, Depends{%- endif %}{%- if cookiecutter.websocket_auth_api_key %}, Query{%- endif %}
 
+{%- if cookiecutter.websocket_auth_api_key or not (cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite)) %}
 from app.core.config import settings
-from app.services.agent import agent_connection_manager as manager, send_event
+{%- endif %}
+from app.services.agent import agent_connection_manager as manager
+from app.services.agent import send_event
 from app.services.agent_session import AgentSession
 {%- if cookiecutter.websocket_auth_jwt %}
 from app.api.deps import get_current_user_ws
 from app.db.models.user import User
+{%- endif %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+from app.api.deps import CurrentUser
+{%- endif %}
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+from app.services.ai_runtime_config import (
+    AIConfigError,
+    AIRuntimeConfig,
+    AIRuntimeConfigUpdate,
+    get_ai_runtime_config,
+    update_ai_runtime_config,
+)
 {%- endif %}
 {%- if cookiecutter.use_pydantic_deep and cookiecutter.use_jwt and cookiecutter.use_postgresql %}
 from app.agents.pydantic_deep_assistant import PydanticDeepContext, get_agent
@@ -45,10 +62,41 @@ router = APIRouter()
 @router.get("/agent/models")
 async def list_models() -> dict[str, Any]:
     """Return available LLM models and the current default."""
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+    config = get_ai_runtime_config()
+    return {
+        "default": config.model,
+        "models": [model.id for model in config.models],
+        "model_options": [model.model_dump() for model in config.models],
+        "config": config.model_dump(),
+    }
+{%- else %}
     return {
         "default": settings.AI_MODEL,
         "models": settings.AI_AVAILABLE_MODELS,
     }
+{%- endif %}
+
+{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt and (cookiecutter.use_postgresql or cookiecutter.use_sqlite) %}
+
+@router.get("/agent/config", response_model=AIRuntimeConfig)
+async def get_agent_config(_user: CurrentUser) -> AIRuntimeConfig:
+    """Return the runtime AI config used by the requirement chat gateway."""
+    return get_ai_runtime_config()
+
+
+@router.patch("/agent/config", response_model=AIRuntimeConfig)
+async def patch_agent_config(
+    payload: AIRuntimeConfigUpdate,
+    _user: CurrentUser,
+) -> AIRuntimeConfig:
+    """Persist runtime AI config changes to the configured JSON file."""
+    try:
+        return update_ai_runtime_config(payload)
+    except AIConfigError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+{%- endif %}
 
 {%- if cookiecutter.websocket_auth_api_key %}
 
@@ -109,20 +157,52 @@ async def agent_websocket(
         user,
 {%- endif %}
     )
+    current_task: asyncio.Task[None] | None = None
 
     try:
         while True:
+            if current_task and current_task.done():
+                with contextlib.suppress(asyncio.CancelledError, WebSocketDisconnect):
+                    current_task.result()
+                current_task = None
+
             try:
                 data = await websocket.receive_json()
             except WebSocketDisconnect:
                 break
+            except RuntimeError as exc:
+                if "WebSocket is not connected" in str(exc):
+                    logger.info("Agent WebSocket closed before the next message")
+                    break
+                raise
 
-            try:
-                await session.process_message(data)
-            except WebSocketDisconnect:
-                logger.info("Client disconnected during agent processing")
-                break
+            if current_task and current_task.done():
+                with contextlib.suppress(asyncio.CancelledError, WebSocketDisconnect):
+                    current_task.result()
+                current_task = None
+
+            message_type = data.get("type", "message") if isinstance(data, dict) else "message"
+            if message_type == "cancel":
+                if current_task and not current_task.done():
+                    current_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await current_task
+                    await send_event(websocket, "cancelled", {"reason": "user_cancelled"})
+                else:
+                    await send_event(websocket, "cancelled", {"reason": "no_active_request"})
+                current_task = None
+                continue
+
+            if current_task and not current_task.done():
+                await send_event(websocket, "error", {"message": "上一轮仍在生成, 请先终止或等待完成。"})
+                continue
+
+            current_task = asyncio.create_task(session.process_message(data))
     finally:
+        if current_task and not current_task.done():
+            current_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await current_task
         manager.disconnect(websocket)
 
 {%- if cookiecutter.use_pydantic_deep and cookiecutter.use_jwt and cookiecutter.use_postgresql %}

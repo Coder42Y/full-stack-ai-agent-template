@@ -15,8 +15,8 @@ import { ROUTES } from "@/lib/constants";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
-  if (!pw) return { score: 0, label: "", color: "" };
+function getPasswordStrength(pw: string): { score: number; color: string } {
+  if (!pw) return { score: 0, color: "" };
   let score = 0;
   if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
@@ -24,10 +24,10 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   if (/\d/.test(pw)) score++;
   if (/[^a-zA-Z0-9]/.test(pw)) score++;
 
-  if (score <= 1) return { score: 1, label: "Weak", color: "bg-destructive" };
-  if (score <= 2) return { score: 2, label: "Fair", color: "bg-orange-500" };
-  if (score <= 3) return { score: 3, label: "Good", color: "bg-yellow-500" };
-  return { score: 4, label: "Strong", color: "bg-brand" };
+  if (score <= 1) return { score: 1, color: "bg-destructive" };
+  if (score <= 2) return { score: 2, color: "bg-orange-500" };
+  if (score <= 3) return { score: 3, color: "bg-yellow-500" };
+  return { score: 4, color: "bg-brand" };
 }
 
 export function RegisterForm() {
@@ -44,6 +44,13 @@ export function RegisterForm() {
 
   const emailValid = !email || EMAIL_RE.test(email);
   const strength = useMemo(() => getPasswordStrength(password), [password]);
+  const strengthLabel = useMemo(() => {
+    if (!password) return "";
+    if (strength.score <= 1) return t("resetPassword.strengthWeak");
+    if (strength.score <= 2) return t("resetPassword.strengthFair");
+    if (strength.score <= 3) return t("resetPassword.strengthGood");
+    return t("resetPassword.strengthStrong");
+  }, [password, strength.score, t]);
   const passwordsMatch = !confirmPassword || password === confirmPassword;
   const passwordLongEnough = !password || password.length >= 8;
 
@@ -52,16 +59,16 @@ export function RegisterForm() {
     setError("");
 
     if (!EMAIL_RE.test(email)) {
-      setError("Please enter a valid email address");
+      setError(t("emailInvalid"));
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(t("resetPassword.minLength"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      toast.error("Passwords do not match");
+      setError(t("passwordMismatch"));
+      toast.error(t("passwordMismatch"));
       return;
     }
 
@@ -71,8 +78,7 @@ export function RegisterForm() {
       toast.success(t("registerSuccess"));
       router.push(ROUTES.LOGIN + "?registered=true");
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : "Registration failed. Please try again.";
+      const message = err instanceof ApiError ? err.message : t("registerFailed");
       setError(message);
       toast.error(message);
     } finally {
@@ -85,7 +91,7 @@ export function RegisterForm() {
       <div className="space-y-2">
         <span className="eyebrow text-foreground/55">{t("getStarted")}</span>
         <h1 className="text-display-md text-foreground [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Create your <em>workspace.</em>
+          {t.rich("registerHeading", { em: (chunks) => <em>{chunks}</em> })}
         </h1>
         <p className="text-foreground/65 text-sm">
           {t("hasAccount")}{" "}
@@ -152,7 +158,7 @@ export function RegisterForm() {
           <Input
             id="password"
             type="password"
-            placeholder="At least 8 characters"
+            placeholder={t("passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -174,18 +180,18 @@ export function RegisterForm() {
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                  {strength.label}
+                  {strengthLabel}
                 </p>
                 <div className="flex items-center gap-1.5 text-xs">
                   {password.length >= 8 ? (
                     <span className="text-brand inline-flex items-center gap-1">
                       <Check className="h-3 w-3" />
-                      8+ chars
+                      {t("minChars")}
                     </span>
                   ) : (
                     <span className="text-foreground/55 inline-flex items-center gap-1">
                       <X className="h-3 w-3" />
-                      8+ chars
+                      {t("minChars")}
                     </span>
                   )}
                 </div>
@@ -204,7 +210,7 @@ export function RegisterForm() {
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="Repeat the password"
+            placeholder={t("confirmPasswordPlaceholder")}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -242,21 +248,24 @@ export function RegisterForm() {
         </Button>
 
         <p className="text-foreground/50 text-center text-xs">
-          By creating an account, you agree to our{" "}
-          <Link
-            href="/legal/terms"
-            className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
-          >
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="/legal/privacy"
-            className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
-          >
-            Privacy Policy
-          </Link>
-          .
+          {t.rich("registerAgreement", {
+            terms: (chunks) => (
+              <Link
+                href="/legal/terms"
+                className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
+              >
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link
+                href="/legal/privacy"
+                className="text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </form>
 

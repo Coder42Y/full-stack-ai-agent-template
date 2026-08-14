@@ -79,10 +79,10 @@ export default async function AboutPage() {
             </p>
             <dl className="mt-6 space-y-5">
               {[
-                { label: t("stat_apps"), value: "12+" },
-                { label: t("stat_deploy"), value: "<1h" },
-                { label: t("stat_frameworks"), value: "5" },
-                { label: t("stat_license"), value: "MIT" },
+                { label: t("stat_apps"), value: "3" },
+                { label: t("stat_deploy"), value: "4" },
+                { label: t("stat_frameworks"), value: "1" },
+                { label: t("stat_license"), value: "bge" },
               ].map((row, i) => (
                 <div
                   key={row.label}

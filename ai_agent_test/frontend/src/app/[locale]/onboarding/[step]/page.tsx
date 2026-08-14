@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { AuthGuard } from "@/components/layout/auth-guard";
 import { StepAgent } from "@/components/onboarding/step-agent";
@@ -23,9 +24,10 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale; step: string }>;
 }): Promise<Metadata> {
   const { locale, step } = await params;
+  const t = await getTranslations("onboarding.meta");
   return pageMetadata({
-    title: "Get started",
-    description: "Set up your workspace.",
+    title: t("title"),
+    description: t("description"),
     path: `/onboarding/${step}`,
     locale,
     noindex: true,

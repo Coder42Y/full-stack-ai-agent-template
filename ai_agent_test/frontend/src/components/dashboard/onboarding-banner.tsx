@@ -28,7 +28,7 @@ export function OnboardingBanner() {
       </div>
       <div className="flex-1">
         <p className="text-foreground font-display text-base font-semibold">
-          完成共享出行运营 Demo 配置
+          完成员工助手 Demo 配置
         </p>
         <p className="text-foreground/65 mt-0.5 text-sm">
           业务数据、MCP 工具和 Prompt 已就绪。你可以直接从智能分析页开始演示。

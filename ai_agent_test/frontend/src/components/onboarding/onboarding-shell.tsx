@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Check } from "lucide-react";
 
 import { APP_NAME, ROUTES } from "@/lib/constants";
@@ -18,12 +19,12 @@ interface OnboardingShellProps {
   hideSkip?: boolean;
 }
 
-const STEP_LABELS: Record<OnboardingStep, string> = {
-  welcome: "Welcome",
-  agent: "Pick agent",
-  data: "Connect data",
-  team: "Invite team",
-  done: "Done",
+const STEP_KEYS: Record<OnboardingStep, string> = {
+  welcome: "steps.welcome",
+  agent: "steps.agent",
+  data: "steps.data",
+  team: "steps.team",
+  done: "steps.done",
 };
 
 export function OnboardingShell({
@@ -33,6 +34,7 @@ export function OnboardingShell({
   children,
   hideSkip,
 }: OnboardingShellProps) {
+  const t = useTranslations("onboarding");
   const router = useRouter();
   const idx = stepIndex(step);
   const total = ONBOARDING_STEPS.length;
@@ -53,7 +55,7 @@ export function OnboardingShell({
               href={ROUTES.DASHBOARD}
               className="text-foreground/55 hover:text-foreground font-mono text-xs tracking-wider uppercase"
             >
-              Skip for now →
+              {t("skipForNow")} →
             </Link>
           )}
         </div>
@@ -82,7 +84,7 @@ export function OnboardingShell({
                       active || done ? "text-foreground" : "text-foreground/45",
                     )}
                   >
-                    {STEP_LABELS[s]}
+                    {t(STEP_KEYS[s])}
                   </span>
                   {i < total - 1 && (
                     <span
@@ -102,7 +104,7 @@ export function OnboardingShell({
       <main className="mx-auto max-w-3xl px-6 py-12 md:py-20">
         <div className="space-y-3">
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Step {idx + 1} of {total}
+            {t("stepOf", { current: idx + 1, total })}
           </p>
           <h1 className="text-display-lg text-foreground">{title}</h1>
           {description && (
@@ -119,7 +121,7 @@ export function OnboardingShell({
             className="text-foreground/55 hover:text-foreground mt-10 inline-flex items-center gap-2 text-sm font-medium"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("back")}
           </button>
         )}
       </main>

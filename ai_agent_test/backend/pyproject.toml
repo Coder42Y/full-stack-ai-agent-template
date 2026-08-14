@@ -58,6 +58,8 @@ dependencies = [
     "aiogram>=3.17,<4.0",
     "slack-sdk>=3.35.0",
     "stripe>=11.0.0",
+    "sentence-transformers>=5.7.0",
+    "pgvector>=0.5.0",
 ]
 
 [project.optional-dependencies]
@@ -73,6 +75,10 @@ dev = [
 
 [project.scripts]
 ai_agent_test = "cli.commands:main"
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
 
 [build-system]
 requires = ["hatchling"]

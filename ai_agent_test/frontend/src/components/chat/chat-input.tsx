@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Badge, Spinner } from "@/components/ui";
 import { Send, Mic, MicOff, Paperclip, X, Image as ImageIcon, FileText } from "lucide-react";
 import Image from "next/image";
@@ -31,6 +32,7 @@ export function ChatInput({
   slashContext,
   commands,
 }: ChatInputProps) {
+  const t = useTranslations("chat");
   const [message, setMessage] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<FileUploadResponse[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -97,7 +99,7 @@ export function ChatInput({
 
     const fileIds = attachedFiles.length > 0 ? attachedFiles.map((f) => f.id) : undefined;
     const files = attachedFiles.length > 0 ? attachedFiles : undefined;
-    onSend(trimmed || "Analyze the attached file(s)", fileIds, files);
+    onSend(trimmed || t("analyzeFiles"), fileIds, files);
     setMessage("");
     setAttachedFiles([]);
   };
@@ -143,7 +145,7 @@ export function ChatInput({
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.info("Voice input is only supported in Chrome. Use Chrome for speech-to-text.");
+      toast.info(t("voiceInputChromeOnly"));
       return;
     }
 
@@ -177,14 +179,14 @@ export function ChatInput({
 
     recognition.onerror = () => {
       setIsListening(false);
-      toast.error("Speech recognition error");
+      toast.error(t("speechRecognitionError"));
     };
 
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
     finalTranscript = message;
-  }, [isListening, message]);
+  }, [isListening, message, t]);
 
   // File upload to backend
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,7 +197,7 @@ export function ChatInput({
     const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
     for (const file of Array.from(files)) {
       if (file.size > maxMb * 1024 * 1024) {
-        toast.error(`${file.name}: File too large. Maximum ${maxMb}MB.`);
+        toast.error(t("fileTooLarge", { name: file.name, maxMb }));
         continue;
       }
 
@@ -204,13 +206,13 @@ export function ChatInput({
         const result = await uploadFile(file);
         setAttachedFiles((prev) => [...prev, result]);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Upload failed";
+        const msg = err instanceof Error ? err.message : t("uploadFailed");
         toast.error(`${file.name}: ${msg}`);
       } finally {
         setIsUploading(false);
       }
     }
-  }, []);
+  }, [t]);
 
   const removeFile = (fileId: string) => {
     setAttachedFiles((prev) => prev.filter((f) => f.id !== fileId));
@@ -278,7 +280,7 @@ export function ChatInput({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder={t("sendMessage")}
           disabled={disabled}
           rows={1}
           className="placeholder:text-muted-foreground min-h-[40px] flex-1 resize-none scrollbar-thin bg-transparent py-2.5 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
@@ -293,7 +295,7 @@ export function ChatInput({
             onClick={toggleMic}
             disabled={disabled}
             className="h-9 w-9"
-            title={isListening ? "Stop recording" : "Voice input"}
+            title={isListening ? t("stopRecording") : t("voiceInput")}
           >
             {isListening ? (
               <MicOff className="h-4 w-4 animate-pulse text-red-500" />
@@ -310,7 +312,7 @@ export function ChatInput({
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploading}
             className="h-9 w-9"
-            title="Attach file"
+            title={t("attachFile")}
           >
             {isUploading ? (
               <Spinner className="text-muted-foreground h-4 w-4" />
@@ -335,7 +337,7 @@ export function ChatInput({
             className="h-9 w-9 rounded-lg"
           >
             {isProcessing ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            <span className="sr-only">Send message</span>
+            <span className="sr-only">{t("send")}</span>
           </Button>
         </div>
       </div>

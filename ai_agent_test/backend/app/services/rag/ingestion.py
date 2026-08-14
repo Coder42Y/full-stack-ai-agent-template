@@ -35,7 +35,7 @@ class IngestionService:
         """Build an IngestionService using the application's RAG settings."""
         from app.core.config import settings
         from app.services.rag.embeddings import EmbeddingService
-        from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
+        from app.services.rag.vectorstore import PgvectorVectorStore as VectorStore
 
         rag_settings = settings.rag
         embed_service = EmbeddingService(settings=rag_settings)

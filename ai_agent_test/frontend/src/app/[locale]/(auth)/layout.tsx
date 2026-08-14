@@ -1,15 +1,11 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 
 import { APP_NAME, ROUTES } from "@/lib/constants";
 
-const HIGHLIGHTS = [
-  "Streaming chat with tool calls",
-  "Knowledge base over your docs",
-  "Stripe billing & teams in a click",
-];
-
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const t = await getTranslations("auth.brand");
   return (
     <div className="bg-background text-foreground min-h-screen lg:grid lg:grid-cols-[1.1fr_minmax(0,560px)]">
       {/* LEFT — form panel (always light, regardless of system theme) */}
@@ -47,22 +43,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="relative z-10">
             <span className="eyebrow-badge inline-flex items-center gap-2">
               <Sparkles className="h-3 w-3" aria-hidden />
-              An AI assistant that knows your team&apos;s work
+              {t("eyebrow")}
             </span>
           </div>
 
           {/* MIDDLE — headline + highlights */}
           <div className="relative z-10 max-w-[28rem]">
             <h2 className="text-display-lg text-foreground [&_em]:font-accent mb-6 leading-[1.05] [&_em]:font-normal [&_em]:italic">
-              Ship the AI feature <em>your team</em> actually wants.
+              {t.rich("heading", { em: (chunks) => <em>{chunks}</em> })}
             </h2>
             <p className="text-foreground/65 max-w-md text-base leading-relaxed">
-              Auth, billing, vector search, agents — already wired. You ship the product, not the
-              plumbing.
+              {t("description")}
             </p>
 
             <ul className="mt-10 space-y-3">
-              {HIGHLIGHTS.map((line) => (
+              {[t("highlight1"), t("highlight2"), t("highlight3")].map((line) => (
                 <li key={line} className="text-foreground/85 flex items-center gap-3 text-sm">
                   <span aria-hidden className="bg-brand h-1.5 w-1.5 shrink-0 rounded-full" />
                   {line}
@@ -74,18 +69,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* BOTTOM — glass testimonial card */}
           <figure className="border-foreground/15 bg-background/80 relative z-10 max-w-md rounded-2xl border p-5 shadow-lg backdrop-blur-xl">
             <blockquote className="text-foreground/90 text-sm leading-relaxed">
-              &ldquo;Replaced four SaaS tools and shipped our first AI feature in two weeks.&rdquo;
+              {t("testimonial")}
             </blockquote>
             <figcaption className="mt-4 flex items-center gap-3">
               <span
                 className="bg-brand text-brand-foreground flex h-9 w-9 items-center justify-center rounded-full font-mono text-xs font-semibold"
                 style={{ boxShadow: "0 0 16px var(--color-brand)" }}
               >
-                EP
+                {t("initials")}
               </span>
               <div>
-                <p className="text-foreground text-sm font-semibold">Eli Park</p>
-                <p className="text-foreground/55 text-xs">Founder · Vellum Labs</p>
+                <p className="text-foreground text-sm font-semibold">{t("name")}</p>
+                <p className="text-foreground/55 text-xs">{t("role")}</p>
               </div>
             </figcaption>
           </figure>

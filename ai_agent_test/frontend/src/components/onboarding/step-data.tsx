@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowRight, FileText, FolderOpen, HardDrive, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,6 +14,8 @@ import { OnboardingShell } from "./onboarding-shell";
 type Choice = "upload" | "gdrive" | "skip" | null;
 
 export function StepData() {
+  const t = useTranslations("onboarding.data");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [choice, setChoice] = useState<Choice>(null);
   const [filename, setFilename] = useState<string | null>(null);
@@ -27,7 +30,7 @@ export function StepData() {
     // The real upload UI lives in /rag. Surface a toast and continue.
     setTimeout(() => {
       setUploading(false);
-      toast.success(`Queued ${file.name} for indexing`);
+      toast.success(t("queued", { name: file.name }));
     }, 600);
   };
 
@@ -38,14 +41,14 @@ export function StepData() {
   return (
     <OnboardingShell
       step="data"
-      title="Connect your data"
-      description="Drop a doc to ground answers in your team's knowledge — or skip and add data later."
+      title={t("title")}
+      description={t("description")}
     >
       <div className="grid gap-3">
         <ChoiceCard
           icon={Upload}
-          title="Upload a file"
-          description="PDF, DOCX, MD, or TXT up to 50 MB"
+          title={t("upload.title")}
+          description={t("upload.description")}
           selected={choice === "upload"}
           onClick={() => {
             setChoice("upload");
@@ -62,18 +65,18 @@ export function StepData() {
         />
         <ChoiceCard
           brandIcon="gdrive"
-          title="Sync from Google Drive"
-          description="Connect a folder — auto-reindex on changes"
+          title={t("gdrive.title")}
+          description={t("gdrive.description")}
           selected={choice === "gdrive"}
           onClick={() => {
             setChoice("gdrive");
-            toast.info("Drive sync configured in /rag → Sources");
+            toast.info(t("gdriveConfigured"));
           }}
         />
         <ChoiceCard
           icon={HardDrive}
-          title="Skip for now"
-          description="You can add data sources from the Knowledge Base any time"
+          title={t("skip.title")}
+          description={t("skip.description")}
           selected={choice === "skip"}
           onClick={() => setChoice("skip")}
         />
@@ -84,7 +87,7 @@ export function StepData() {
           <FileText className="text-foreground/55 h-4 w-4" />
           <span className="text-foreground flex-1 truncate font-mono text-xs">{filename}</span>
           <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            {uploading ? "Queueing…" : "Ready"}
+            {uploading ? t("queueing") : t("ready")}
           </span>
         </div>
       )}
@@ -94,7 +97,7 @@ export function StepData() {
         onClick={handleNext}
         className="bg-foreground text-background hover:bg-foreground/90 mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium transition-colors"
       >
-        Continue
+        {tc("continue")}
         <ArrowRight className="h-4 w-4" />
       </button>
     </OnboardingShell>

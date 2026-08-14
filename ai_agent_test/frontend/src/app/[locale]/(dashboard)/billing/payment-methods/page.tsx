@@ -1,19 +1,22 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { PaymentMethodsPanel } from "@/components/billing";
 import { PageHero } from "@/components/dashboard/page-hero";
 
 export default function PaymentMethodsPage() {
+  const t = useTranslations("billing");
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <PageHero
-        eyebrow="Billing · Payment methods"
+        eyebrow={t("eyebrowPaymentMethods")}
         title={
           <>
-            Cards on <em>file.</em>
+            {t("cardsOnFilePrefix")} <em>{t("cardsOnFileEm")}</em>
           </>
         }
-        description="Cards and bank accounts you can charge are managed in the Stripe billing portal — open it to add, remove, or set a default."
+        description={t("cardsOnFileDesc")}
       />
       <PaymentMethodsPanel />
     </div>

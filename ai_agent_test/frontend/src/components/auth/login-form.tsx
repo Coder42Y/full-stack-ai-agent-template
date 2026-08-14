@@ -34,7 +34,7 @@ export function LoginForm() {
       await login({ email, password });
       toast.success(t("loginSuccess"));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : "Login failed. Please try again.";
+      const message = err instanceof ApiError ? err.message : t("loginFailed");
       setError(message);
       toast.error(message);
       setIsLoading(false);

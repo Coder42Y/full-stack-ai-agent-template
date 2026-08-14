@@ -1,4 +1,5 @@
 import { MessageSquare } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 interface SharedConversationPageProps {
   params: Promise<{ token: string; locale: string }>;
@@ -17,6 +18,8 @@ async function fetchSharedConversation(token: string) {
 
 export default async function SharedConversationPage({ params }: SharedConversationPageProps) {
   const { token } = await params;
+  const tLayout = await getTranslations("layout");
+  const tErrors = await getTranslations("errors");
   const data = await fetchSharedConversation(token);
 
   if (!data || !data.conversation) {
@@ -24,10 +27,8 @@ export default async function SharedConversationPage({ params }: SharedConversat
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <MessageSquare className="text-muted-foreground mx-auto h-12 w-12" />
-          <h1 className="mt-4 text-xl font-semibold">Share link not found</h1>
-          <p className="text-muted-foreground mt-2">
-            This share link may have expired or been revoked.
-          </p>
+          <h1 className="mt-4 text-xl font-semibold">{tErrors("shareLinkNotFound")}</h1>
+          <p className="text-muted-foreground mt-2">{tErrors("shareLinkExpired")}</p>
         </div>
       </div>
     );
@@ -39,9 +40,13 @@ export default async function SharedConversationPage({ params }: SharedConversat
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6 border-b pb-4">
-        <h1 className="text-xl font-semibold">{conversation.title || "Shared Conversation"}</h1>
+        <h1 className="text-xl font-semibold">
+          {conversation.title || tLayout("sharedConversation")}
+        </h1>
         <p className="text-muted-foreground text-sm">
-          Shared conversation — {share.permission === "view" ? "read-only" : "view & edit"}
+          {share.permission === "view"
+            ? tLayout("sharedConversationReadOnly")
+            : tLayout("sharedConversationEdit")}
         </p>
       </div>
 
@@ -63,9 +68,7 @@ export default async function SharedConversationPage({ params }: SharedConversat
         ))}
 
         {messages.length === 0 && (
-          <p className="text-muted-foreground py-12 text-center">
-            This conversation has no messages yet.
-          </p>
+          <p className="text-muted-foreground py-12 text-center">{tLayout("noMessagesYet")}</p>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks";
 import { ROUTES } from "@/lib/constants";
@@ -74,8 +75,20 @@ interface CollectionWithInfo {
   info: RAGCollectionInfo | null;
 }
 
+function capitalize(str: string): string {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+}
+
+const SYNC_MODE_LABEL_KEY: Record<string, string> = {
+  full: "syncModeFull",
+  new_only: "syncModeNewOnly",
+  update_only: "syncModeUpdateOnly",
+};
+
 function StatusIcon({ status }: { status: string }) {
-  const label = status === "done" ? "Completed" : status === "error" ? "Failed" : "Processing";
+  const t = useTranslations("rag");
+  const label =
+    status === "done" ? t("statusCompleted") : status === "error" ? t("statusFailed") : t("statusProcessing");
   return (
     <span role="status" aria-label={label}>
       {status === "done" && <CheckCircle className="h-4 w-4 text-green-500" />}
@@ -86,6 +99,8 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 export default function RAGPage() {
+  const t = useTranslations("rag");
+  const tc = useTranslations("common");
   const { user } = useAuth();
   const router = useRouter();
 
@@ -157,11 +172,11 @@ export default function RAGPage() {
       setCollections(items);
       setSelected((prev) => (items.length > 0 && !prev ? (items[0]?.name ?? "") : prev));
     } catch {
-      toast.error("Failed to load collections");
+      toast.error(t("failedLoadCollections"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchDocs = async (col: string) => {
     if (!col) {
@@ -217,27 +232,27 @@ export default function RAGPage() {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "just now";
-    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 1) return t("timeJustNow");
+    if (diffMin < 60) return t("timeMinAgo", { count: diffMin });
     const diffHrs = Math.floor(diffMin / 60);
-    if (diffHrs < 24) return `${diffHrs}h ago`;
+    if (diffHrs < 24) return t("timeHourAgo", { count: diffHrs });
     const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays}d ago`;
+    return t("timeDayAgo", { count: diffDays });
   };
 
   const handleAddSource = async (data: SyncSourceCreate) => {
     if (!data.name || !data.connector_type || !data.collection_name) {
-      toast.error("Name, connector type, and collection are required");
+      toast.error(t("sourceRequired"));
       return;
     }
     setAddSourceSubmitting(true);
     try {
       await createSyncSource(data);
-      toast.success(`Source "${data.name}" created`);
+      toast.success(t("sourceCreated", { name: data.name }));
       setAddSourceOpen(false);
       fetchSyncSources();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create source");
+      toast.error(err instanceof Error ? err.message : t("failedCreateSource"));
     } finally {
       setAddSourceSubmitting(false);
     }
@@ -246,21 +261,21 @@ export default function RAGPage() {
   const handleDeleteSource = async (sourceId: string) => {
     try {
       await deleteSyncSource(sourceId);
-      toast.success("Source deleted");
+      toast.success(t("sourceDeleted"));
       setSyncSources((prev) => prev.filter((s) => s.id !== sourceId));
     } catch {
-      toast.error("Failed to delete source");
+      toast.error(t("failedDeleteSource"));
     }
   };
 
   const handleTriggerSync = async (sourceId: string) => {
     try {
       await triggerSyncSource(sourceId);
-      toast.success("Sync triggered");
+      toast.success(t("syncTriggered"));
       fetchSyncLogs();
       fetchSyncSources();
     } catch {
-      toast.error("Failed to trigger sync");
+      toast.error(t("failedTriggerSync"));
     }
   };
 
@@ -288,10 +303,10 @@ export default function RAGPage() {
           prev.map((d) => (d.id === data.document_id ? { ...d, status: data.status } : d)),
         );
         if (data.status === "done") {
-          toast.success(`${data.filename}: Ingested successfully`);
+          toast.success(t("ingestedSuccess", { filename: data.filename }));
           fetchCollections();
         } else if (data.status === "error") {
-          toast.error(`${data.filename}: Ingestion failed`);
+          toast.error(t("ingestionFailed", { filename: data.filename }));
         }
       } catch {}
     });
@@ -304,20 +319,20 @@ export default function RAGPage() {
     if (!name) return;
     try {
       await createCollection(name);
-      toast.success(`"${name}" created`);
+      toast.success(t("collectionCreated", { name }));
       setNewName("");
       setShowCreate(false);
       await fetchCollections();
       setSelected(name);
     } catch {
-      toast.error("Failed to create collection");
+      toast.error(t("failedCreateCollection"));
     }
   };
 
   const handleDelete = async (name: string) => {
     try {
       await deleteCollection(name);
-      toast.success(`"${name}" deleted`);
+      toast.success(t("collectionDeleted", { name }));
       setCollections((prev) => prev.filter((c) => c.name !== name));
       if (selected === name) {
         setSelected("");
@@ -325,18 +340,18 @@ export default function RAGPage() {
         setSearchResults([]);
       }
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("failedDelete"));
     }
   };
 
   const handleDeleteDoc = async (docId: string) => {
     try {
       await deleteTrackedDocument(docId);
-      toast.success("Document deleted");
+      toast.success(t("documentDeleted"));
       setDocs((prev) => prev.filter((d) => d.id !== docId));
       fetchCollections();
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("failedDelete"));
     }
   };
 
@@ -356,12 +371,12 @@ export default function RAGPage() {
 
         const ext = "." + (file.name.split(".").pop()?.toLowerCase() ?? "");
         if (allowedExts.length > 0 && !allowedExts.includes(ext)) {
-          toast.error(`${file.name}: Unsupported format (${ext})`);
+          toast.error(t("unsupportedFormat", { name: file.name, ext }));
           errorCount++;
           continue;
         }
         if (file.size > maxMb * 1024 * 1024) {
-          toast.error(`${file.name}: Too large (max ${maxMb}MB)`);
+          toast.error(t("tooLarge", { name: file.name, maxMb }));
           errorCount++;
           continue;
         }
@@ -370,7 +385,9 @@ export default function RAGPage() {
           await ingestFile(selected, file);
           successCount++;
         } catch (err) {
-          toast.error(`${file.name}: ${err instanceof Error ? err.message : "Failed"}`);
+          toast.error(
+            t("fileFailed", { name: file.name, message: err instanceof Error ? err.message : t("failed") }),
+          );
           errorCount++;
         }
       }
@@ -379,15 +396,13 @@ export default function RAGPage() {
       setUploadProgress(null);
 
       if (successCount > 0) {
-        toast.success(
-          `${successCount} file${successCount > 1 ? "s" : ""} ingested${errorCount > 0 ? `, ${errorCount} failed` : ""}`,
-        );
+        toast.success(t("filesIngested", { count: successCount, failed: errorCount }));
       }
 
       await fetchDocs(selected);
       await fetchCollections();
     },
-    [selected, supportedFormats, fetchCollections],
+    [selected, supportedFormats, fetchCollections, t],
   );
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,12 +415,12 @@ export default function RAGPage() {
   const handleDrop = useCallback(
     (files: File[]) => {
       if (!selected) {
-        toast.error("Select a collection before dropping files");
+        toast.error(t("selectCollectionFirst"));
         return;
       }
       processFiles(files);
     },
-    [selected, processFiles],
+    [selected, processFiles, t],
   );
 
   const handleSearch = async () => {
@@ -420,7 +435,7 @@ export default function RAGPage() {
       setSearchResults(data.results);
       setSearchDone(true);
     } catch {
-      toast.error("Search failed");
+      toast.error(t("searchFailed"));
     } finally {
       setSearching(false);
     }
@@ -433,12 +448,8 @@ export default function RAGPage() {
       <DragDropOverlay
         onDrop={handleDrop}
         disabled={!selected || uploading}
-        title={selected ? `Drop files into "${selected}"` : "Drop files to upload"}
-        description={
-          selected
-            ? "Files will be ingested into the active collection"
-            : "Select a collection first"
-        }
+        title={selected ? t("dropFilesInto", { name: selected }) : t("dropFilesToUpload")}
+        description={selected ? t("filesWillBeIngested") : t("selectCollectionFirst")}
         acceptedFormats={supportedFormats}
       />
       <SyncSourceWizard
@@ -454,7 +465,7 @@ export default function RAGPage() {
       {sidebarOpen && (
         <div className="flex w-52 shrink-0 flex-col border-r lg:w-64">
           <div className="flex h-12 items-center justify-between border-b px-3">
-            <h2 className="text-sm font-semibold">Collections</h2>
+            <h2 className="text-sm font-semibold">{t("collections")}</h2>
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -479,14 +490,14 @@ export default function RAGPage() {
             <div className="border-b p-3">
               <div className="flex gap-1.5">
                 <Input
-                  placeholder="name"
+                  placeholder={t("namePlaceholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                   className="h-7 text-xs"
                 />
                 <Button size="sm" onClick={handleCreate} className="h-7 px-2 text-xs">
-                  OK
+                  {t("ok")}
                 </Button>
               </div>
             </div>
@@ -502,14 +513,14 @@ export default function RAGPage() {
             ) : collections.length === 0 ? (
               <div className="py-8 text-center">
                 <Database className="text-muted-foreground mx-auto mb-2 h-6 w-6" />
-                <p className="text-muted-foreground text-xs">No collections</p>
+                <p className="text-muted-foreground text-xs">{t("noCollections")}</p>
                 <Button
                   variant="link"
                   size="sm"
                   className="mt-1 text-xs"
                   onClick={() => setShowCreate(true)}
                 >
-                  Create one
+                  {t("createOne")}
                 </Button>
               </div>
             ) : (
@@ -538,7 +549,7 @@ export default function RAGPage() {
                     <div className="min-w-0">
                       <p className="truncate font-medium">{col.name}</p>
                       <p className="text-[10px] opacity-60">
-                        {col.info ? `${col.info.total_vectors} vectors` : ""}
+                        {col.info ? t("vectorsCount", { count: col.info.total_vectors }) : ""}
                       </p>
                     </div>
                     <AlertDialog>
@@ -553,19 +564,19 @@ export default function RAGPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            Delete collection &ldquo;{col.name}&rdquo;?
+                            {t("deleteCollectionConfirm", { name: col.name })}
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            All documents and vectors will be permanently removed.
+                            {t("deleteCollectionHint")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
                           <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => handleDelete(col.name)}
                           >
-                            Delete
+                            {tc("delete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -589,11 +600,11 @@ export default function RAGPage() {
                 onClick={() => setSidebarOpen(true)}
                 className="mb-4"
               >
-                <Database className="mr-2 h-4 w-4" /> Show Collections
+                <Database className="mr-2 h-4 w-4" /> {t("showCollections")}
               </Button>
             )}
             <FolderOpen className="text-muted-foreground h-10 w-10" />
-            <p className="text-muted-foreground text-sm">Select or create a collection</p>
+            <p className="text-muted-foreground text-sm">{t("selectOrCreate")}</p>
           </div>
         ) : (
           <>
@@ -613,7 +624,12 @@ export default function RAGPage() {
                 <div>
                   <h2 className="font-semibold">{selected}</h2>
                   <p className="text-muted-foreground text-xs">
-                    {info ? `${info.total_vectors.toLocaleString()} vectors · ${info.dim}d` : ""}
+                    {info
+                      ? t("vectorInfo", {
+                          count: info.total_vectors.toLocaleString(),
+                          dim: info.dim,
+                        })
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -638,7 +654,7 @@ export default function RAGPage() {
                     disabled={uploading}
                   >
                     <Upload className="mr-2 h-3.5 w-3.5" />
-                    Upload Files
+                    {t("uploadFiles")}
                   </Button>
                 )}
                 <input
@@ -670,13 +686,13 @@ export default function RAGPage() {
                 className={`px-3 py-2 text-sm font-medium ${tab === "documents" ? "border-brand text-foreground border-b-2" : "text-muted-foreground"}`}
                 onClick={() => setTab("documents")}
               >
-                Documents {docs.length > 0 && `(${docs.length})`}
+                {t("tabDocuments")} {docs.length > 0 && `(${docs.length})`}
               </button>
               <button
                 className={`px-3 py-2 text-sm font-medium ${tab === "search" ? "border-brand text-foreground border-b-2" : "text-muted-foreground"}`}
                 onClick={() => setTab("search")}
               >
-                Search
+                {t("tabSearch")}
               </button>
               <button
                 className={`px-3 py-2 text-sm font-medium ${tab === "sync" ? "border-brand text-foreground border-b-2" : "text-muted-foreground"}`}
@@ -687,7 +703,7 @@ export default function RAGPage() {
                   if (syncLogs.length === 0 && !syncLogsLoading) fetchSyncLogs();
                 }}
               >
-                Sync
+                {t("tabSync")}
               </button>
             </div>
 
@@ -703,17 +719,15 @@ export default function RAGPage() {
                 ) : docs.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16">
                     <FileText className="text-muted-foreground mb-3 h-8 w-8" />
-                    <p className="text-muted-foreground text-sm">No documents</p>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      Upload PDF, DOCX, TXT, or MD
-                    </p>
+                    <p className="text-muted-foreground text-sm">{t("noDocuments")}</p>
+                    <p className="text-muted-foreground mt-1 text-xs">{t("uploadFormatsHint")}</p>
                     <Button
                       variant="outline"
                       size="sm"
                       className="mt-4"
                       onClick={() => fileRef.current?.click()}
                     >
-                      <Upload className="mr-2 h-4 w-4" /> Upload Files
+                      <Upload className="mr-2 h-4 w-4" /> {t("uploadFiles")}
                     </Button>
                   </div>
                 ) : (
@@ -737,7 +751,7 @@ export default function RAGPage() {
                                 </span>
                               )}
                               {doc.status === "processing" && (
-                                <span className="text-brand text-xs">Processing...</span>
+                                <span className="text-brand text-xs">{t("statusProcessing")}</span>
                               )}
                               {doc.status === "error" && (
                                 <span className="max-w-[200px] truncate text-xs text-red-500">
@@ -759,7 +773,7 @@ export default function RAGPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-muted-foreground hover:text-foreground rounded p-1.5 transition-colors"
-                              title="View original"
+                              title={t("viewOriginal")}
                             >
                               <Eye className="h-3.5 w-3.5" />
                             </a>
@@ -773,19 +787,19 @@ export default function RAGPage() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete &ldquo;{doc.filename}&rdquo;?
+                                  {t("deleteDocConfirm", { name: doc.filename })}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will remove the document from vector store and storage.
+                                  {t("deleteDocHint")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
                                 <AlertDialogAction
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   onClick={() => handleDeleteDoc(doc.id)}
                                 >
-                                  Delete
+                                  {tc("delete")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -800,24 +814,22 @@ export default function RAGPage() {
                 <div className="space-y-4">
                   <div className="flex gap-2">
                     <Input
-                      placeholder={`Search in "${selected}"...`}
+                      placeholder={t("searchIn", { name: selected })}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
                       <Search className="mr-2 h-4 w-4" />
-                      {searching ? "..." : "Search"}
+                      {searching ? "..." : t("search")}
                     </Button>
                   </div>
 
                   {searchDone && searchResults.length === 0 && !searching && (
                     <div className="flex flex-col items-center justify-center py-12">
                       <Search className="text-muted-foreground mb-3 h-8 w-8" />
-                      <p className="text-muted-foreground text-sm">No results found</p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Try a different query or check another collection
-                      </p>
+                      <p className="text-muted-foreground text-sm">{t("noResults")}</p>
+                      <p className="text-muted-foreground mt-1 text-xs">{t("noResultsHint")}</p>
                     </div>
                   )}
 
@@ -850,7 +862,7 @@ export default function RAGPage() {
                                   rel="noopener noreferrer"
                                   className="text-brand hover:text-brand-hover inline-flex items-center gap-1 text-[10px] font-medium"
                                 >
-                                  <Eye className="h-3 w-3" /> View source
+                                  <Eye className="h-3 w-3" /> {t("viewSource")}
                                 </a>
                               )}
                             </div>
@@ -870,7 +882,7 @@ export default function RAGPage() {
                   {/* Sync Sources */}
                   <div>
                     <div className="mb-3 flex items-center justify-between">
-                      <h3 className="text-sm font-semibold">Sync Sources</h3>
+                      <h3 className="text-sm font-semibold">{t("syncSources")}</h3>
                       <Button
                         size="sm"
                         variant="outline"
@@ -879,7 +891,7 @@ export default function RAGPage() {
                           if (connectors.length === 0) fetchConnectors();
                         }}
                       >
-                        <Plus className="mr-1 h-3.5 w-3.5" /> Add Source
+                        <Plus className="mr-1 h-3.5 w-3.5" /> {t("addSource")}
                       </Button>
                     </div>
 
@@ -892,10 +904,8 @@ export default function RAGPage() {
                     ) : syncSources.length === 0 ? (
                       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8">
                         <Database className="text-muted-foreground mb-2 h-6 w-6" />
-                        <p className="text-muted-foreground text-sm">No sync sources configured</p>
-                        <p className="text-muted-foreground mt-1 text-xs">
-                          Add a source to start syncing documents automatically
-                        </p>
+                        <p className="text-muted-foreground text-sm">{t("noSyncSources")}</p>
+                        <p className="text-muted-foreground mt-1 text-xs">{t("noSyncSourcesHint")}</p>
                       </div>
                     ) : (
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -908,7 +918,7 @@ export default function RAGPage() {
                                   <span className="text-sm font-medium">{source.name}</span>
                                 </div>
                                 <Badge variant={source.is_active ? "default" : "secondary"}>
-                                  {source.is_active ? "Active" : "Disabled"}
+                                  {source.is_active ? t("active") : t("disabled")}
                                 </Badge>
                               </div>
                               <div className="text-muted-foreground space-y-1 text-sm">
@@ -917,14 +927,18 @@ export default function RAGPage() {
                                 </p>
                                 <p>
                                   {source.schedule_minutes
-                                    ? `Every ${source.schedule_minutes}min`
-                                    : "Manual"}{" "}
-                                  &bull; {source.sync_mode}
+                                    ? t("everyMinutes", { minutes: source.schedule_minutes })
+                                    : t("manual")}{" "}
+                                  &bull; {t(SYNC_MODE_LABEL_KEY[source.sync_mode] ?? source.sync_mode)}
                                 </p>
                                 {source.last_sync_at && (
                                   <p className="text-xs">
-                                    Last sync: {formatRelativeTime(source.last_sync_at)} &mdash;{" "}
-                                    {source.last_sync_status}
+                                    {t("lastSyncAt", {
+                                      time: formatRelativeTime(source.last_sync_at),
+                                      status: source.last_sync_status
+                                        ? t(`syncStatus${capitalize(source.last_sync_status)}`)
+                                        : "",
+                                    })}
                                   </p>
                                 )}
                                 {source.last_error && (
@@ -939,7 +953,7 @@ export default function RAGPage() {
                                   variant="outline"
                                   onClick={() => handleTriggerSync(source.id)}
                                 >
-                                  <RefreshCw className="mr-1 h-3 w-3" /> Sync Now
+                                  <RefreshCw className="mr-1 h-3 w-3" /> {t("syncNow")}
                                 </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
@@ -950,20 +964,19 @@ export default function RAGPage() {
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>
-                                        Delete source &ldquo;{source.name}&rdquo;?
+                                        {t("deleteSourceConfirm", { name: source.name })}
                                       </AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        This will remove the sync source configuration. Existing
-                                        documents will not be affected.
+                                        {t("deleteSourceHint")}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
                                       <AlertDialogAction
                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                         onClick={() => handleDeleteSource(source.id)}
                                       >
-                                        Delete
+                                        {tc("delete")}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -978,7 +991,7 @@ export default function RAGPage() {
 
                   {/* Sync History */}
                   <div>
-                    <h3 className="mb-3 text-sm font-semibold">History</h3>
+                    <h3 className="mb-3 text-sm font-semibold">{t("history")}</h3>
                     {syncLogsLoading ? (
                       <div className="space-y-2">
                         {[1, 2, 3].map((i) => (
@@ -986,7 +999,7 @@ export default function RAGPage() {
                         ))}
                       </div>
                     ) : syncLogs.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No sync history yet</p>
+                      <p className="text-muted-foreground text-sm">{t("noSyncHistory")}</p>
                     ) : (
                       <div className="space-y-2">
                         {syncLogs.map((log) => (
@@ -1018,29 +1031,37 @@ export default function RAGPage() {
                                     onClick={async () => {
                                       try {
                                         await cancelSync(log.id);
-                                        toast.success("Sync cancelled");
+                                        toast.success(t("syncCancelled"));
                                         fetchSyncLogs();
                                       } catch {
-                                        toast.error("Failed to cancel");
+                                        toast.error(t("failedCancel"));
                                       }
                                     }}
                                   >
-                                    Cancel
+                                    {tc("cancel")}
                                   </Button>
                                 )}
                               </div>
                             </div>
                             <div className="text-muted-foreground mt-2 flex flex-wrap gap-3 text-xs">
-                              <span>{log.total_files} total</span>
+                              <span>{t("totalFiles", { count: log.total_files })}</span>
                               {log.ingested > 0 && (
-                                <span className="text-green-500">{log.ingested} new</span>
+                                <span className="text-green-500">
+                                  {t("newFiles", { count: log.ingested })}
+                                </span>
                               )}
                               {log.updated > 0 && (
-                                <span className="text-blue-500">{log.updated} updated</span>
+                                <span className="text-blue-500">
+                                  {t("updatedFiles", { count: log.updated })}
+                                </span>
                               )}
-                              {log.skipped > 0 && <span>{log.skipped} skipped</span>}
+                              {log.skipped > 0 && (
+                                <span>{t("skippedFiles", { count: log.skipped })}</span>
+                              )}
                               {log.failed > 0 && (
-                                <span className="text-red-500">{log.failed} failed</span>
+                                <span className="text-red-500">
+                                  {t("failedFiles", { count: log.failed })}
+                                </span>
                               )}
                             </div>
                             {log.error_message && (

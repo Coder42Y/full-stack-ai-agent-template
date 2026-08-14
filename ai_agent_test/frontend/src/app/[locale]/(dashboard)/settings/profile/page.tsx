@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Camera, Globe, Monitor, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,17 +28,6 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores";
 import type { Session, SessionListResponse, User } from "@/types";
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
 function DeviceIcon({ type }: { type?: string | null }) {
   if (type === "mobile") return <Smartphone className="h-4 w-4" />;
   if (type === "desktop") return <Monitor className="h-4 w-4" />;
@@ -45,8 +35,23 @@ function DeviceIcon({ type }: { type?: string | null }) {
 }
 
 export default function ProfileSettingsPage() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
+  const tp = useTranslations("profile");
+  const ta = useTranslations("auth");
   const { user } = useAuth();
   const { setUser } = useAuthStore();
+
+  const formatTimeAgo = (dateStr: string): string => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return t("profile.timeAgo.justNow");
+    if (minutes < 60) return t("profile.timeAgo.minutes", { count: minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t("profile.timeAgo.hours", { count: hours });
+    const days = Math.floor(hours / 24);
+    return t("profile.timeAgo.days", { count: days });
+  };
 
   const [name, setName] = useState(user?.full_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -93,15 +98,15 @@ export default function ProfileSettingsPage() {
       if (email !== user.email) payload.email = email;
       if (name !== (user.full_name ?? "")) payload.full_name = name || null;
       if (Object.keys(payload).length === 0) {
-        toast.info("Nothing changed");
+        toast.info(t("profile.nothingChanged"));
         setSaving(false);
         return;
       }
       const updated = await apiClient.patch<User>("/users/me", payload);
       setUser(updated);
-      toast.success("Profile updated");
+      toast.success(t("profile.profileUpdated"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Failed to update profile");
+      toast.error(err instanceof ApiError ? err.message : t("profile.profileUpdateFailed"));
     } finally {
       setSaving(false);
     }
@@ -112,7 +117,7 @@ export default function ProfileSettingsPage() {
     if (!file) return;
     e.target.value = "";
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Avatar too large. Maximum 2MB.");
+      toast.error(t("profile.avatarTooLarge"));
       return;
     }
     setAvatarUploading(true);
@@ -121,14 +126,14 @@ export default function ProfileSettingsPage() {
       formData.append("file", file);
       const res = await fetch("/api/users/me/avatar", { method: "POST", body: formData });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-        throw new Error(err.detail || "Upload failed");
+        const err = await res.json().catch(() => ({ detail: t("profile.uploadFailed") }));
+        throw new Error(err.detail || t("profile.uploadFailed"));
       }
       const updated = await res.json();
       setUser(updated);
-      toast.success("Avatar updated");
+      toast.success(t("profile.avatarUpdated"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+      toast.error(err instanceof Error ? err.message : t("profile.avatarUploadFailed"));
     } finally {
       setAvatarUploading(false);
     }
@@ -138,9 +143,9 @@ export default function ProfileSettingsPage() {
     try {
       await apiClient.delete(`/sessions/${sessionId}`);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-      toast.success("Session revoked");
+      toast.success(t("profile.sessionRevoked"));
     } catch {
-      toast.error("Failed to revoke session");
+      toast.error(t("profile.sessionRevokeFailed"));
     }
   };
 
@@ -148,9 +153,9 @@ export default function ProfileSettingsPage() {
     try {
       await apiClient.delete("/sessions");
       setSessions((prev) => prev.filter((s) => s.is_current));
-      toast.success("All other sessions revoked");
+      toast.success(t("profile.allOtherSessionsRevoked"));
     } catch {
-      toast.error("Failed to revoke sessions");
+      toast.error(t("profile.sessionsRevokeFailed"));
     }
   };
 
@@ -161,8 +166,8 @@ export default function ProfileSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Avatar"
-        description="Square images look best. Up to 2MB. JPG, PNG, WEBP, or GIF."
+        title={t("profile.avatar")}
+        description={t("profile.avatarDescription")}
       >
         <div className="flex items-center gap-5">
           <button
@@ -207,25 +212,29 @@ export default function ProfileSettingsPage() {
               className="rounded-full"
             >
               {avatarUploading
-                ? "Uploading…"
+                ? t("profile.uploading")
                 : user.avatar_url
-                  ? "Replace avatar"
-                  : "Upload avatar"}
+                  ? t("profile.replaceAvatar")
+                  : t("profile.uploadAvatar")}
             </Button>
             <p className="text-foreground/55 mt-2 text-xs">
-              {user.role === "admin" ? "Admin · " : ""}Member since{" "}
-              {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
+              {user.role === "admin" ? t("profile.adminPrefix") : ""}
+              {t("profile.memberSince", {
+                date: user.created_at
+                  ? new Date(user.created_at).toLocaleDateString()
+                  : "—",
+              })}
             </p>
           </div>
         </div>
       </SettingsSection>
 
       <SettingsSection
-        title="Personal info"
-        description="Visible to teammates in shared organizations."
+        title={tp("personalInfo")}
+        description={t("profile.personalInfoDescription")}
         action={
           <Button onClick={handleSaveProfile} disabled={saving} size="sm" className="rounded-full">
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? tc("saving") : t("saveChanges")}
           </Button>
         }
       >
@@ -235,13 +244,13 @@ export default function ProfileSettingsPage() {
               htmlFor="profile-name"
               className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
             >
-              Display name
+              {t("profile.displayName")}
             </Label>
             <Input
               id="profile-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="How should we call you?"
+              placeholder={ta("namePlaceholder")}
               className="h-10 rounded-xl"
             />
           </div>
@@ -250,7 +259,7 @@ export default function ProfileSettingsPage() {
               htmlFor="profile-email"
               className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
             >
-              Email
+              {tp("email")}
             </Label>
             <Input
               id="profile-email"
@@ -259,35 +268,35 @@ export default function ProfileSettingsPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 rounded-xl"
             />
-            <p className="text-foreground/55 text-xs">
-              Changing email may require re-verification depending on your auth setup.
-            </p>
+            <p className="text-foreground/55 text-xs">{t("profile.emailHint")}</p>
           </div>
         </div>
       </SettingsSection>
 
       {sessionsAvailable && (
         <SettingsSection
-          title="Active sessions"
-          description="Devices currently signed in to your account."
+          title={t("profile.activeSessions")}
+          description={t("profile.activeSessionsDescription")}
           action={
             sessions.filter((s) => !s.is_current).length > 0 ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full">
-                    Revoke all others
+                    {t("profile.revokeAllOthers")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Revoke all other sessions?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("profile.revokeAllConfirmTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Every device signed in to your account will be signed out, except this one.
+                      {t("profile.revokeAllConfirmDescription")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleRevokeAll}>Revoke all</AlertDialogAction>
+                    <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleRevokeAll}>
+                      {t("profile.revokeAll")}
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -301,7 +310,7 @@ export default function ProfileSettingsPage() {
               ))}
             </div>
           ) : sessions.length === 0 ? (
-            <p className="text-foreground/55 text-sm">No session data available.</p>
+            <p className="text-foreground/55 text-sm">{t("profile.noSessionData")}</p>
           ) : (
             <ul className="space-y-2">
               {sessions.map((session) => (
@@ -334,20 +343,22 @@ export default function ProfileSettingsPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground flex items-center gap-2 text-sm font-medium">
-                        <span className="truncate">{session.device_name || "Unknown device"}</span>
+                        <span className="truncate">
+                          {session.device_name || t("profile.unknownDevice")}
+                        </span>
                         {session.is_current && (
                           <span className="bg-brand/15 text-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase">
                             <span
                               aria-hidden
                               className="bg-brand h-1 w-1 animate-pulse rounded-full"
                             />
-                            Current
+                            {t("profile.currentBadge")}
                           </span>
                         )}
                       </p>
                       <p className="text-foreground/55 truncate text-xs">
                         {session.ip_address && `${session.ip_address} · `}
-                        Last active {timeAgo(session.last_used_at)}
+                        {t("profile.lastActive", { time: formatTimeAgo(session.last_used_at) })}
                       </p>
                     </div>
                   </div>
@@ -357,7 +368,7 @@ export default function ProfileSettingsPage() {
                       size="sm"
                       className="text-foreground/55 hover:bg-destructive/10 hover:text-destructive h-8 shrink-0"
                       onClick={() => handleRevokeSession(session.id)}
-                      title="Revoke session"
+                      title={t("profile.revokeSessionTitle")}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

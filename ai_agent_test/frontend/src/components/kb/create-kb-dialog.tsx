@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,8 @@ interface CreateKBDialogProps {
 }
 
 export function CreateKBDialog({ open, onOpenChange, onCreated }: CreateKBDialogProps) {
+  const t = useTranslations("knowledgeBases");
+  const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [scope, setScope] = useState<KBScope>("personal");
@@ -58,47 +61,47 @@ export function CreateKBDialog({ open, onOpenChange, onCreated }: CreateKBDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create knowledge base</DialogTitle>
+          <DialogTitle>{t("createTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="kb-name">Name</Label>
+            <Label htmlFor="kb-name">{t("nameLabel")}</Label>
             <Input
               id="kb-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Product docs"
+              placeholder={t("namePlaceholder")}
               autoFocus
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="kb-description">Description (optional)</Label>
+            <Label htmlFor="kb-description">{t("descriptionLabel")}</Label>
             <Textarea
               id="kb-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What documents will this KB contain?"
+              placeholder={t("descriptionPlaceholder")}
               rows={2}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="kb-scope">Scope</Label>
+            <Label htmlFor="kb-scope">{t("scopeLabel")}</Label>
             <Select value={scope} onValueChange={(v) => setScope(v as KBScope)}>
               <SelectTrigger id="kb-scope">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="personal">Personal — only you</SelectItem>
-                <SelectItem value="org">Organization — all members</SelectItem>
+                <SelectItem value="personal">{t("scopePersonal")}</SelectItem>
+                <SelectItem value="org">{t("scopeOrganization")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button type="submit" disabled={!name.trim() || isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting ? t("creating") : tc("create")}
             </Button>
           </DialogFooter>
         </form>

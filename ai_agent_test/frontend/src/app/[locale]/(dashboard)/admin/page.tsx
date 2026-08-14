@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { LoadingState } from "@/components/states";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -44,17 +45,21 @@ const EVENT_ICON: Record<RecentEvent["type"], LucideIcon> = {
   rating_low: Star,
 };
 
-function formatRelative(iso: string): string {
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return "";
-  const diff = Math.round((Date.now() - t) / 1000);
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+function formatRelative(
+  iso: string,
+  t: ReturnType<typeof useTranslations<"admin">>,
+): string {
+  const ts = new Date(iso).getTime();
+  if (Number.isNaN(ts)) return "";
+  const diff = Math.round((Date.now() - ts) / 1000);
+  if (diff < 60) return t("timeJustNow");
+  if (diff < 3600) return t("timeMinutesAgo", { n: Math.floor(diff / 60) });
+  if (diff < 86400) return t("timeHoursAgo", { n: Math.floor(diff / 3600) });
+  return t("timeDaysAgo", { n: Math.floor(diff / 86400) });
 }
 
 export default function AdminOverviewPage() {
+  const t = useTranslations("admin");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [events, setEvents] = useState<RecentEvent[] | null>(null);
@@ -103,8 +108,8 @@ export default function AdminOverviewPage() {
         convs.items.map((c) => ({
           id: c.id,
           type: "conversation_created" as const,
-          title: c.title || "New conversation",
-          description: c.user_email ? `by ${c.user_email}` : "",
+          title: c.title || t("newConversationFallback"),
+          description: c.user_email ? t("byUser", { user: c.user_email }) : "",
           timestamp: c.created_at,
         })),
       );
@@ -123,10 +128,10 @@ export default function AdminOverviewPage() {
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Overview
+            {t("overviewEyebrow")}
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            The view from <em>above.</em>
+            {t.rich("overviewTitle", { em: (chunks) => <em>{chunks}</em> })}
           </h2>
         </div>
         <Button
@@ -139,7 +144,7 @@ export default function AdminOverviewPage() {
           className="rounded-full"
         >
           <RefreshCw className={cn("mr-2 h-3.5 w-3.5", statsLoading && "animate-spin")} />
-          Refresh
+          {t("refresh")}
         </Button>
       </div>
 
@@ -149,23 +154,23 @@ export default function AdminOverviewPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total users"
+            label={t("statTotalUsers")}
             value={(stats?.total_users ?? 0).toLocaleString()}
             icon={Users}
           />
           <StatCard
-            label="Active 24h"
+            label={t("statActive24h")}
             value={(stats?.active_users_24h ?? 0).toLocaleString()}
             icon={Activity}
             featured
           />
           <StatCard
-            label="Conversations"
+            label={t("statConversations")}
             value={(stats?.total_conversations ?? 0).toLocaleString()}
             icon={MessageSquare}
           />
           <StatCard
-            label="MRR"
+            label={t("statMrr")}
             value={
               typeof stats?.mrr_cents === "number"
                 ? (stats.mrr_cents / 100).toLocaleString("en-US", {
@@ -185,32 +190,32 @@ export default function AdminOverviewPage() {
         <QuickLink
           href="/admin/users"
           icon={Users}
-          title="Manage users"
-          description="Search, suspend, impersonate"
+          title={t("quickManageUsers")}
+          description={t("quickManageUsersDesc")}
         />
         <QuickLink
           href="/admin/conversations"
           icon={MessageSquare}
-          title="Browse chats"
-          description="All conversations across users"
+          title={t("quickBrowseChats")}
+          description={t("quickBrowseChatsDesc")}
         />
         <QuickLink
           href="/admin/stripe-events"
           icon={CreditCard}
-          title="Stripe events"
-          description="Replay webhooks, debug billing"
+          title={t("quickStripeEvents")}
+          description={t("quickStripeEventsDesc")}
         />
         <QuickLink
           href="/admin/system"
           icon={Activity}
-          title="System health"
-          description="Per-service status & uptime"
+          title={t("quickSystemHealth")}
+          description={t("quickSystemHealthDesc")}
         />
         <QuickLink
           href="/admin/ratings"
           icon={Star}
-          title="Response ratings"
-          description="Quality signals from users"
+          title={t("quickResponseRatings")}
+          description={t("quickResponseRatingsDesc")}
         />
       </section>
 
@@ -219,11 +224,12 @@ export default function AdminOverviewPage() {
         <div className="border-foreground/10 flex items-center justify-between border-b px-6 py-5">
           <div>
             <h2 className="font-display text-foreground text-base font-semibold tracking-tight">
-              Recent activity
+              {t("recentActivity")}
             </h2>
             <p className="text-foreground/55 text-xs">
-              Workspace-wide events. Backend wishlist:{" "}
-              <code className="font-mono">/admin/events</code> for first-class feed.
+              {t.rich("recentActivityDesc", {
+                code: (chunks) => <code className="font-mono">{chunks}</code>,
+              })}
             </p>
           </div>
         </div>
@@ -233,7 +239,7 @@ export default function AdminOverviewPage() {
           </div>
         ) : events.length === 0 ? (
           <div className="border-foreground/10 m-6 rounded-xl border-2 border-dashed p-10 text-center">
-            <p className="text-foreground/65 text-sm">No recent events.</p>
+            <p className="text-foreground/65 text-sm">{t("noRecentEvents")}</p>
           </div>
         ) : (
           <ul className="divide-foreground/10 divide-y">
@@ -249,7 +255,7 @@ export default function AdminOverviewPage() {
                     <p className="text-foreground/55 truncate text-xs">
                       {e.description}
                       {e.description && " · "}
-                      {formatRelative(e.timestamp)}
+                      {formatRelative(e.timestamp, t)}
                     </p>
                   </div>
                 </li>

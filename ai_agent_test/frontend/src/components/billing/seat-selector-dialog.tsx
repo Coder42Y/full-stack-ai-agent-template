@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Minus, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,8 @@ export function SeatSelectorDialog({
   initialSeats = 5,
   onUpdate,
 }: SeatSelectorDialogProps) {
+  const t = useTranslations("billing");
+  const tc = useTranslations("common");
   const { plans, isLoading: plansLoading } = usePlans();
   const { startCheckout, isLoading: checkoutLoading } = useBilling();
   const [seats, setSeats] = useState(initialSeats);
@@ -72,11 +75,11 @@ export function SeatSelectorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{mode === "update" ? "Change seat count" : "Choose your seats"}</DialogTitle>
+          <DialogTitle>
+            {mode === "update" ? t("changeSeatCount") : t("chooseYourSeats")}
+          </DialogTitle>
           <DialogDescription>
-            {mode === "update"
-              ? "Adjust the number of seats on your current subscription."
-              : "Each seat lets one team member access the workspace."}
+            {mode === "update" ? t("adjustSeatsDesc") : t("eachSeatDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -84,7 +87,7 @@ export function SeatSelectorDialog({
           <div className="flex items-center justify-between gap-4">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Users className="text-muted-foreground h-4 w-4" />
-              Seats
+              {t("seats")}
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -93,14 +96,14 @@ export function SeatSelectorDialog({
                 className="h-8 w-8 p-0"
                 onClick={() => change(-1)}
                 disabled={seats <= 1}
-                aria-label="Remove a seat"
+                aria-label={t("removeSeat")}
               >
                 <Minus className="h-3.5 w-3.5" aria-hidden />
               </Button>
               <span
                 className="w-8 text-center text-lg font-bold tabular-nums"
                 aria-live="polite"
-                aria-label={`${seats} seats selected`}
+                aria-label={t("seatsSelected", { count: seats })}
               >
                 {seats}
               </span>
@@ -109,7 +112,7 @@ export function SeatSelectorDialog({
                 size="sm"
                 className="h-8 w-8 p-0"
                 onClick={() => change(1)}
-                aria-label="Add a seat"
+                aria-label={t("addSeat")}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden />
               </Button>
@@ -119,11 +122,11 @@ export function SeatSelectorDialog({
           {!plansLoading && perSeat !== null && (
             <div className="bg-muted/50 rounded-lg p-4 text-sm">
               <div className="text-muted-foreground flex justify-between">
-                <span>Per seat / month</span>
+                <span>{t("perSeatPerMonth")}</span>
                 <span>{fmt(perSeat)}</span>
               </div>
               <div className="mt-2 flex justify-between border-t pt-2">
-                <span className="font-semibold">Total / month</span>
+                <span className="font-semibold">{t("totalPerMonth")}</span>
                 <span className="text-lg font-bold">{fmt(perSeat * seats)}</span>
               </div>
             </div>
@@ -132,10 +135,14 @@ export function SeatSelectorDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={busy}>
-            {busy ? "Please wait…" : mode === "update" ? "Save changes" : "Continue to checkout"}
+            {busy
+              ? t("pleaseWait")
+              : mode === "update"
+                ? t("saveChanges")
+                : t("continueToCheckout")}
           </Button>
         </DialogFooter>
       </DialogContent>

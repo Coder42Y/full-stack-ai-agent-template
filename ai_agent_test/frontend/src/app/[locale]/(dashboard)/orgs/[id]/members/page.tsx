@@ -3,6 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Loader2, MailPlus, UserPlus, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { InviteMemberDialog, MembersTable } from "@/components/teams";
@@ -30,6 +31,9 @@ function formatDate(iso: string): string {
 
 export default function OrgMembersPage({ params }: PageProps) {
   const { id } = use(params);
+  const t = useTranslations("members");
+  const tOrg = useTranslations("organizations");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { user } = useAuth();
   const { members, total, isLoading, fetchMembers, changeRole, removeMember } = useMembers(id);
@@ -47,6 +51,16 @@ export default function OrgMembersPage({ params }: PageProps) {
   const currentMember = members.find((m) => m.user_id === user?.id);
   const canManage = currentMember?.role === "owner" || currentMember?.role === "admin";
   const pendingInvitations = invitations.filter((i) => i.status === "pending");
+
+  const roleLabel = (role: string): string => {
+    const map: Record<string, string> = {
+      owner: t("roleOwner"),
+      admin: t("roleAdmin"),
+      member: t("roleMember"),
+      viewer: t("roleViewer"),
+    };
+    return map[role] ?? role;
+  };
 
   // Workspace profile state — name edits stay local until "Save" lands the
   // PATCH; avatar uploads are immediate (a separate POST endpoint).
@@ -76,7 +90,7 @@ export default function OrgMembersPage({ params }: PageProps) {
     if (!file) return;
     e.target.value = "";
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Avatar too large. Maximum 2MB.");
+      toast.error(tOrg("avatarTooLarge"));
       return;
     }
     setAvatarUploading(true);
@@ -85,13 +99,13 @@ export default function OrgMembersPage({ params }: PageProps) {
       fd.append("file", file);
       const res = await fetch(`/api/orgs/${id}/avatar`, { method: "POST", body: fd });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-        throw new Error(err.detail || "Upload failed");
+        const err = await res.json().catch(() => ({ detail: tOrg("uploadFailed") }));
+        throw new Error(err.detail || tOrg("uploadFailed"));
       }
-      toast.success("Workspace avatar updated");
+      toast.success(t("workspaceAvatarUpdated"));
       await fetchOrgs();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+      toast.error(err instanceof Error ? err.message : tOrg("failedUploadAvatar"));
     } finally {
       setAvatarUploading(false);
     }
@@ -106,7 +120,7 @@ export default function OrgMembersPage({ params }: PageProps) {
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1.5 text-xs font-medium transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to organizations
+          {tOrg("backToOrganizations")}
         </button>
       </div>
 
@@ -118,7 +132,7 @@ export default function OrgMembersPage({ params }: PageProps) {
             onClick={() => avatarInputRef.current?.click()}
             disabled={!canManage || avatarUploading}
             className="bg-foreground/8 group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full disabled:cursor-default"
-            title={canManage ? "Change workspace avatar" : "Only owners and admins can edit"}
+            title={canManage ? t("changeAvatar") : t("onlyAdminsEdit")}
           >
             {org.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -153,10 +167,10 @@ export default function OrgMembersPage({ params }: PageProps) {
           <div className="min-w-0 flex-1 space-y-3">
             <div>
               <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Workspace profile
+                {t("workspaceProfile")}
               </p>
               <p className="text-foreground/55 mt-0.5 text-xs">
-                Name and avatar shown across the app to everyone in this workspace.
+                {t("workspaceProfileHint")}
               </p>
             </div>
 
@@ -167,7 +181,7 @@ export default function OrgMembersPage({ params }: PageProps) {
                 onChange={(e) => setName(e.target.value)}
                 disabled={!canManage || savingName}
                 className="border-foreground/15 focus:border-foreground/40 bg-background text-foreground min-w-0 flex-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors outline-none disabled:opacity-60"
-                placeholder="Workspace name"
+                placeholder={t("workspaceNamePlaceholder")}
                 maxLength={255}
               />
               {canManage && name.trim() !== org.name && name.trim() !== "" && (
@@ -177,13 +191,13 @@ export default function OrgMembersPage({ params }: PageProps) {
                   disabled={savingName}
                   className="bg-foreground text-background hover:bg-foreground/90 inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-60"
                 >
-                  {savingName ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                  {savingName ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : tc("save")}
                 </button>
               )}
             </div>
             {!canManage && (
               <p className="text-foreground/45 text-[11px]">
-                Only owners and admins can edit workspace profile.
+                {t("onlyAdminsEditHint")}
               </p>
             )}
           </div>
@@ -193,14 +207,13 @@ export default function OrgMembersPage({ params }: PageProps) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Members
+            {t("title")}
           </p>
           <h1 className="font-display text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-            People in this workspace
+            {t("peopleTitle")}
           </h1>
           <p className="text-foreground/65 max-w-xl text-sm">
-            {total} {total === 1 ? "person has" : "people have"} access. Owners and admins can
-            invite teammates and adjust roles.
+            {t("accessCount", { total })} {t("accessHint")}
           </p>
         </div>
         {canManage && (
@@ -210,7 +223,7 @@ export default function OrgMembersPage({ params }: PageProps) {
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             <UserPlus className="h-4 w-4" />
-            Invite teammate
+            {t("inviteTeammate")}
           </button>
         )}
       </header>
@@ -220,10 +233,10 @@ export default function OrgMembersPage({ params }: PageProps) {
       ) : members.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No members yet"
-          description="Invite teammates by email to give them access to this workspace."
+          title={t("noMembers")}
+          description={t("noMembersHint")}
           cta={
-            canManage ? { label: "Invite teammate", onClick: () => setInviteOpen(true) } : undefined
+            canManage ? { label: t("inviteTeammate"), onClick: () => setInviteOpen(true) } : undefined
           }
         />
       ) : (
@@ -243,10 +256,10 @@ export default function OrgMembersPage({ params }: PageProps) {
           <div className="flex items-end justify-between gap-2">
             <div>
               <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Pending invitations
+                {t("pendingInvitations")}
               </p>
               <h2 className="font-display text-foreground text-xl font-semibold tracking-tight">
-                {pendingInvitations.length} waiting on a response
+                {t("waitingOnResponse", { count: pendingInvitations.length })}
               </h2>
             </div>
           </div>
@@ -262,8 +275,10 @@ export default function OrgMembersPage({ params }: PageProps) {
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground truncate text-sm font-semibold">{inv.email}</p>
                   <p className="text-foreground/55 mt-0.5 text-xs">
-                    Invited {formatDate(inv.created_at)}
-                    {inv.expires_at && <> · expires {formatDate(inv.expires_at)}</>}
+                    {t("invitedOn", { date: formatDate(inv.created_at) })}
+                    {inv.expires_at && (
+                      <> · {t("expiresOn", { date: formatDate(inv.expires_at) })}</>
+                    )}
                   </p>
                 </div>
                 <span
@@ -272,7 +287,7 @@ export default function OrgMembersPage({ params }: PageProps) {
                     ROLE_TONE[inv.role] ?? ROLE_TONE.member,
                   )}
                 >
-                  {inv.role}
+                  {roleLabel(inv.role)}
                 </span>
                 {canManage && (
                   <button
@@ -280,7 +295,7 @@ export default function OrgMembersPage({ params }: PageProps) {
                     onClick={() => revokeInvitation(inv.token)}
                     className="text-foreground/55 hover:text-destructive text-xs font-medium transition-colors"
                   >
-                    Revoke
+                    {t("revoke")}
                   </button>
                 )}
               </li>

@@ -82,9 +82,13 @@ export default async function ChangelogPage({ params }: { params: Promise<{ loca
                     {formatDate(entry.date)}
                   </time>
                 </div>
-                <h2 className="text-display-md mb-3">{entry.title}</h2>
+                <h2 className="text-display-md mb-3">
+                  {isZh ? entry.titleZh ?? entry.title : entry.title}
+                </h2>
                 {entry.description && (
-                  <p className="text-foreground/70 mb-6 leading-relaxed">{entry.description}</p>
+                  <p className="text-foreground/70 mb-6 leading-relaxed">
+                    {isZh ? entry.descriptionZh ?? entry.description : entry.description}
+                  </p>
                 )}
                 <ul className="space-y-2.5">
                   {entry.changes.map((change, i) => (
@@ -96,7 +100,9 @@ export default async function ChangelogPage({ params }: { params: Promise<{ loca
                       >
                         {change.type}
                       </span>
-                      <span className="text-foreground/85 leading-relaxed">{change.text}</span>
+                      <span className="text-foreground/85 leading-relaxed">
+                        {isZh ? change.textZh ?? change.text : change.text}
+                      </span>
                     </li>
                   ))}
                 </ul>

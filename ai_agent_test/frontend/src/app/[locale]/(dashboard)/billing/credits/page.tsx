@@ -13,6 +13,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { PageHero } from "@/components/dashboard/page-hero";
@@ -48,6 +49,7 @@ function humanizeType(t: string): string {
 }
 
 export default function CreditsPage() {
+  const t = useTranslations("billing");
   const searchParams = useSearchParams();
   const { balance, transactions, isLoading, txLoading } = useCredits();
   const { startCheckout, isLoading: checkoutLoading } = useBilling();
@@ -55,9 +57,9 @@ export default function CreditsPage() {
 
   useEffect(() => {
     if (searchParams.get("topup") === "1") {
-      toast.success("Credits added to your account!");
+      toast.success(t("creditsAdded"));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   useEffect(() => {
     apiClient
@@ -92,18 +94,18 @@ export default function CreditsPage() {
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wider uppercase"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to billing
+          {t("backToBilling")}
         </Link>
       </div>
 
       <PageHero
-        eyebrow="Credits"
+        eyebrow={t("credits")}
         title={
           <>
-            Balance &amp; <em>usage.</em>
+            {t("balanceUsagePrefix")} <em>{t("balanceUsageEm")}</em>
           </>
         }
-        description="Credits power AI completions, embeddings, and tool calls."
+        description={t("creditsPower")}
         actions={
           <Button
             onClick={() =>
@@ -115,7 +117,7 @@ export default function CreditsPage() {
             disabled={checkoutLoading}
             className="rounded-full"
           >
-            {checkoutLoading ? "Opening…" : "Top up"}
+            {checkoutLoading ? t("opening") : t("topUp")}
           </Button>
         }
       />
@@ -131,7 +133,7 @@ export default function CreditsPage() {
         <div className="relative grid gap-8 md:grid-cols-[1fr_1.4fr] md:items-center">
           <div>
             <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-              Current balance
+              {t("currentBalance")}
             </p>
             {isLoading ? (
               <div className="bg-foreground/8 mt-3 h-12 w-40 animate-pulse rounded-md" />
@@ -140,11 +142,11 @@ export default function CreditsPage() {
                 {balance?.balance.toLocaleString() ?? "—"}
               </p>
             )}
-            <p className="text-foreground/55 mt-2 text-sm">credits remaining</p>
+            <p className="text-foreground/55 mt-2 text-sm">{t("creditsRemaining")}</p>
             {low && balance && (
               <p className="text-destructive mt-3 inline-flex items-center gap-2 text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
-                Below alert threshold of {balance.low_threshold.toLocaleString()} credits.
+                {t("belowAlertThreshold", { count: balance.low_threshold.toLocaleString() })}
               </p>
             )}
           </div>
@@ -152,7 +154,7 @@ export default function CreditsPage() {
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Usage · last 30 days
+                {t("usageLast30Days")}
               </span>
               {timeline && (
                 <span
@@ -170,7 +172,7 @@ export default function CreditsPage() {
                   ) : trendPct < 0 ? (
                     <TrendingDown className="h-3 w-3" />
                   ) : null}
-                  {Math.abs(trendPct).toFixed(1)}% wk-over-wk
+                  {t("wkOverWk", { percent: Math.abs(trendPct).toFixed(1) })}
                 </span>
               )}
             </div>
@@ -178,13 +180,13 @@ export default function CreditsPage() {
               <span className="font-display text-foreground text-2xl font-bold">
                 {last7Total.toLocaleString()}
               </span>
-              <span className="text-foreground/55 text-sm">credits · last 7 days</span>
+              <span className="text-foreground/55 text-sm">{t("creditsLast7Days")}</span>
             </div>
             <div className="mt-2 h-16 w-full">
               {!timeline ? (
                 <div className="bg-foreground/8 h-full animate-pulse rounded-md" />
               ) : sparkData.length < 2 ? (
-                <p className="text-foreground/45 text-xs">Not enough data yet.</p>
+                <p className="text-foreground/45 text-xs">{t("notEnoughData")}</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={sparkData}>
@@ -215,15 +217,16 @@ export default function CreditsPage() {
         <div className="border-foreground/10 flex items-center justify-between border-b px-6 py-5">
           <div>
             <h2 className="font-display text-foreground text-base font-semibold tracking-tight">
-              Transaction history
+              {t("transactionHistory")}
             </h2>
-            <p className="text-foreground/55 text-xs">
-              All credit grants, top-ups, and consumption events.
-            </p>
+            <p className="text-foreground/55 text-xs">{t("transactionHistoryDesc")}</p>
           </div>
           {transactions && transactions.total > (transactions.items.length ?? 0) && (
             <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-              Showing {transactions.items.length} / {transactions.total}
+              {t("showingCount", {
+                count: transactions.items.length,
+                total: transactions.total,
+              })}
             </span>
           )}
         </div>
@@ -235,10 +238,8 @@ export default function CreditsPage() {
         ) : !transactions || transactions.items.length === 0 ? (
           <div className="border-foreground/10 m-6 rounded-xl border-2 border-dashed p-10 text-center">
             <Coins className="text-foreground/40 mx-auto h-8 w-8" />
-            <p className="text-foreground/65 mt-3 text-sm">No transactions yet</p>
-            <p className="text-foreground/45 mt-1 text-xs">
-              Activity will show here once you start using AI features.
-            </p>
+            <p className="text-foreground/65 mt-3 text-sm">{t("noTransactions")}</p>
+            <p className="text-foreground/45 mt-1 text-xs">{t("noTransactionsDesc")}</p>
           </div>
         ) : (
           <ul className="divide-foreground/10 divide-y">
@@ -249,7 +250,7 @@ export default function CreditsPage() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground text-sm font-medium">
-                    {tx.description ?? "Credit transaction"}
+                    {tx.description ?? t("creditTransaction")}
                   </p>
                   <p className="text-foreground/55 mt-1 flex flex-wrap items-center gap-2 font-mono text-[11px] tracking-wider uppercase">
                     <span
@@ -276,7 +277,7 @@ export default function CreditsPage() {
                     {tx.delta.toLocaleString()}
                   </p>
                   <p className="text-foreground/45 mt-0.5 font-mono text-[10px] tracking-wider uppercase">
-                    bal {tx.balance_after.toLocaleString()}
+                    {t("balanceShort", { count: tx.balance_after.toLocaleString() })}
                   </p>
                 </div>
               </li>
@@ -286,12 +287,12 @@ export default function CreditsPage() {
       </section>
 
       <p className="text-foreground/55 inline-flex items-center gap-1.5 text-xs">
-        Need a custom credit pack?{" "}
+        {t("customCreditPack")}{" "}
         <Link
           href="/contact"
           className="text-foreground hover:text-foreground/80 inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline"
         >
-          Contact us
+          {t("contactUs")}
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       </p>

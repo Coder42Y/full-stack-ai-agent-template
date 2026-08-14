@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronUp, Copy, Database } from "lucide-react";
 
 import type { PgQueryPayload } from "@/types";
@@ -44,6 +45,7 @@ function formatCell(value: unknown): string {
 }
 
 export function PgQueryResult({ payload }: { payload: PgQueryPayload }) {
+  const t = useTranslations("chat");
   const [sqlExpanded, setSqlExpanded] = useState(false);
 
   return (
@@ -63,7 +65,7 @@ export function PgQueryResult({ payload }: { payload: PgQueryPayload }) {
         >
           <Database className="text-primary h-3.5 w-3.5 shrink-0" />
           <span className="text-foreground/70 font-mono text-[10px] tracking-wider uppercase">
-            SQL Query
+            {t("sqlQuery")}
           </span>
           <span className="text-foreground/45 min-w-0 flex-1 truncate text-xs">
             {payload.sql.replace(/\s+/g, " ")}
@@ -92,16 +94,16 @@ export function PgQueryResult({ payload }: { payload: PgQueryPayload }) {
         <div className="bg-foreground/[0.02] flex items-center gap-2 px-3 py-2">
           <Database className="text-foreground/55 h-3.5 w-3.5" />
           <span className="text-foreground/70 font-mono text-[10px] tracking-wider uppercase">
-            Query Result
+            {t("queryResult")}
           </span>
           <span className="text-foreground/45 ml-auto text-xs">
-            {payload.row_count.toLocaleString()} row{payload.row_count === 1 ? "" : "s"}
-            {payload.truncated ? " (truncated)" : ""}
+            {t("rowCount", { count: payload.row_count })}
+            {payload.truncated ? ` ${t("truncated")}` : ""}
           </span>
         </div>
 
         {payload.data.length === 0 ? (
-          <p className="text-muted-foreground px-3 py-4 text-sm">No rows returned.</p>
+          <p className="text-muted-foreground px-3 py-4 text-sm">{t("noRowsReturned")}</p>
         ) : (
           <div className="max-h-[300px] overflow-auto">
             <table className="w-full min-w-max border-collapse text-left text-xs">
@@ -141,7 +143,7 @@ export function PgQueryResult({ payload }: { payload: PgQueryPayload }) {
 
       <div className="text-foreground/45 flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase">
         <Copy className="h-3 w-3" />
-        SQL is available above for query review.
+        {t("sqlReviewHint")}
       </div>
     </div>
   );

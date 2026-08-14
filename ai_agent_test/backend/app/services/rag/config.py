@@ -101,6 +101,11 @@ EMBEDDING_DIMENSIONS: dict[str, int] = {
     "bge-small-en-v1.5": 384,
     "bge-base-en-v1.5": 768,
     "bge-large-en-v1.5": 1024,
+    # BGE Chinese (local, sentence-transformers)
+    "BAAI/bge-small-zh-v1.5": 512,
+    "bge-small-zh-v1.5": 512,
+    "BAAI/bge-base-zh-v1.5": 768,
+    "bge-base-zh-v1.5": 768,
 }
 
 
@@ -109,6 +114,7 @@ class EmbeddingsConfig(BaseModel):
 
     model: str = "text-embedding-3-small"
     dim: int = 1536
+    provider: str = "openai"  # "openai" | "sentence_transformers"
 
     @model_validator(mode="after")
     def set_dim_from_model(self) -> "EmbeddingsConfig":

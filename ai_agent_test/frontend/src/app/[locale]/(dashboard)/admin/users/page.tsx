@@ -11,6 +11,8 @@ import {
   Shield,
 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import { UserDetailDrawer } from "@/components/admin/user-detail-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +52,7 @@ function getInitials(nameOrEmail: string): string {
 }
 
 export default function AdminUsersPage() {
+  const t = useTranslations("admin");
   const { users, total, isLoading, fetchUsers, updateUser, deleteUser, impersonateUser } =
     useAdminUsers();
   const [search, setSearch] = useState("");
@@ -118,13 +121,13 @@ export default function AdminUsersPage() {
     <div className="flex h-full flex-col">
       <div className="mb-6">
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Users
+          {t("users")}
         </p>
         <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Everyone in <em>your workspace.</em>
+          {t.rich("usersHeading", { em: (chunks) => <em>{chunks}</em> })}
         </h2>
         <p className="text-muted-foreground">
-          Inspect, suspend, or impersonate any user in the workspace.
+          {t("usersDesc")}
         </p>
       </div>
 
@@ -132,7 +135,7 @@ export default function AdminUsersPage() {
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Search by email or name…"
+            placeholder={t("searchByEmailOrName")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -146,14 +149,14 @@ export default function AdminUsersPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                {t("perPage", { n })}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{total} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">{t("total", { count: total })}</div>
 
       <Table>
         <TableHeader>
@@ -163,28 +166,28 @@ export default function AdminUsersPage() {
               dir={sort.dir}
               onClick={() => toggleSort("email")}
             >
-              User
+              {t("user")}
             </SortableHead>
             <SortableHead
               active={sort.by === "role"}
               dir={sort.dir}
               onClick={() => toggleSort("role")}
             >
-              Role
+              {t("role")}
             </SortableHead>
             <SortableHead
               active={sort.by === "is_active"}
               dir={sort.dir}
               onClick={() => toggleSort("is_active")}
             >
-              Status
+              {t("status")}
             </SortableHead>
             <SortableHead
               active={sort.by === "created_at"}
               dir={sort.dir}
               onClick={() => toggleSort("created_at")}
             >
-              Joined
+              {t("joined")}
             </SortableHead>
             <TableHead />
           </TableRow>
@@ -224,16 +227,16 @@ export default function AdminUsersPage() {
                       {u.is_app_admin && (
                         <Badge variant="default" className="gap-0.5">
                           <Shield className="h-2.5 w-2.5" />
-                          App
+                          {t("appBadge")}
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     {u.is_active ? (
-                      <Badge variant="default">Active</Badge>
+                      <Badge variant="default">{t("active")}</Badge>
                     ) : (
-                      <Badge variant="destructive">Suspended</Badge>
+                      <Badge variant="destructive">{t("suspended")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
@@ -246,7 +249,7 @@ export default function AdminUsersPage() {
                         handleOpenUser(u);
                       }}
                     >
-                      Inspect
+                      {t("inspect")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -254,7 +257,7 @@ export default function AdminUsersPage() {
           {!isLoading && users.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
-                {search ? `No users match "${search}".` : "No users yet."}
+                {search ? t("noUsersMatch", { search }) : t("noUsersYet")}
               </TableCell>
             </TableRow>
           )}
@@ -267,6 +270,7 @@ export default function AdminUsersPage() {
         total={total}
         totalPages={totalPages}
         isLoading={isLoading}
+        t={t}
         onPrev={() => setPage((p) => Math.max(0, p - 1))}
         onNext={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
       />
@@ -318,6 +322,7 @@ function PaginationBar({
   total,
   totalPages,
   isLoading,
+  t,
   onPrev,
   onNext,
 }: {
@@ -326,6 +331,7 @@ function PaginationBar({
   total: number;
   totalPages: number;
   isLoading: boolean;
+  t: ReturnType<typeof useTranslations<"admin">>;
   onPrev: () => void;
   onNext: () => void;
 }) {
@@ -335,7 +341,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        {t("pageRange", { start, end, total })}
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -343,19 +349,19 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-muted-foreground px-2 text-sm">
-          {page + 1} / {totalPages}
+          {t("pageOf", { page: page + 1, total: totalPages })}
         </span>
         <Button
           variant="outline"
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label={t("nextPage")}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

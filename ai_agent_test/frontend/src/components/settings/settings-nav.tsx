@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Palette, Shield, Slash, UserCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -14,42 +15,43 @@ interface NavItem {
   description: string;
 }
 
-const ITEMS: NavItem[] = [
-  {
-    label: "Profile",
-    href: "/settings/profile",
-    icon: UserCircle,
-    description: "Avatar, name, email, sessions",
-  },
-  {
-    label: "Account",
-    href: "/settings/account",
-    icon: Shield,
-    description: "Password, two-factor, danger zone",
-  },
-  {
-    label: "Slash commands",
-    href: "/settings/slash-commands",
-    icon: Slash,
-    description: "Custom shortcuts + built-in toggles",
-  },
-  {
-    label: "Notifications",
-    href: "/settings/notifications",
-    icon: Bell,
-    description: "What we email you about",
-  },
-  {
-    label: "Appearance",
-    href: "/settings/appearance",
-    icon: Palette,
-    description: "Theme, density, brand color",
-  },
-];
-
 export function SettingsNav() {
+  const t = useTranslations("settings");
   const pathname = usePathname();
   const stripped = pathname.replace(/^\/[a-z]{2}/, "");
+
+  const ITEMS: NavItem[] = [
+    {
+      label: t("nav.profile"),
+      href: "/settings/profile",
+      icon: UserCircle,
+      description: t("nav.profileDesc"),
+    },
+    {
+      label: t("nav.account"),
+      href: "/settings/account",
+      icon: Shield,
+      description: t("nav.accountDesc"),
+    },
+    {
+      label: t("nav.slashCommands"),
+      href: "/settings/slash-commands",
+      icon: Slash,
+      description: t("nav.slashCommandsDesc"),
+    },
+    {
+      label: t("nav.notifications"),
+      href: "/settings/notifications",
+      icon: Bell,
+      description: t("nav.notificationsDesc"),
+    },
+    {
+      label: t("nav.appearance"),
+      href: "/settings/appearance",
+      icon: Palette,
+      description: t("nav.appearanceDesc"),
+    },
+  ];
 
   return (
     <>

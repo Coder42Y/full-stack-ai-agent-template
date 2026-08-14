@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Command } from "cmdk";
 import {
   Activity,
@@ -34,6 +35,9 @@ interface ConversationItem {
 
 export function CommandPalette() {
   const router = useRouter();
+  const t = useTranslations("layout");
+  const tAppNav = useTranslations("appNav");
+  const tAdmin = useTranslations("admin");
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -70,7 +74,7 @@ export function CommandPalette() {
     <Command.Dialog
       open={open}
       onOpenChange={setOpen}
-      label="Command palette"
+      label={t("commandPalette")}
       shouldFilter
       overlayClassName="bg-background/50 fixed inset-0 z-[60] backdrop-blur-sm"
       contentClassName="border-foreground/15 bg-card text-foreground fixed left-1/2 top-[12vh] z-[61] w-[min(92vw,640px)] -translate-x-1/2 overflow-hidden rounded-2xl border shadow-2xl"
@@ -81,7 +85,7 @@ export function CommandPalette() {
           autoFocus
           value={search}
           onValueChange={setSearch}
-          placeholder="Search or jump to…"
+          placeholder={t("commandPaletteSearchPlaceholder")}
           className="text-foreground placeholder:text-foreground/45 flex-1 bg-transparent text-sm outline-none"
         />
         <kbd className="border-foreground/15 text-foreground/55 hidden rounded-md border px-1.5 py-0.5 font-mono text-[10px] sm:inline-block">
@@ -91,52 +95,52 @@ export function CommandPalette() {
 
       <Command.List className="max-h-[60vh] overflow-y-auto px-2 py-2">
         <Command.Empty className="text-foreground/55 px-4 py-10 text-center text-sm">
-          No matches.
+          {t("noMatches")}
         </Command.Empty>
 
-        <Group heading="Quick actions">
+        <Group heading={t("quickActions")}>
           <PaletteItem
             icon={Plus}
-            label="Start new chat"
+            label={t("startNewChat")}
             onSelect={() => go(ROUTES.CHAT)}
             shortcut="⌘N"
           />
           <PaletteItem
             icon={Database}
-            label="Upload to knowledge base"
+            label={t("uploadToKnowledgeBase")}
             onSelect={() => go(ROUTES.RAG)}
           />
-          <PaletteItem icon={Users} label="Invite teammates" onSelect={() => go(ROUTES.ORGS)} />
+          <PaletteItem icon={Users} label={t("inviteTeammates")} onSelect={() => go(ROUTES.ORGS)} />
         </Group>
 
         {conversations.length > 0 && (
-          <Group heading="Recent conversations">
+          <Group heading={t("recentConversations")}>
             {conversations.slice(0, 8).map((c) => (
               <PaletteItem
                 key={c.id}
                 icon={MessageSquare}
-                label={c.title?.trim() || "Untitled conversation"}
+                label={c.title?.trim() || t("untitledConversation")}
                 onSelect={() => go(`${ROUTES.CHAT}?id=${c.id}`)}
               />
             ))}
           </Group>
         )}
 
-        <Group heading="Navigate">
+        <Group heading={t("navigate")}>
           <PaletteItem
             icon={LayoutDashboard}
-            label="Dashboard"
+            label={tAppNav("dashboard")}
             onSelect={() => go(ROUTES.DASHBOARD)}
           />
-          <PaletteItem icon={MessageSquare} label="Chat" onSelect={() => go(ROUTES.CHAT)} />
-          <PaletteItem icon={Database} label="Knowledge bases" onSelect={() => go(ROUTES.KB)} />
-          <PaletteItem icon={Building2} label="Organizations" onSelect={() => go(ROUTES.ORGS)} />
-          <PaletteItem icon={CreditCard} label="Billing" onSelect={() => go(ROUTES.BILLING)} />
-          <PaletteItem icon={UserCircle} label="Profile" onSelect={() => go(ROUTES.PROFILE)} />
-          <PaletteItem icon={Settings} label="Settings" onSelect={() => go(ROUTES.SETTINGS)} />
+          <PaletteItem icon={MessageSquare} label={tAppNav("chat")} onSelect={() => go(ROUTES.CHAT)} />
+          <PaletteItem icon={Database} label={tAppNav("kb")} onSelect={() => go(ROUTES.KB)} />
+          <PaletteItem icon={Building2} label={tAppNav("orgs")} onSelect={() => go(ROUTES.ORGS)} />
+          <PaletteItem icon={CreditCard} label={tAppNav("billing")} onSelect={() => go(ROUTES.BILLING)} />
+          <PaletteItem icon={UserCircle} label={tAppNav("profile")} onSelect={() => go(ROUTES.PROFILE)} />
+          <PaletteItem icon={Settings} label={tAppNav("settings")} onSelect={() => go(ROUTES.SETTINGS)} />
           <PaletteItem
             icon={BookOpen}
-            label="API documentation"
+            label={t("apiDocumentation")}
             onSelect={() => {
               setOpen(false);
               window.open("/docs", "_blank");
@@ -144,24 +148,24 @@ export function CommandPalette() {
           />
         </Group>
         {user?.role === "admin" && (
-          <Group heading="Admin">
+          <Group heading={tAppNav("admin")}>
             <PaletteItem
               icon={Star}
-              label="Response ratings"
+              label={tAdmin("ratingsTitle")}
               onSelect={() => go(ROUTES.ADMIN_RATINGS)}
             />
             <PaletteItem
               icon={Activity}
-              label="All conversations"
+              label={t("allConversations")}
               onSelect={() => go(ROUTES.ADMIN_CONVERSATIONS)}
             />
           </Group>
         )}
 
-        <Group heading="Account">
+        <Group heading={t("account")}>
           <PaletteItem
             icon={LogOut}
-            label="Sign out"
+            label={tAppNav("logout")}
             onSelect={() => {
               setOpen(false);
               logout();
@@ -173,11 +177,11 @@ export function CommandPalette() {
       <div className="border-foreground/10 text-foreground/45 flex items-center justify-between border-t px-4 py-2 font-mono text-[10px] tracking-wider uppercase">
         <span className="inline-flex items-center gap-1.5">
           <kbd className="border-foreground/15 rounded border px-1 py-0.5">↑↓</kbd>
-          Navigate
+          {t("navigate")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <kbd className="border-foreground/15 rounded border px-1 py-0.5">↵</kbd>
-          Open
+          {t("open")}
         </span>
       </div>
     </Command.Dialog>

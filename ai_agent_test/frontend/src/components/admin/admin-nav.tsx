@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, CreditCard, LayoutDashboard, MessageSquare, Star, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -14,25 +15,26 @@ interface NavItem {
   description?: string;
 }
 
-const ITEMS: NavItem[] = [
-  { label: "Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Conversations", href: "/admin/conversations", icon: MessageSquare },
-  { label: "Ratings", href: "/admin/ratings", icon: Star },
-  { label: "Stripe events", href: "/admin/stripe-events", icon: CreditCard },
-  { label: "System health", href: "/admin/system", icon: Activity },
-];
-
 export function AdminNav() {
+  const t = useTranslations("admin");
   const pathname = usePathname();
   const stripped = pathname.replace(/^\/[a-z]{2}/, "");
+
+  const ITEMS: NavItem[] = [
+    { label: t("navOverview"), href: "/admin", icon: LayoutDashboard },
+    { label: t("users"), href: "/admin/users", icon: Users },
+    { label: t("conversations"), href: "/admin/conversations", icon: MessageSquare },
+    { label: t("navRatings"), href: "/admin/ratings", icon: Star },
+    { label: t("navStripeEvents"), href: "/admin/stripe-events", icon: CreditCard },
+    { label: t("navSystemHealth"), href: "/admin/system", icon: Activity },
+  ];
 
   return (
     <>
       {/* Desktop: vertical sidebar */}
       <nav className="hidden lg:block">
         <p className="text-foreground/45 mb-3 px-3 font-mono text-[10px] tracking-wider uppercase">
-          Admin
+          {t("navAdmin")}
         </p>
         <ul className="space-y-0.5">
           {ITEMS.map((item) => {

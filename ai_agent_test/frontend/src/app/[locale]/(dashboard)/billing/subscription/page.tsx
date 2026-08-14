@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,26 +21,30 @@ function formatMoney(cents: number, currency: string) {
 }
 
 export default function SubscriptionPage() {
+  const t = useTranslations("billing");
   const searchParams = useSearchParams();
   const { plans, isLoading: plansLoading } = usePlans();
   const { startCheckout, isLoading: checkoutLoading } = useBilling();
 
   useEffect(() => {
     if (searchParams.get("success") === "1") {
-      toast.success("Subscription updated successfully!");
+      toast.success(t("successMessage"));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
+
+  const intervalLabel = (interval: string) =>
+    interval === "month" ? t("intervalMonth") : interval === "year" ? t("intervalYear") : interval;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <PageHero
-        eyebrow="Billing · Subscription"
+        eyebrow={t("eyebrowSubscription")}
         title={
           <>
-            Manage your <em>plan.</em>
+            {t("managePlanPrefix")} <em>{t("managePlanEm")}</em>
           </>
         }
-        description="Upgrade, downgrade, or pick a different billing interval. Changes take effect on the next billing cycle."
+        description={t("managePlanDesc")}
       />
 
       <SubscriptionPanel />
@@ -47,17 +52,17 @@ export default function SubscriptionPage() {
       <section className="space-y-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Available plans
+            {t("availablePlans")}
           </p>
           <h2 className="font-display text-foreground text-xl font-semibold tracking-tight">
-            Switch plan
+            {t("switchPlan")}
           </h2>
         </div>
 
         {plansLoading ? (
           <LoadingState variant="skeleton-cards" rows={3} />
         ) : plans.length === 0 ? (
-          <p className="text-foreground/55 text-sm">No alternative plans configured.</p>
+          <p className="text-foreground/55 text-sm">{t("noAlternativePlans")}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => {
@@ -77,7 +82,7 @@ export default function SubscriptionPage() {
                       </h3>
                       {plan.is_active && (
                         <span className="bg-brand/15 text-foreground rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase">
-                          Current
+                          {t("current")}
                         </span>
                       )}
                     </div>
@@ -91,7 +96,9 @@ export default function SubscriptionPage() {
                   <ul className="text-foreground/70 my-5 space-y-1.5 text-sm">
                     {activePrices.map((price) => (
                       <li key={price.id} className="flex items-baseline justify-between gap-2">
-                        <span className="text-foreground/55 capitalize">{price.interval}</span>
+                        <span className="text-foreground/55 capitalize">
+                          {intervalLabel(price.interval)}
+                        </span>
                         <span className="text-foreground font-mono tabular-nums">
                           {formatMoney(price.amount_cents, price.currency)}
                         </span>
@@ -100,7 +107,7 @@ export default function SubscriptionPage() {
                     {plan.monthly_credits_base > 0 && (
                       <li className="text-foreground/60 flex items-center gap-1.5 pt-1 text-xs">
                         <Check className="h-3.5 w-3.5" />
-                        {plan.monthly_credits_base.toLocaleString()} credits / month
+                        {t("creditsPerMonth", { count: plan.monthly_credits_base.toLocaleString() })}
                       </li>
                     )}
                   </ul>
@@ -120,7 +127,7 @@ export default function SubscriptionPage() {
                         }
                         className="border-foreground/15 hover:border-foreground/40 text-foreground inline-flex w-full items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        Choose {price.interval === "month" ? "monthly" : "annual"}
+                        {price.interval === "month" ? t("chooseMonthly") : t("chooseAnnual")}
                       </button>
                     ))}
                   </div>

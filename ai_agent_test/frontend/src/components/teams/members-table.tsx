@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,13 +43,23 @@ export function MembersTable({
   onRoleChange,
   onRemove,
 }: MembersTableProps) {
+  const t = useTranslations("members");
+  const roleLabel = (role: OrgRole): string => {
+    const map: Record<string, string> = {
+      owner: t("roleOwner"),
+      admin: t("roleAdmin"),
+      member: t("roleMember"),
+      viewer: t("roleViewer"),
+    };
+    return map[role] ?? role;
+  };
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Member</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Joined</TableHead>
+          <TableHead>{t("member")}</TableHead>
+          <TableHead>{t("roleLabel")}</TableHead>
+          <TableHead>{t("joined")}</TableHead>
           {canManage && <TableHead className="w-12" />}
         </TableRow>
       </TableHeader>
@@ -68,7 +79,7 @@ export function MembersTable({
                   <div>
                     <p className="text-sm font-medium">{m.full_name ?? m.email}</p>
                     {m.full_name && <p className="text-muted-foreground text-xs">{m.email}</p>}
-                    {isSelf && <span className="text-muted-foreground text-xs">(you)</span>}
+                    {isSelf && <span className="text-muted-foreground text-xs">{t("you")}</span>}
                   </div>
                 </div>
               </TableCell>
@@ -82,12 +93,12 @@ export function MembersTable({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">{t("roleAdmin")}</SelectItem>
+                      <SelectItem value="member">{t("roleMember")}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant={roleBadgeVariant[m.role]}>{m.role}</Badge>
+                  <Badge variant={roleBadgeVariant[m.role]}>{roleLabel(m.role)}</Badge>
                 )}
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
@@ -101,6 +112,7 @@ export function MembersTable({
                       size="sm"
                       className="text-destructive hover:text-destructive h-7 w-7 p-0"
                       onClick={() => onRemove(m.user_id)}
+                      aria-label={t("removeMember")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

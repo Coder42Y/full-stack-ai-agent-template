@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { Download } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { PageHero } from "@/components/dashboard/page-hero";
 import { LoadingState } from "@/components/states";
@@ -87,6 +88,7 @@ function ChartCard({
 }
 
 export default function UsageDashboardPage() {
+  const t = useTranslations("billing");
   const [aggregate, setAggregate] = useState<UsageAggregate | null>(null);
   const [timeline, setTimeline] = useState<UsageTimeline | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,13 +165,13 @@ export default function UsageDashboardPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 pb-12">
       <PageHero
-        eyebrow="Billing · Usage"
+        eyebrow={t("eyebrowUsage")}
         title={
           <>
-            Token <em>consumption.</em>
+            {t("tokenConsumptionPrefix")} <em>{t("tokenConsumptionEm")}</em>
           </>
         }
-        description="Credits and tokens used across this organization in the last 30 days, broken down by model and day."
+        description={t("tokenConsumptionDesc")}
         actions={
           <button
             type="button"
@@ -177,7 +179,7 @@ export default function UsageDashboardPage() {
             className="border-foreground/15 hover:border-foreground/40 text-foreground inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
           >
             <Download className="h-4 w-4" />
-            Export CSV
+            {t("exportCsv")}
           </button>
         }
       />
@@ -187,16 +189,16 @@ export default function UsageDashboardPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
           <StatTile
-            label="Credits used"
+            label={t("creditsUsed")}
             value={aggregate?.total_credits_charged.toLocaleString() ?? "—"}
           />
-          <StatTile label="Tokens" value={totalTokens?.toLocaleString() ?? "—"} />
-          <StatTile label="API calls" value={aggregate?.total_calls.toLocaleString() ?? "—"} />
+          <StatTile label={t("tokens")} value={totalTokens?.toLocaleString() ?? "—"} />
+          <StatTile label={t("apiCalls")} value={aggregate?.total_calls.toLocaleString() ?? "—"} />
         </div>
       )}
 
       {!isLoading && timelineChartData.length > 0 && (
-        <ChartCard title="Daily credits" description="Last 30 days of credit consumption.">
+        <ChartCard title={t("dailyCredits")} description={t("dailyCreditsDesc")}>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={timelineChartData} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -227,7 +229,7 @@ export default function UsageDashboardPage() {
       )}
 
       {!isLoading && byModelChartData.length > 0 && (
-        <ChartCard title="Credits by model" description="Where the spend is concentrated.">
+        <ChartCard title={t("creditsByModel")} description={t("creditsByModelDesc")}>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={byModelChartData} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -247,7 +249,7 @@ export default function UsageDashboardPage() {
       )}
 
       {!isLoading && aggregate && aggregate.by_model.length > 0 && (
-        <ChartCard title="Per-model breakdown">
+        <ChartCard title={t("perModelBreakdown")}>
           <div className="divide-foreground/10 -mx-1 divide-y">
             {aggregate.by_model.map((m) => (
               <div key={m.model} className="grid grid-cols-4 gap-4 px-1 py-3 text-sm tabular-nums">
@@ -256,13 +258,13 @@ export default function UsageDashboardPage() {
                   <p className="text-foreground/55 text-xs">{m.provider}</p>
                 </div>
                 <div>
-                  <p className="text-foreground/55 text-xs">Tokens</p>
+                  <p className="text-foreground/55 text-xs">{t("tokens")}</p>
                   <p className="text-foreground font-mono">
                     {(m.input_tokens + m.output_tokens).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-foreground/55 text-xs">Credits</p>
+                  <p className="text-foreground/55 text-xs">{t("credits")}</p>
                   <p className="text-foreground font-mono">{m.credits_charged.toLocaleString()}</p>
                 </div>
               </div>

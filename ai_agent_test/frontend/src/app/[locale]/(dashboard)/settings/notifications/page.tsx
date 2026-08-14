@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { CreditCard, MessageSquare, Sparkles, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -10,8 +11,6 @@ import { Button } from "@/components/ui";
 
 interface NotificationCategory {
   key: string;
-  label: string;
-  description: string;
   icon: LucideIcon;
   /** Default values for new users. */
   defaults: { email: boolean; inApp: boolean };
@@ -20,29 +19,21 @@ interface NotificationCategory {
 const CATEGORIES: NotificationCategory[] = [
   {
     key: "billing",
-    label: "Billing",
-    description: "Subscription renewals, payment failures, low credit warnings.",
     icon: CreditCard,
     defaults: { email: true, inApp: true },
   },
   {
     key: "members",
-    label: "Team activity",
-    description: "Invitations accepted, members joining or leaving your workspace.",
     icon: Users,
     defaults: { email: true, inApp: true },
   },
   {
     key: "security",
-    label: "Security alerts",
-    description: "New device sign-ins, password changes, suspicious activity.",
     icon: MessageSquare,
     defaults: { email: true, inApp: true },
   },
   {
     key: "product",
-    label: "Product updates",
-    description: "New features, release notes, occasional how-to tips.",
     icon: Sparkles,
     defaults: { email: false, inApp: true },
   },
@@ -74,6 +65,7 @@ function savePrefs(prefs: Prefs) {
 }
 
 export default function NotificationsSettingsPage() {
+  const t = useTranslations("settings");
   const [prefs, setPrefs] = useState<Prefs>(defaultPrefs);
   const [dirty, setDirty] = useState(false);
   const initialPrefs = useMemo(loadPrefs, []);
@@ -96,7 +88,7 @@ export default function NotificationsSettingsPage() {
 
   const handleSave = () => {
     savePrefs(prefs);
-    toast.success("Notification preferences saved");
+    toast.success(t("notifications.prefsSaved"));
     setDirty(false);
   };
 
@@ -108,15 +100,15 @@ export default function NotificationsSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Notification preferences"
-        description="Pick which events we send by email versus only show in-app."
+        title={t("notifications.preferencesTitle")}
+        description={t("notifications.preferencesDescription")}
         action={
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleReset} className="rounded-full">
-              Reset to defaults
+              {t("notifications.resetToDefaults")}
             </Button>
             <Button onClick={handleSave} disabled={!dirty} size="sm" className="rounded-full">
-              Save changes
+              {t("saveChanges")}
             </Button>
           </div>
         }
@@ -124,13 +116,13 @@ export default function NotificationsSettingsPage() {
         <div className="border-foreground/10 bg-background overflow-hidden rounded-2xl border">
           <div className="border-foreground/10 bg-foreground/[0.02] grid grid-cols-[1fr_70px_70px] items-center gap-2 border-b px-5 py-3 sm:grid-cols-[1.5fr_90px_90px]">
             <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-              Category
+              {t("notifications.category")}
             </span>
             <span className="text-foreground/55 text-center font-mono text-[11px] tracking-wider uppercase">
-              Email
+              {t("notifications.email")}
             </span>
             <span className="text-foreground/55 text-center font-mono text-[11px] tracking-wider uppercase">
-              In-app
+              {t("notifications.inApp")}
             </span>
           </div>
           <ul className="divide-foreground/10 divide-y">
@@ -151,9 +143,11 @@ export default function NotificationsSettingsPage() {
                       <c.icon className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-foreground text-sm font-semibold">{c.label}</p>
+                      <p className="text-foreground text-sm font-semibold">
+                        {t(`notifications.categories.${c.key}.label`)}
+                      </p>
                       <p className="text-foreground/55 mt-0.5 text-xs leading-relaxed">
-                        {c.description}
+                        {t(`notifications.categories.${c.key}.description`)}
                       </p>
                     </div>
                   </div>
@@ -169,8 +163,9 @@ export default function NotificationsSettingsPage() {
           </ul>
         </div>
         <p className="text-foreground/55 mt-4 text-xs leading-relaxed">
-          Preferences are stored locally for now. Backend wiring required (
-          <code className="font-mono">/users/me/notifications</code>) to sync across devices.
+          {t.rich("notifications.localNote", {
+            code: (chunks) => <code className="font-mono">{chunks}</code>,
+          })}
         </p>
       </SettingsSection>
     </div>

@@ -76,9 +76,9 @@ type LandingCopy = {
     ragResults: Array<{ title: string; snippet: string; score: number }>;
     operationsLabel: string;
     ordersLabel: string;
-    metricStations: string;
-    metricAnomaly: string;
-    metricForecast: string;
+    metricEmployees: string;
+    metricPending: string;
+    metricLeaves: string;
   };
   testimonials: Array<{ quote: string; name: string; title: string; company: string }>;
   plans: Array<{
@@ -95,41 +95,41 @@ type LandingCopy = {
 
 const LANDING_COPY = {
   zh: {
-    logos: ["车辆分布", "订单流水", "天气观测", "需求预测", "站点档案", "调度策略"],
+    logos: ["员工信息", "报销记录", "请假记录", "考勤记录", "制度文档", "福利政策"],
     marquee: [
-      "车辆堆积",
-      "缺车预测",
-      "早高峰",
-      "晚高峰",
-      "暴雨应急",
-      "站点容量",
-      "区域对比",
-      "订单趋势",
-      "调度建议",
+      "报销查询",
+      "请假记录",
+      "年假规则",
+      "考勤打卡",
+      "报销标准",
+      "福利政策",
+      "差旅报销",
+      "加班调休",
+      "制度问答",
       "SQL 依据",
       "ECharts",
       "MCP 工具",
-      "浦东新区",
-      "徐家汇",
-      "虹桥枢纽",
-      "张江地铁站",
+      "技术部",
+      "市场部",
+      "财务部",
+      "人事部",
     ],
     heroDemo: {
       script: [
         {
           role: "user",
-          text: "哪些站点存在车辆堆积？给我 SQL 依据和调度建议。",
+          text: "我最近三个月的报销记录和总额是多少？",
         },
         {
           role: "tool",
-          text: "mcp_execute_query · vehicle_distribution · 4 rows",
+          text: "mcp_execute_query · reimbursements · 3 rows",
         },
         {
           role: "agent",
-          text: "发现 4 个堆积站点：虹桥火车站、张江地铁站、陆家嘴、徐家汇商圈。建议优先处理虹桥和张江，并在 2 小时后复查库存变化。",
+          text: "你最近三个月共 3 笔报销，合计 1,240 元，其中 2 笔已到账、1 笔审批中。需要看明细吗？",
         },
       ],
-      placeholder: "询问车辆、订单或需求预测…",
+      placeholder: "询问报销、请假或制度…",
       floatingPills: [
         {
           icon: MessageSquare,
@@ -138,7 +138,7 @@ const LANDING_COPY = {
         },
         {
           icon: Database,
-          label: "连接运营数据库",
+          label: "连接企业数据库",
           className: "right-[-8px] top-24 md:right-[-40px] md:top-28 float-y-delayed",
         },
         {
@@ -155,36 +155,36 @@ const LANDING_COPY = {
     },
     howTitle: (
       <>
-        先查数据，再看图表，最后形成<em>调度动作。</em>
+        先查数据，再看图表，最后得到<em>准确答案。</em>
       </>
     ),
     howSteps: [
       {
         icon: MessageSquare,
-        title: "提出运营问题",
-        body: "直接用中文询问车辆堆积、早晚高峰订单趋势、预测缺口或天气应急，不需要手写 SQL。",
+        title: "提出员工问题",
+        body: "直接用中文询问报销、请假、年假规则或报销标准，不需要翻制度文档。",
       },
       {
         icon: Database,
         title: "Agent 查询数据",
-        body: "通过 MCP 读取车辆分布、订单流水、站点、天气和需求预测表，并返回可复查的查询依据。",
+        body: "通过 MCP 读取员工、报销、请假表，并返回可复查的查询依据。",
       },
       {
         icon: BarChart3,
-        title: "生成调度建议",
-        body: "把异常站点、峰值趋势和缺车优先级整理成图表、排序结果和下一步调度动作。",
+        title: "给出准确答案",
+        body: "把报销明细、请假记录和制度条款整理成表格、图表和带引用的答案。",
       },
     ],
     features: [
       {
-        eyebrow: "运营数据库",
+        eyebrow: "企业数据库",
         title: (
           <>
-            车辆、订单、天气、预测，<em>统一查询。</em>
+            报销、请假、员工，<em>统一查询。</em>
           </>
         ),
         description:
-          "内置上海共享出行样例数据。Agent 通过只读 MCP SQL 工具查询站点、车辆分布、订单、天气和需求预测。",
+          "内置企业员工样例数据。Agent 通过只读 MCP SQL 工具查询员工、报销、请假记录。",
         bullets: [
           {
             title: "只读 SQL 安全层",
@@ -192,7 +192,7 @@ const LANDING_COPY = {
           },
           {
             title: "业务口径进 Prompt",
-            body: "堆积阈值、早晚高峰和缺车计算口径直接进入系统提示词。",
+            body: "报销类别、请假类型和考勤口径直接进入系统提示词。",
           },
           {
             title: "SQL 结果可展开",
@@ -202,14 +202,14 @@ const LANDING_COPY = {
         cta: "查看知识库",
       },
       {
-        eyebrow: "智能分析",
+        eyebrow: "智能咨询",
         title: (
           <>
-            从一句中文问题到<em>运营结论。</em>
+            从一句中文问题到<em>准确答案。</em>
           </>
         ),
         description:
-          "你可以直接问“哪些站点堆积”“最近一周早晚高峰趋势”“按缺口给调度优先级”。Agent 会查数、画图并解释建议。",
+          "你可以直接问“我的报销记录”“各部门报销分布”“年假怎么算”。Agent 会查数、查制度并给出带引用的答案。",
         bullets: [
           {
             title: "自动选择工具",
@@ -217,39 +217,39 @@ const LANDING_COPY = {
           },
           {
             title: "三种业务模式",
-            body: "巡检、分析、应急三套 Prompt 已 seeded 到数据库。",
+            body: "快速查询、数据分析、制度问答三套 Prompt 已 seeded 到数据库。",
           },
           {
             title: "前端专用渲染",
             body: "SQL 表格和 ECharts 不再以原始 JSON 展示。",
           },
         ],
-        cta: "开始分析",
+        cta: "开始咨询",
       },
       {
-        eyebrow: "运营闭环",
+        eyebrow: "办事闭环",
         title: (
           <>
-            不止回答问题，也给出<em>下一步动作。</em>
+            不止回答问题，也给出<em>下一步指引。</em>
           </>
         ),
         description:
-          "MVP 先按预测缺口排序给出调度优先级；生产环境可扩展距离、容量、车型和实时约束。",
+          "MVP 先覆盖报销、请假和制度问答；生产环境可接入工单、审批流和更多内部系统。",
         bullets: [
           {
-            title: "异常先识别",
-            body: "车辆超过阈值且长时间未移动时，优先标出异常站点。",
+            title: "答案可溯源",
+            body: "制度类问题标注来源文档，数据类问题展示 SQL 依据。",
           },
           {
-            title: "建议能落到站点",
-            body: "回答会尽量给出站点、区域、数量和复查时间点。",
+            title: "答案能落地",
+            body: "回答会尽量给出具体数字、条款和下一步操作指引。",
           },
           {
             title: "架构可继续扩展",
-            body: "MCP server 可以继续挂接实时调度、工单和告警系统。",
+            body: "MCP server 可以继续挂接审批流、工单和更多内部系统。",
           },
         ],
-        cta: "查看运营看板",
+        cta: "查看工作台",
       },
     ],
     dataTitle: (
@@ -258,79 +258,79 @@ const LANDING_COPY = {
       </>
     ),
     dataDescription:
-      "运营问题先进入 Agent，Agent 选择 SQL 或图表工具，结果以表格和 ECharts 回到对话，方便解释和复盘。",
+      "员工问题先进入 Agent，Agent 选择 SQL 或知识库工具，结果以表格、图表和引用回到对话。",
     dataFlow: {
-      sourcesEyebrow: "运营数据",
-      sources: ["车辆分布", "订单流水", "天气观测", "需求预测", "站点档案"],
-      rowsLabel: "demo rows",
-      readyLabel: "MCP ready",
-      question: "哪些站点存在车辆堆积？",
+      sourcesEyebrow: "企业数据",
+      sources: ["员工信息", "报销记录", "请假记录", "考勤记录", "制度文档"],
+      rowsLabel: "演示数据",
+      readyLabel: "MCP 就绪",
+      question: "我这个月报销了多少？",
       answerEyebrow: "建议",
-      answer: "发现 4 个车辆堆积站点，优先处理虹桥火车站和张江地铁站，并在 2 小时后复查库存变化。",
+      answer: "本月共 5 笔报销，合计 860 元，均已到账。",
     },
     mockup: {
-      agentQuery: "分析浦东新区缺车站点。",
-      agentAnswer: "张江地铁站、龙阳路交通枢纽、世纪大道未来 3 小时缺口最高，建议优先补车。",
-      agentPlaceholder: "询问车辆、订单或天气...",
-      ragSearch: "暴雨 堆积 调度",
+      agentQuery: "查我这个月的报销。",
+      agentAnswer: "本月共 5 笔报销，合计 860 元，均已到账。",
+      agentPlaceholder: "询问报销、请假或制度...",
+      ragSearch: "年假 报销 考勤",
       ragResults: [
         {
-          title: "暴雨天气调度预案.md",
-          snippet: "...heavy_rain 时优先保障地铁站、交通枢纽和商业区周边车辆供给...",
+          title: "员工手册.md",
+          snippet: "...入职满 1 年享 5 天年假，之后每满 1 年增加 1 天，上限 15 天...",
           score: 0.94,
         },
         {
-          title: "共享单车早晚高峰规则.pdf",
-          snippet: "...早高峰 7-9 点，晚高峰 17-19 点，按站点订单量和预测缺口排序...",
+          title: "报销制度.md",
+          snippet: "...费用发生后 30 天内提交，一线城市住宿每晚不超过 500 元...",
           score: 0.87,
         },
         {
-          title: "车辆堆积处理 SOP.docx",
-          snippet: "...total_count 超过阈值且 24 小时未移动时，触发巡检和清运建议...",
+          title: "考勤制度.md",
+          snippet: "...标准工时 9:00-18:00，每月迟到 3 次以内不扣款，超过按 50 元/次...",
           score: 0.82,
         },
       ],
-      operationsLabel: "Operations today",
-      ordersLabel: "30 天订单样本",
-      metricStations: "Stations",
-      metricAnomaly: "Anomaly",
-      metricForecast: "Forecast",
+      operationsLabel: "本月报销",
+      ordersLabel: "30 天报销样本",
+      metricEmployees: "员工数",
+      metricPending: "审批中",
+      metricLeaves: "请假数",
     },
     testimonials: [
       {
         quote:
-          "我不需要先找报表再写 SQL，直接问哪些站点堆积，Agent 会把口径、数据和建议一起给出来。",
-        name: "上海区域运营",
-        title: "早班巡检",
-        company: "共享单车团队",
+          "我不需要翻制度文档，直接问年假和报销，Agent 会把条款、数据一起给出来。",
+        name: "普通员工",
+        title: "日常咨询",
+        company: "技术部",
       },
       {
-        quote: "早晚高峰趋势能直接生成图表，面试 Demo 看起来像业务系统，而不是又一个聊天机器人。",
-        name: "数据分析师",
-        title: "运营复盘",
-        company: "城市出行平台",
+        quote: "报销和请假数据能直接生成图表，Demo 看起来像真实的员工服务系统。",
+        name: "HR 专员",
+        title: "数据统计",
+        company: "人事部",
       },
       {
         quote:
-          "缺车建议先按预测缺口排序，简单但清楚。后续要加距离和容量权重也能沿着 SQL 模板扩展。",
-        name: "调度负责人",
-        title: "晚高峰保障",
-        company: "两轮车运营组",
+          "报销和请假查询简单但清楚，后续要接入审批流和更多内部系统也能沿着 MCP 扩展。",
+        name: "财务经理",
+        title: "费用审核",
+        company: "财务部",
       },
     ],
     plans: [
       {
-        name: "MVP Demo",
+        name: "MVP 演示",
         price: "4",
         cadence: " 个核心场景",
         description: "面试演示所需的最小业务闭环。",
-        features: ["车辆堆积识别", "早晚高峰趋势", "预测缺口排序"],
+        features: ["报销查询", "请假记录", "制度问答"],
         cta: { label: "打开聊天", href: ROUTES.CHAT },
       },
       {
-        name: "Ops Pilot",
+        name: "运营试跑",
         price: "18",
-        cadence: " 个上海站点",
+        cadence: " 位员工",
         description: "带真实 seed 数据的运营试跑版本。",
         features: ["PostgreSQL 业务库", "MCP 查询工具", "ECharts 图表渲染", "三套业务 Prompt"],
         cta: { label: "进入工作台", href: ROUTES.DASHBOARD },
@@ -338,66 +338,66 @@ const LANDING_COPY = {
         badge: "当前版本",
       },
       {
-        name: "Production",
+        name: "生产落地",
         price: "可扩展",
-        description: "真实落地时再加入空间计算和调度约束。",
-        features: ["PostGIS 距离权重", "容量和车型约束", "实时数据同步", "阈值配置中心"],
+        description: "真实落地时再接入审批流、工单和更多内部系统。",
+        features: ["审批流接入", "工单系统", "更多内部系统", "权限与审计"],
         cta: { label: "查看方案", href: "/contact" },
       },
     ],
   },
   en: {
     logos: [
-      "Vehicle distribution",
-      "Order stream",
-      "Weather signals",
-      "Demand forecast",
-      "Station profile",
-      "Dispatch policy",
+      "Employee profiles",
+      "Reimbursements",
+      "Leave records",
+      "Attendance",
+      "Policy documents",
+      "Benefits",
     ],
     marquee: [
-      "Vehicle pile-up",
-      "Shortage forecast",
-      "Morning peak",
-      "Evening peak",
-      "Heavy rain response",
-      "Station capacity",
-      "District comparison",
-      "Order trend",
-      "Dispatch suggestion",
+      "Reimbursement lookup",
+      "Leave records",
+      "Annual leave rules",
+      "Attendance check-in",
+      "Reimbursement policy",
+      "Benefits policy",
+      "Travel expenses",
+      "Overtime comp time",
+      "Policy Q&A",
       "SQL evidence",
       "ECharts",
       "MCP tools",
-      "Pudong",
-      "Xujiahui",
-      "Hongqiao hub",
-      "Zhangjiang station",
+      "Engineering",
+      "Marketing",
+      "Finance",
+      "HR",
     ],
     heroDemo: {
       script: [
         {
           role: "user",
-          text: "Which stations have vehicle pile-up? Show SQL evidence and dispatch suggestions.",
+          text: "What are my reimbursement records and total amount for the last three months?",
         },
         {
           role: "tool",
-          text: "mcp_execute_query · vehicle_distribution · 4 rows",
+          text: "mcp_execute_query · reimbursements · 3 rows",
         },
         {
           role: "agent",
-          text: "Found 4 pile-up stations: Hongqiao Railway Station, Zhangjiang Metro, Lujiazui, and Xujiahui. Prioritize Hongqiao and Zhangjiang, then recheck inventory in 2 hours.",
+          text: "You have 3 reimbursements in the last three months, totaling 1,240 CNY — 2 paid and 1 pending approval. Want to see the details?",
         },
       ],
-      placeholder: "Ask about vehicles, orders, or demand forecasts…",
+      placeholder: "Ask about reimbursements, leave, or policies…",
       floatingPills: [
         {
           icon: MessageSquare,
-          label: "Natural-language SQL",
+          label: "Natural-language queries",
           className: "left-[-12px] top-12 md:left-[-32px] md:top-16 float-y",
         },
         {
           icon: Database,
-          label: "Operations database",
+          label: "Enterprise database",
           className: "right-[-8px] top-24 md:right-[-40px] md:top-28 float-y-delayed",
         },
         {
@@ -407,108 +407,108 @@ const LANDING_COPY = {
         },
         {
           icon: Sparkles,
-          label: "Charts and actions",
+          label: "Charts and suggestions",
           className: "right-[10%] bottom-[-12px] md:right-[12%] md:bottom-[-20px] float-y",
         },
       ],
     },
     howTitle: (
       <>
-        Query data, inspect charts, then produce <em>dispatch actions.</em>
+        Query the data, review the charts, and land on an <em>accurate answer.</em>
       </>
     ),
     howSteps: [
       {
         icon: MessageSquare,
-        title: "Ask an operations question",
-        body: "Ask about vehicle pile-ups, peak-hour order trends, predicted shortages, or weather response without writing SQL.",
+        title: "Ask an employee question",
+        body: "Ask about reimbursements, leave, annual-leave rules, or reimbursement policy in plain language — no need to dig through policy documents.",
       },
       {
         icon: Database,
-        title: "Agent queries data",
-        body: "MCP tools read vehicle distribution, orders, stations, weather, and demand forecasts, then return auditable query evidence.",
+        title: "Agent queries the data",
+        body: "MCP tools read employee, reimbursement, and leave tables, then return auditable query evidence.",
       },
       {
         icon: BarChart3,
-        title: "Produce dispatch actions",
-        body: "The agent turns anomalies, peak trends, and shortage priorities into charts, ranked results, and next actions.",
+        title: "Deliver an accurate answer",
+        body: "Reimbursement details, leave records, and policy clauses come back as tables, charts, and cited answers.",
       },
     ],
     features: [
       {
-        eyebrow: "Operations database",
+        eyebrow: "Enterprise database",
         title: (
           <>
-            Vehicles, orders, weather, and forecasts in <em>one query path.</em>
+            Reimbursements, leave, and employee records in <em>one query path.</em>
           </>
         ),
         description:
-          "Seeded Shanghai shared mobility data lets the agent query stations, vehicle distribution, orders, weather, and demand forecasts through a read-only MCP SQL tool.",
+          "Seeded with employee sample data. The agent queries employee, reimbursement, and leave records through a read-only MCP SQL tool.",
         bullets: [
           {
             title: "Read-only SQL safety layer",
-            body: "Only SELECT/WITH queries are allowed, tables are allow-listed, and result limits are enforced.",
+            body: "Only SELECT/WITH queries are allowed, tables are allow-listed, and a result limit is enforced.",
           },
           {
-            title: "Business thresholds in the prompt",
-            body: "Pile-up thresholds, peak-hour windows, and shortage logic are injected into the agent instructions.",
+            title: "Business rules in the prompt",
+            body: "Reimbursement categories, leave types, and attendance rules are injected into the system prompt.",
           },
           {
-            title: "SQL evidence in the UI",
-            body: "The frontend renders query results as tables, so demo reviewers can inspect the source data.",
+            title: "Expandable SQL evidence",
+            body: "The frontend renders query results as tables, so the data source is easy to explain during a demo.",
           },
         ],
         cta: "View knowledge base",
       },
       {
-        eyebrow: "AI analysis",
+        eyebrow: "Smart assistant",
         title: (
           <>
-            From one operations question to an <em>actionable answer.</em>
+            From one plain-language question to an <em>accurate answer.</em>
           </>
         ),
         description:
-          "Ask which stations are piling up, how peak-hour orders changed, or which shortages to dispatch first. The agent queries, charts, and explains the recommendation.",
+          "Ask things like “What are my reimbursements?”, “How are reimbursements distributed across departments?”, or “How is annual leave calculated?” The agent queries data and policies and returns cited answers.",
         bullets: [
           {
             title: "Automatic tool choice",
-            body: "The agent calls PostgreSQL for data and ECharts when a trend or comparison should be visualized.",
+            body: "Calls PostgreSQL for data, and ECharts when a trend or comparison should be visualized.",
           },
           {
-            title: "Three business prompt modes",
-            body: "Inspection, analysis, and emergency response prompts are seeded into the database.",
+            title: "Three business modes",
+            body: "Quick lookup, data analysis, and policy Q&A prompts are seeded into the database.",
           },
           {
             title: "Frontend-native rendering",
-            body: "SQL tables and ECharts specs are displayed as usable UI instead of raw JSON.",
+            body: "SQL tables and ECharts are displayed as usable UI instead of raw JSON.",
           },
         ],
-        cta: "Start analysis",
+        cta: "Start a query",
       },
       {
-        eyebrow: "Operations loop",
+        eyebrow: "Employee services loop",
         title: (
           <>
-            Not just answers. Clear <em>next actions.</em>
+            More than answers. Clear <em>next steps.</em>
           </>
         ),
         description:
-          "The MVP ranks dispatch priorities by predicted shortage first. Production can add distance, capacity, vehicle type, and live constraints.",
+          "The MVP covers reimbursements, leave, and policy Q&A. Production can add ticketing, approval flows, and more internal systems.",
         bullets: [
           {
-            title: "Detect anomalies first",
-            body: "Stations over the vehicle threshold and stale for too long are surfaced as priority risks.",
+            title: "Answers you can trace",
+            body: "Policy questions cite source documents; data questions show the SQL evidence.",
           },
           {
-            title: "Recommendations map to stations",
-            body: "Answers include station, district, quantity, and suggested follow-up timing where possible.",
+            title: "Answers you can act on",
+            body: "Responses include concrete figures, clauses, and a suggested next step where possible.",
           },
           {
-            title: "Extensible architecture",
-            body: "The MCP server can later connect dispatch jobs, alerts, and real-time operations systems.",
+            title: "Architecture that extends",
+            body: "The MCP server can later hook into approval flows, ticketing, and more internal systems.",
           },
         ],
-        cta: "View dashboard",
+        cta: "View workspace",
       },
     ],
     dataTitle: (
@@ -517,76 +517,74 @@ const LANDING_COPY = {
       </>
     ),
     dataDescription:
-      "The agent turns an operations question into SQL or chart tool calls. Tables and ECharts return to the conversation for inspection and review.",
+      "An employee question goes to the agent, which picks a SQL or knowledge-base tool; results return to the conversation as tables, charts, and citations.",
     dataFlow: {
-      sourcesEyebrow: "Operations data",
+      sourcesEyebrow: "Enterprise data",
       sources: [
-        "Vehicle distribution",
-        "Order stream",
-        "Weather signals",
-        "Demand forecast",
-        "Station profiles",
+        "Employee profiles",
+        "Reimbursements",
+        "Leave records",
+        "Attendance",
+        "Policy documents",
       ],
       rowsLabel: "demo rows",
       readyLabel: "MCP ready",
-      question: "Which stations have vehicle pile-up?",
-      answerEyebrow: "Action",
-      answer:
-        "Found 4 vehicle pile-up stations. Prioritize Hongqiao Railway Station and Zhangjiang Metro, then recheck inventory in 2 hours.",
+      question: "How much did I reimburse this month?",
+      answerEyebrow: "Answer",
+      answer: "You have 5 reimbursements this month, totaling 860 CNY — all paid.",
     },
     mockup: {
-      agentQuery: "Analyze shortage stations in Pudong.",
-      agentAnswer:
-        "Zhangjiang Metro, Longyang Road hub, and Century Avenue have the highest 3-hour gaps. Prioritize replenishment there.",
-      agentPlaceholder: "Ask about vehicles, orders, or weather...",
-      ragSearch: "heavy rain pile-up dispatch",
+      agentQuery: "Check my reimbursements this month.",
+      agentAnswer: "You have 5 reimbursements this month, totaling 860 CNY — all paid.",
+      agentPlaceholder: "Ask about reimbursements, leave, or policies...",
+      ragSearch: "annual leave reimbursement attendance",
       ragResults: [
         {
-          title: "heavy-rain-dispatch-plan.md",
+          title: "employee-handbook.md",
           snippet:
-            "...during heavy_rain, protect metro stations, transport hubs, and commercial areas first...",
+            "...employees get 5 days of annual leave after 1 year, then +1 day per additional year, capped at 15 days...",
           score: 0.94,
         },
         {
-          title: "shared-bike-peak-hour-rules.pdf",
+          title: "reimbursement-policy.md",
           snippet:
-            "...morning peak 7-9, evening peak 17-19, sorted by station orders and predicted gap...",
+            "...expenses must be submitted within 30 days; first-tier city hotels capped at 500 CNY per night...",
           score: 0.87,
         },
         {
-          title: "vehicle-pile-up-sop.docx",
+          title: "attendance-policy.md",
           snippet:
-            "...when total_count exceeds the threshold and remains stale for 24 hours, trigger inspection...",
+            "...standard hours 9:00-18:00; up to 3 late arrivals per month are free, then 50 CNY each...",
           score: 0.82,
         },
       ],
-      operationsLabel: "Operations today",
-      ordersLabel: "30-day order sample",
-      metricStations: "Stations",
-      metricAnomaly: "Anomaly",
-      metricForecast: "Forecast",
+      operationsLabel: "Reimbursements this month",
+      ordersLabel: "30-day reimbursement sample",
+      metricEmployees: "Employees",
+      metricPending: "Pending",
+      metricLeaves: "Leave requests",
     },
     testimonials: [
       {
         quote:
-          "Instead of hunting through dashboards and writing SQL, I can ask which stations are piling up and get the data, threshold, and recommendation together.",
-        name: "Shanghai Ops Lead",
-        title: "Morning inspection",
-        company: "Bike sharing team",
+          "Instead of digging through policy documents, I just ask about annual leave or reimbursements — the agent returns both the policy clause and my data.",
+        name: "Employee",
+        title: "Daily inquiries",
+        company: "Engineering",
       },
       {
         quote:
-          "Peak-hour trends render as charts right inside the demo, so it feels like an operations product instead of another chatbot.",
-        name: "Data Analyst",
-        title: "Operations review",
-        company: "Urban mobility platform",
+          "Reimbursement and leave data render straight into charts, so the demo feels like a real employee services system.",
+        name: "HR Specialist",
+        title: "Reporting",
+        company: "People Ops",
       },
       {
         quote:
-          "Shortage suggestions are ranked by predicted gap first. Simple enough for the MVP, and easy to extend with distance and capacity weights later.",
-        name: "Dispatch Manager",
-        title: "Evening peak coverage",
-        company: "Two-wheel operations",
+          "Reimbursement and leave lookups are simple but clear, and the MCP layer makes it easy to add approval flows and more internal systems later.",
+        name: "Finance Manager",
+        title: "Expense review",
+        company: "Finance",
       },
     ],
     plans: [
@@ -594,19 +592,19 @@ const LANDING_COPY = {
         name: "MVP Demo",
         price: "4",
         cadence: " core scenarios",
-        description: "The smallest business loop needed for the interview demo.",
-        features: ["Vehicle pile-up detection", "Peak-hour trend analysis", "Forecast gap ranking"],
+        description: "The smallest business loop needed for the demo.",
+        features: ["Reimbursement lookup", "Leave records", "Policy Q&A"],
         cta: { label: "Open chat", href: ROUTES.CHAT },
       },
       {
         name: "Ops Pilot",
         price: "18",
-        cadence: " Shanghai stations",
+        cadence: " employees",
         description: "A seeded operations pilot with realistic demo data.",
         features: [
           "PostgreSQL business tables",
           "MCP query tools",
-          "ECharts rendering",
+          "ECharts chart rendering",
           "Three business prompts",
         ],
         cta: { label: "Open workspace", href: ROUTES.DASHBOARD },
@@ -616,12 +614,12 @@ const LANDING_COPY = {
       {
         name: "Production",
         price: "Extensible",
-        description: "Add spatial calculation and dispatch constraints for real deployment.",
+        description: "Add approval flows, ticketing, and more internal systems for real deployment.",
         features: [
-          "PostGIS distance weights",
-          "Capacity and vehicle constraints",
-          "Realtime data sync",
-          "Configurable thresholds",
+          "Approval-flow integration",
+          "Ticketing systems",
+          "More internal systems",
+          "Permissions and audit",
         ],
         cta: { label: "View plan", href: "/contact" },
       },

@@ -4,18 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Activity,
-  ArrowDownRight,
   ArrowUpRight,
   CreditCard,
   Database,
   List,
   MessageSquare,
-  Minus,
   Search,
   Sparkles,
   Star,
 } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import { QuickActions } from "@/components/dashboard/quick-actions";
@@ -34,9 +31,12 @@ import { cn } from "@/lib/utils";
 import { listCollections, getCollectionInfo } from "@/lib/rag-api";
 import type { HealthResponse } from "@/types";
 
-interface CreditBalance {
-  balance: number;
-  low_threshold: number;
+interface DeepSeekBalance {
+  currency: string;
+  total_balance: string;
+  granted_balance: string;
+  topped_up_balance: string;
+  is_available: boolean;
 }
 
 interface UsageBucket {
@@ -73,8 +73,8 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState(false);
-  const [credits, setCredits] = useState<CreditBalance | null>(null);
-  const [creditsLoading, setCreditsLoading] = useState(true);
+  const [deepseekBalance, setDeepseekBalance] = useState<DeepSeekBalance | null>(null);
+  const [deepseekLoading, setDeepseekLoading] = useState(true);
   const [conversations, setConversations] = useState<{ total: number } | null>(null);
   const [convLoading, setConvLoading] = useState(true);
   const [ragStats, setRagStats] = useState<{ collections: number; vectors: number } | null>(null);
@@ -90,10 +90,10 @@ export default function DashboardPage() {
       })
       .catch(() => setHealthError(true));
     apiClient
-      .get<CreditBalance>("/billing/me/credits")
-      .then(setCredits)
-      .catch(() => setCredits(null))
-      .finally(() => setCreditsLoading(false));
+      .get<DeepSeekBalance>("/billing/me/deepseek-balance")
+      .then(setDeepseekBalance)
+      .catch(() => setDeepseekBalance(null))
+      .finally(() => setDeepseekLoading(false));
 
     apiClient
       .get<ConversationsResponse>("/conversations?limit=1")
@@ -132,14 +132,7 @@ export default function DashboardPage() {
     };
   }, [period]);
 
-  const creditsSpark = (timeline ?? []).slice(-period).map((b) => b.credits_charged);
   const callsSpark = (timeline ?? []).slice(-period).map((b) => b.total_calls);
-  const creditsDelta = timeline
-    ? pctDelta(
-        timeline.slice(-period).map((b) => b.credits_charged),
-        timeline.slice(-period * 2, -period).map((b) => b.credits_charged),
-      )
-    : undefined;
   const callsDelta = timeline
     ? pctDelta(
         timeline.slice(-period).map((b) => b.total_calls),
@@ -172,7 +165,7 @@ export default function DashboardPage() {
           />
 
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            共享出行运营看板
+            员工助手工作台
           </p>
           <h1 className="font-display text-foreground [&_em]:font-accent mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:font-normal [&_em]:italic">
             {getGreeting()}
@@ -186,7 +179,7 @@ export default function DashboardPage() {
             )}
           </h1>
           <p className="text-foreground/65 mt-4 max-w-md text-sm">
-            快速查看系统状态、运营知识库和最近的智能分析记录。
+            快速查看系统状态、制度知识库和最近的智能分析记录。
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -194,7 +187,7 @@ export default function DashboardPage() {
               href={ROUTES.CHAT}
               className="bg-foreground text-background hover:bg-foreground/90 group inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-5 text-sm font-medium transition-colors"
             >
-              <span>开始运营分析</span>
+              <span>开始咨询</span>
               <span className="bg-brand text-brand-foreground flex h-8 w-8 items-center justify-center rounded-full transition-transform group-hover:rotate-45">
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </span>
@@ -223,7 +216,15 @@ export default function DashboardPage() {
                 }
               />
               <span className="font-display text-foreground text-lg font-semibold">
-                {healthError ? "API 离线" : health?.status || "运行中"}
+                {healthError
+                  ? "API 离线"
+                  : health?.status === "healthy"
+                    ? "健康"
+                    : health?.status === "degraded"
+                      ? "降级"
+                      : health?.status === "down"
+                        ? "宕机"
+                        : health?.status || "运行中"}
               </span>
             </div>
             {health?.version && (
@@ -259,7 +260,7 @@ export default function DashboardPage() {
       {/* WORKSPACE METRICS */}
       <div className="flex items-center justify-between">
         <h2 className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          运营智能体指标
+          员工助手指标
         </h2>
         <SegmentedControl
           value={String(period)}
@@ -273,15 +274,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {/* Featured Credits card — spans 2 cols */}
-        <FeaturedCreditsCard
-          balance={credits?.balance}
-          loading={creditsLoading}
-          spark={creditsSpark}
-          delta={creditsDelta}
-          deltaLabel={deltaLabel}
-          lowThreshold={credits?.low_threshold ?? 0}
-        />
+        {/* Featured balance card — spans 2 cols (live DeepSeek account balance) */}
+        <DeepSeekBalanceCard balance={deepseekBalance} loading={deepseekLoading} />
         <StatCard
           label="分析记录"
           value={convLoading ? "—" : (conversations?.total ?? 0).toLocaleString()}
@@ -298,7 +292,7 @@ export default function DashboardPage() {
           loading={!timeline}
         />
         <StatCard
-          label="运营知识库"
+          label="制度知识库"
           value={ragStats ? ragStats.vectors.toLocaleString() : "—"}
           unit={ragStats ? "向量" : undefined}
           icon={Database}
@@ -357,26 +351,13 @@ export default function DashboardPage() {
   );
 }
 
-interface FeaturedCreditsCardProps {
-  balance: number | undefined;
-  loading: boolean;
-  spark: number[];
-  delta: number | undefined;
-  deltaLabel: string;
-  lowThreshold: number;
-}
-
-function FeaturedCreditsCard({
+function DeepSeekBalanceCard({
   balance,
   loading,
-  spark,
-  delta,
-  deltaLabel,
-  lowThreshold,
-}: FeaturedCreditsCardProps) {
-  const belowThreshold = balance !== undefined && lowThreshold > 0 && balance < lowThreshold;
-  const trend = typeof delta === "number" ? (delta > 0 ? "up" : delta < 0 ? "down" : "flat") : null;
-
+}: {
+  balance: DeepSeekBalance | null;
+  loading: boolean;
+}) {
   if (loading) {
     return (
       <div className="border-foreground/10 bg-foreground/[0.02] relative animate-pulse space-y-3 overflow-hidden rounded-2xl border p-6 sm:col-span-2 lg:col-span-2">
@@ -387,82 +368,42 @@ function FeaturedCreditsCard({
     );
   }
 
+  const symbol = balance?.currency === "CNY" ? "¥" : `${balance?.currency} `;
   return (
-    <div
-      className={cn(
-        "relative isolate overflow-hidden rounded-2xl border p-6 sm:col-span-2 lg:col-span-2",
-        belowThreshold
-          ? "border-destructive/40 bg-destructive/[0.04]"
-          : "border-brand/40 bg-foreground/[0.02]",
-      )}
-    >
+    <div className="border-brand/40 bg-foreground/[0.02] relative isolate overflow-hidden rounded-2xl border p-6 sm:col-span-2 lg:col-span-2">
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-28 -left-16 -z-10 h-[340px] w-[340px] rounded-full blur-3xl"
         style={{
-          background: belowThreshold
-            ? "radial-gradient(circle, oklch(from var(--color-destructive) l c h / 0.25), transparent 65%)"
-            : "radial-gradient(circle, oklch(from var(--color-brand) l c h / 0.35), transparent 65%)",
+          background:
+            "radial-gradient(circle, oklch(from var(--color-brand) l c h / 0.35), transparent 65%)",
         }}
       />
-
       <div className="flex items-start justify-between gap-2">
         <p className="text-foreground/55 inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wider uppercase">
           <Sparkles className="text-brand h-3 w-3" />
-          额度余额
+          DeepSeek 余额
         </p>
-        {trend && (
-          <span
-            className={cn(
-              "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums",
-              trend === "up" && "bg-chart/15 text-chart",
-              trend === "down" && "bg-destructive/10 text-destructive",
-              trend === "flat" && "bg-foreground/8 text-foreground/65",
-            )}
-          >
-            {trend === "up" && <ArrowUpRight className="h-3 w-3" />}
-            {trend === "down" && <ArrowDownRight className="h-3 w-3" />}
-            {trend === "flat" && <Minus className="h-3 w-3" />}
-            {Math.abs(delta!).toFixed(1)}%
+        {balance?.is_available && (
+          <span className="bg-chart/15 text-chart inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold">
+            实时
           </span>
         )}
       </div>
-
       <div className="mt-4 flex items-baseline gap-3">
         <span className="text-foreground font-mono text-[clamp(2.5rem,7vw,4.75rem)] leading-[0.9] font-medium tracking-tighter tabular-nums">
-          {balance !== undefined ? balance.toLocaleString() : "—"}
+          {balance ? `${symbol}${balance.total_balance}` : "—"}
         </span>
       </div>
-
       <p className="text-foreground/45 mt-2 font-mono text-[10px] tracking-wider uppercase">
-        {trend ? deltaLabel : belowThreshold ? "低于自动补充阈值" : "实时余额"}
+        {balance
+          ? `充值 ${symbol}${balance.topped_up_balance} · 赠送 ${symbol}${balance.granted_balance}`
+          : "查询失败"}
       </p>
-
-      {spark.length >= 2 && (
-        <div className="-mx-2 mt-4 h-14">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={spark.map((v, i) => ({ i, v }))}>
-              <defs>
-                <linearGradient id="featured-spark" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-brand)" stopOpacity={0.55} />
-                  <stop offset="100%" stopColor="var(--color-brand)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="v"
-                stroke="var(--color-brand)"
-                strokeWidth={2}
-                fill="url(#featured-spark)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
     </div>
   );
 }
+
 
 function SearchHint() {
   return (

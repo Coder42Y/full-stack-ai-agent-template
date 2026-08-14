@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Database, LayoutDashboard, MessageSquare, Search, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -21,20 +22,21 @@ interface TabItem {
 export function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations();
   const { user } = useAuth();
 
   const stripped = pathname.replace(/^\/[a-z]{2}/, "");
 
   const items: TabItem[] = [
-    { label: "Chat", href: ROUTES.CHAT, icon: MessageSquare, startsWith: true },
-    { label: "KB", href: ROUTES.KB, icon: Database, startsWith: true },
+    { label: t("appNav.chat"), href: ROUTES.CHAT, icon: MessageSquare, startsWith: true },
+    { label: t("appNav.kb"), href: ROUTES.KB, icon: Database, startsWith: true },
     {
-      label: "Home",
+      label: t("navigation.home"),
       href: user?.role === "admin" ? ROUTES.DASHBOARD : ROUTES.CHAT,
       icon: LayoutDashboard,
     },
     {
-      label: "Search",
+      label: t("common.search"),
       icon: Search,
       onClick: () => {
         // Trigger global ⌘K command palette via synthetic keyboard event.
@@ -46,7 +48,7 @@ export function MobileTabBar() {
         document.dispatchEvent(event);
       },
     },
-    { label: "Settings", href: ROUTES.SETTINGS, icon: Settings, startsWith: true },
+    { label: t("appNav.settings"), href: ROUTES.SETTINGS, icon: Settings, startsWith: true },
   ];
 
   const isActive = (item: TabItem) => {
@@ -58,7 +60,7 @@ export function MobileTabBar() {
   return (
     <nav
       role="navigation"
-      aria-label="Primary"
+      aria-label={t("layout.primaryNav")}
       className="border-foreground/10 bg-background/95 supports-[backdrop-filter]:bg-background/85 fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
       {items.map((item) => {

@@ -25,7 +25,7 @@ from app.services.rag.documents import DocumentProcessor
 from app.services.rag.embeddings import EmbeddingService
 from app.services.rag.ingestion import IngestionService
 from app.services.rag.retrieval import RetrievalService
-from app.services.rag.vectorstore import BaseVectorStore, MilvusVectorStore
+from app.services.rag.vectorstore import BaseVectorStore, PgvectorVectorStore
 
 
 def get_rag_services() -> tuple[
@@ -45,7 +45,7 @@ def get_rag_services() -> tuple[
     """
     settings = app_settings.rag
     embedder = EmbeddingService(settings=settings)
-    vector_store = MilvusVectorStore(settings=settings, embedding_service=embedder)
+    vector_store = PgvectorVectorStore(settings=settings, embedding_service=embedder)
     processor = DocumentProcessor(settings=settings)
     retrieval = RetrievalService(vector_store=vector_store, settings=settings)
     ingestion = IngestionService(processor=processor, vector_store=vector_store)

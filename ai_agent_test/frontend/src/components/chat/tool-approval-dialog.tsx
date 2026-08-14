@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import type { ActionRequest, ReviewConfig, Decision } from "@/types";
 import { Wrench, AlertTriangle } from "lucide-react";
@@ -19,6 +20,8 @@ export function ToolApprovalDialog({
   onDecisions,
   disabled = false,
 }: ToolApprovalDialogProps) {
+  const t = useTranslations("chat");
+  const tc = useTranslations("common");
   // Store edited args for each action
   const [editedArgs, setEditedArgs] = useState<Record<string, string>>(() =>
     Object.fromEntries(actionRequests.map((a) => [a.id, JSON.stringify(a.args, null, 2)])),
@@ -75,7 +78,7 @@ export function ToolApprovalDialog({
     <div className="space-y-3 rounded-lg border border-yellow-500/50 bg-yellow-50/5 p-3">
       <div className="flex items-center gap-2 text-sm text-yellow-600">
         <AlertTriangle className="h-4 w-4" />
-        <span className="font-medium">Tool approval required</span>
+        <span className="font-medium">{t("toolApprovalRequired")}</span>
       </div>
 
       {actionRequests.map((action) => (
@@ -107,7 +110,7 @@ export function ToolApprovalDialog({
               onClick={handleCancel}
               disabled={disabled}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               size="sm"
@@ -116,12 +119,12 @@ export function ToolApprovalDialog({
               onClick={handleSave}
               disabled={disabled}
             >
-              Save
+              {tc("save")}
             </Button>
           </>
         )}
         <Button size="sm" className="h-7 text-xs" onClick={handleSubmit} disabled={disabled}>
-          Submit ({actionRequests.length})
+          {t("submitCount", { count: actionRequests.length })}
         </Button>
       </div>
     </div>

@@ -6,6 +6,7 @@ credit accounting -- lives in :class:`app.services.billing.BillingService`.
 
 from typing import Any
 
+import httpx
 from fastapi import APIRouter, Header, Query, Request, status
 from sqlalchemy import func, select
 
@@ -18,6 +19,7 @@ from app.schemas.billing import (
     CheckoutSessionRead,
     CreditBalanceRead,
     CreditTransactionList,
+    DeepSeekBalanceRead,
     PlanList,
     PlanRead,
     PortalSessionRead,
@@ -154,6 +156,42 @@ async def get_credits_balance(
     """Return current credits balance for the active organization."""
     balance = await billing_service.get_credit_balance(active_org.id)
     return CreditBalanceRead(balance=balance, low_threshold=settings.CREDITS_LOW_THRESHOLD)
+
+
+@router.get("/me/deepseek-balance", response_model=DeepSeekBalanceRead)
+async def get_deepseek_balance(current_user: CurrentUser) -> Any:
+    """Query the configured LLM provider's real account balance (DeepSeek).
+
+    Hits DeepSeek's `/user/balance` endpoint live using the backend's API key,
+    so the dashboard can show the actual money balance instead of demo credits.
+    Falls back to a zeroed payload on failure so the UI never hard-errors.
+    """
+    fallback = DeepSeekBalanceRead(
+        currency="CNY",
+        total_balance="0.00",
+        granted_balance="0.00",
+        topped_up_balance="0.00",
+        is_available=False,
+    )
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.deepseek.com/user/balance",
+                headers={"Authorization": f"Bearer {settings.OPENAI_API_KEY}"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception:
+        return fallback
+
+    info = (data.get("balance_infos") or [{}])[0]
+    return DeepSeekBalanceRead(
+        currency=info.get("currency", "CNY"),
+        total_balance=info.get("total_balance", "0.00"),
+        granted_balance=info.get("granted_balance", "0.00"),
+        topped_up_balance=info.get("topped_up_balance", "0.00"),
+        is_available=bool(data.get("is_available", False)),
+    )
 
 
 @router.get("/me/credits/transactions", response_model=CreditTransactionList)

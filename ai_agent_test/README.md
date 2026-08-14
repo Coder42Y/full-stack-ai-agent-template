@@ -1,301 +1,184 @@
-# ai_agent_test
+# WorkMate — 企业员工 AI 助手
 
-My FastAPI project
+> 面向企业员工的 AI 助手 Demo：用一句中文问题查报销、看请假、问制度，答案带 SQL 依据和文档引用。
 
-> Generated with [Full-Stack AI Agent Template](https://github.com/vstorm-co/full-stack-ai-agent-template).
-
----
-
-## Stack
-
-| Component | Technology |
-|-----------|-----------|
-| **Backend** | FastAPI + Pydantic v2 |
-| **Database** | PostgreSQL (async via asyncpg) |
-| **Auth** | JWT + refresh tokens + API keys + OAuth |
-| **Cache** | Redis |
-| **AI Framework** | pydantic_ai (openai) |
-| **RAG** | milvus vector store |
-| **Tasks** | celery |
-| **Frontend** | Next.js 15 + React 19 + Tailwind v4 |
-| **Billing** | Stripe |
+**WorkMate** 把一个真实的企业业务场景端到端跑通：员工不用再翻制度文档、找 HR 或开多个系统——直接问助手「我最近三个月的报销是多少」「年假怎么算」，Agent 会通过只读 MCP SQL 工具查询业务表、检索制度知识库，并给出可溯源、带图表的答案。
 
 ---
 
-## Prerequisites
+## 为什么 WorkMate？
 
-| Tool | Version | Install |
-|---|---|---|
-| **Docker** | Desktop / Engine 24+ | <https://docs.docker.com/get-docker/> |
-| **Make** | GNU Make 3.81+ (preinstalled on macOS/Linux) | Windows: install via [chocolatey](https://chocolatey.org/) `choco install make` or use WSL2 |
-| **uv** | latest | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| **bun** | 1.x | `curl -fsSL https://bun.sh/install \| bash` (or use `npm` / `pnpm` if you prefer) |
+市面上的 AI 聊天 Demo 大多是「通用问答壳」，而面试/演示最怕的是**没有真实业务闭环**。WorkMate 从开源全栈模板改造而来，把默认的「通用 AI SaaS」替换成企业员工场景：
 
-> **Windows users:** the Makefile and shell helpers assume bash. Use **WSL2** or **Git Bash** for the smoothest experience. The Docker workflow below works identically on macOS, Linux, and WSL2.
+- **数据是真的**：预置员工、报销、请假三张业务表（`employees` / `reimbursements` / `leaves`），Agent 查询的是 PostgreSQL 里的真实样例数据。
+- **答案可溯源**：数据类问题展示 SQL 依据和查询结果表格，制度类问题标注来源文档与具体条款——不是凭空回答。
+- **安全且克制**：MCP SQL 工具只读（SELECT/WITH）、白名单表、自动追加行数上限；向量检索用本地 `bge-small-zh-v1.5`，全程无外部 Embedding API。
+- **开箱即演示**：一键启动脚本 + 预置 admin 账号 + 中文界面，几分钟就能向面试官跑完整闭环。
 
----
+> 技术选型本身也值得讲：DeepSeek（OpenAI 兼容）+ pgvector + PydanticAI + ECharts，都是面试官熟悉的主流组件。
 
-## Quick Start (Local Dev)
+## Features
 
-### First time
+- **报销查询** — 查记录、查总额、按部门/时间/状态聚合，SQL 依据可展开
+- **请假与年假** — 请假记录、剩余年假计算，制度口径进 Prompt
+- **制度问答** — 员工手册、报销制度等入库 pgvector，答案带来源文档引用
+- **图表渲染** — SQL 结果直接渲染成 ECharts 图表，趋势/对比一目了然
+- **DeepSeek 余额卡片** — 工作台实时展示真实剩余额度
+- **中英双语** — next-intl，中文为默认语言，可一键切换英文
+
+## Quickstart
+
+一条命令起全栈（macOS / Linux）：
 
 ```bash
-make bootstrap       # = make dev + make seed
+./run.sh          # Docker 模式（默认，首次会 build，较慢）
+./run.sh --local  # 本地模式（绕过 Docker，自动装 postgres/redis，推荐本机开发）
 ```
 
-That's the only command you need on a fresh clone. After this, day-to-day is just `make dev`.
+> 若在 Docker 环境遇到网络问题（如 Docker Desktop gvisor 下出站下载卡死），用 `--local` 模式即可。
 
-### Subsequent runs
+启动完成后：
+
+- 前端：<http://localhost:3000>
+- 后端 API：<http://localhost:8000> · 文档 <http://localhost:8000/docs>
+- 登录：`admin@example.com` / `admin123`
+
+**演示路径**：登录 → 进入「智能分析」→ 直接提问：
+
+```
+我最近三个月的报销记录和总额是多少？
+我今年的请假记录和剩余年假是多少？
+各部门本月的报销分布是怎样的？请用图表展示。
+年假怎么算？可以累积到明年吗？
+```
+
+## Usage
+
+### 一键脚本
 
 ```bash
-make dev
+./run.sh                # setup + start（幂等）
+./run.sh --local        # 本地模式
+./run.sh status         # 查看端口 / 健康状态
+./run.sh logs backend   # 看后端日志
+./run.sh stop           # 停止前后端
+./run.sh seed           # 重建 admin 账号
+NO_CHINA_MIRROR=1 ./run.sh --local   # 国外环境，用官方源
 ```
 
-`make dev` is **idempotent** — re-run it any time. It will:
+### CLI
 
-1. Build the backend Docker image (cached after first run)
-2. Start services via `docker-compose.dev.yml` (with hot-reload bind mounts)
-3. Poll Postgres until it accepts connections (`pg_isready` — no fixed sleeps)
-4. Apply pending Alembic migrations (no-op if already at head)
-
-It does **not** re-seed the admin user — that lives in `make seed` and is run once. This way `make dev` stays cheap to re-run after every code/config change.
-
-**Then access:**
-
-- API: <http://localhost:8000>
-- Docs: <http://localhost:8000/docs>
-- Admin: <http://localhost:8000/admin> — `admin@example.com` / `admin123` after `make seed`
-- Frontend: <http://localhost:3000> — start with `make dev-frontend` (Docker) or `cd frontend && bun install && bun dev` (local)
-
-### Day-to-day commands
+后端自带 Click CLI（`cd backend && uv run ai_agent_test …`）：
 
 ```bash
-make dev           # bootstrap or restart (idempotent, no admin re-seed)
-make seed          # one-shot admin creation (no-op if admin already exists)
-make dev-down      # stop everything
-make dev-logs      # tail logs (Ctrl-C to exit)
-make dev-rebuild   # force-rebuild backend image (after pyproject.toml change)
-make dev-frontend  # start the Next.js container
+ai_agent_test user create --email demo@example.com --password xxx   # 建号
+ai_agent_test rag-ingest path/to/doc.pdf -c enterprise_ops          # 制度文档入库
+ai_agent_test rag-search "年假怎么算" -c enterprise_ops            # 知识库检索
+ai_agent_test rag-collections                                      # 查看集合
 ```
 
-If you prefer running the backend on the host (not in Docker) — useful for breakpoints / IDE debugging:
+### 手动启动（开发）
 
 ```bash
-make install       # uv sync + pre-commit install
-docker compose -f docker-compose.dev.yml up -d db redis milvus etcd minio
-make db-upgrade    # apply migrations
-make run           # run uvicorn locally with --reload
+# 后端
+cd backend && uv run uvicorn app.main:app --reload --port 8000
+# 前端
+cd frontend && bun install && bun dev        # http://localhost:3000
 ```
 
----
+## 架构
 
-## Environments
+| 组件 | 技术 |
+|---|---|
+| 后端 | FastAPI + Pydantic v2 |
+| 数据库 | PostgreSQL 16 + **pgvector**（向量检索） |
+| LLM | **DeepSeek** `deepseek-v4-flash`（OpenAI 兼容 `/v1`） |
+| Embedding | `bge-small-zh-v1.5`（本地，512 维） |
+| Agent | PydanticAI + MCP 工具（只读 SQL / 知识库 / ECharts） |
+| 前端 | Next.js 15 + React 19 + Tailwind v4 |
+| i18n | next-intl（`zh` 默认 / `en`） |
+| 任务/缓存 | Celery（可选）/ Redis |
 
-| `make` target | Compose file | Use case |
-|---|---|---|
-| `make dev` | `docker-compose.dev.yml` | Local development with hot-reload + bind-mounted source. |
-| `make stage` | `docker-compose.yml` | Production-like build, no bind mounts, runs on localhost. Good for sanity-checking before deploy. |
-| `make prod` | `docker-compose.prod.yml` | Production. Requires `backend/.env` (copy from `backend/.env.example`, fill real secrets) and an external Nginx using `nginx/nginx.conf`. |
+### 数据流
 
-Each env has matching `-down`, `-logs`, `-rebuild` siblings (e.g. `make stage-down`).
+```
+员工提问 ──> PydanticAI Agent ──> MCP 工具
+                    │                  ├─ 只读 SQL（pg_query）→ PostgreSQL 业务表
+                    │                  ├─ 知识库检索（RAG）→ pgvector 制度文档
+                    │                  └─ ECharts → 图表数据
+                    └──> 答案（带 SQL 依据 / 文档引用）回到前端
+```
 
----
-
-## Project Structure
+### 目录
 
 ```
 backend/app/
-├── main.py               # FastAPI app + lifespan
-├── api/
-│   ├── deps.py           # Annotated DI aliases (DBSession, CurrentUser, *Svc)
-│   ├── exception_handlers.py
-│   └── routes/v1/        # HTTP endpoints — call services, never repos
-├── core/
-│   ├── config.py         # pydantic-settings (reads .env)
-│   ├── security.py       # JWT, bcrypt, API key verification
-│   ├── exceptions.py     # AppException → NotFound / Auth / etc.
-│   └── middleware.py
-├── db/
-│   ├── base.py           # DeclarativeBase + TimestampMixin
-│   └── models/           # SQLAlchemy models (Mapped[] type hints)
-├── schemas/              # Pydantic v2: *Create / *Update / *Read / *List
-├── repositories/         # Data access — db.flush() never commit
-├── services/             # Business logic — raises domain exceptions
-├── agents/               # AI agent wrappers + tools
-├── rag/                  # RAG: vectorstore + embeddings + ingestion + sources
-│   └── connectors/       # Pluggable sync sources (Google Drive, S3, …)
-├── worker/
-│   ├── background/       # FastAPI BackgroundTasks fallback (in-process)
-│   └── tasks/            # Distributed tasks (celery)
-└── commands/             # Click CLI commands (auto-discovered by `ai_agent_test cmd …`)
+├── main.py            # FastAPI app + lifespan
+├── api/routes/v1/     # HTTP 端点（routes → services → repos）
+├── services/          # 业务逻辑（含 rag/、billing/）
+├── agents/            # PydanticAI 封装 + MCP 工具（pg_query_server 等）
+├── db/models/         # SQLAlchemy（users / conversations / enterprise 等）
+├── commands/          # CLI（seed_enterprise / seed_enterprise_kb / seed_prompts …）
+└── alembic/           # 数据库迁移
 
 frontend/src/
-├── app/
-│   ├── [locale]/         # next-intl routes (en/pl)
-│   │   ├── (marketing)/  # Public landing, pricing, FAQ, blog
-│   │   └── (dashboard)/  # Authenticated app
-│   └── api/              # Server-side API proxies (forward auth cookies)
-├── components/           # React components (chat, marketing, ui primitives)
-├── hooks/                # useAuth, useChat, useConversations, …
-├── stores/               # Zustand stores
-└── lib/                  # api-client, server-api, utils
+├── app/[locale]/      # next-intl 路由（营销页 + dashboard）
+├── components/        # chat / dashboard / billing / admin / teams …
+├── messages/          # zh.json / en.json（i18n）
+└── lib/               # api-client / constants / seo
 ```
-
----
-
-## CLI
-
-The generated project ships a Click CLI exposed as `ai_agent_test` (after `make install`):
-
-```bash
-ai_agent_test server run --reload          # dev server
-ai_agent_test db upgrade                   # apply migrations
-ai_agent_test db migrate -m "message"      # create new migration
-ai_agent_test user create-admin            # interactive admin creation
-ai_agent_test rag-ingest <path> -c docs    # ingest local files
-ai_agent_test rag-search "query" -c docs   # semantic search
-ai_agent_test rag-collections              # list collections
-ai_agent_test celery worker                # start worker
-ai_agent_test celery beat                  # start scheduler
-```
-
-Run `make help` for a categorized list, or `ai_agent_test --help` for full CLI docs.
-
----
 
 ## Configuration
 
-All backend config lives in `backend/.env` (committed for dev defaults). Key variables:
+后端配置在 `backend/.env`（首次 `run.sh` 自动从 `.env.example` 生成）。关键变量：
 
 ```bash
+# DeepSeek（run.sh 自动从 ~/.cc-profiles/ds 或环境变量读取 key）
+OPENAI_API_KEY=sk-…
+OPENAI_BASE_URL=https://api.deepseek.com/v1
+AI_MODEL=deepseek-v4-flash
+
+# PostgreSQL（local 模式用本机信任认证）
 POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
 POSTGRES_DB=ai_agent_test
 
-# OpenAI — required for chat + embeddings
-OPENAI_API_KEY=sk-…
+# RAG / Embedding
+EMBEDDING_PROVIDER=sentence-transformers
+EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5
 
-# Google OAuth (Sign in with Google)
-GOOGLE_CLIENT_ID=…
-GOOGLE_CLIENT_SECRET=…
-
-# Stripe billing
-STRIPE_SECRET_KEY=sk_test_…
-STRIPE_WEBHOOK_SECRET=whsec_…
-
-# Email (transactional + lifecycle)
-EMAIL_PROVIDER=resend
-RESEND_API_KEY=re_…
-EMAIL_FROM=noreply@your-domain.com
+# MCP
+MCP_ENABLED=true
 ```
 
-See `backend/.env.example` for the full list with comments.
-
-For production, **never** commit secrets — `backend/.env` is gitignored. Fill it with real values on the server (or inject them via your platform's secret manager: Doppler, AWS Secrets Manager, GitHub Actions secrets, etc.). The same `backend/.env` is used for dev and prod — there is no separate `.env.prod`.
-
----
+`.env` 已被 gitignore，切勿提交真实密钥。
 
 ## Development
 
-| Command | What it does |
-|---|---|
-| `make test` | Run pytest |
-| `make lint` | Run ruff check + format check + ty |
-| `make format` | Auto-format with ruff |
-| `make db-migrate` | Generate a new migration from model changes (interactive) |
-| `make db-upgrade` | Apply pending migrations |
-| `make db-downgrade` | Roll back one migration |
-| `make db-current` | Show current head |
-| `make create-admin` | Interactive admin creation |
-| `make user-list` | List all users |
-| `make celery-worker` | Run Celery worker locally |
-| `make celery-beat` | Run Celery beat |
-| `make celery-flower` | Open Flower UI at <http://localhost:5555> |
-
----
-
-## RAG (Knowledge Base)
-
-Using **milvus** as the vector store with **openai** embeddings.
-
 ```bash
-# Ingest local files (recursive)
-ai_agent_test rag-ingest /path/to/docs/ --collection documents --recursive
-# Pull from Google Drive (service-account auth)
-ai_agent_test rag-sync-gdrive --collection documents --folder-id <id>
-# Pull from S3 / MinIO
-ai_agent_test rag-sync-s3 --collection documents --prefix docs/
+# 后端
+cd backend
+uv run pytest                                   # 测试
+uv run ruff check . --fix && uv run ruff format .  # lint + format
+uv run alembic upgrade head                     # 迁移
+uv run alembic revision --autogenerate -m "msg" # 新迁移
 
-# Semantic search
-ai_agent_test rag-search "your query" --collection documents
-```
-
-PDF parsing uses **all**. See `docs/howto/add-rag-source.md` to add a new source connector.
-
----
-
-## Frontend
-
-```bash
+# 前端
 cd frontend
-bun install
-bun dev          # http://localhost:3000
-bun run lint
-bun run build
+bun run lint        # eslint
+bun run build       # 生产构建
+bun run test        # vitest
 ```
-
-The frontend talks to the backend through Next.js API route handlers in `src/app/api/*` (server-side proxy that forwards auth cookies to the FastAPI backend). Direct calls to `localhost:8000` from the browser are deliberately avoided.
-
-i18n (PL + EN) ships out of the box via `next-intl`. Add a new locale by extending `messages/<lang>.json` and `src/i18n.ts`.
-
----
 
 ## Deployment
 
-### Frontend → Vercel
+- **Docker**：`./run.sh`（默认模式）。服务器上 `pgvector` 用 `pgvector/pgvector:pg16` 镜像或裸机编译，bge 模型用 CPU 即可。
+- **本地**：`./run.sh --local`。
+- 生产服务器一键部署脚本（`deploy.sh`）规划中，可基于 `run.sh` 的 docker/local 结构扩展。
 
-```bash
-cd frontend && npx vercel --prod
-```
+## Contributing
 
-Set in the Vercel dashboard:
+欢迎提交 Issue / PR。提 PR 前请确保：后端 `ruff` 通过、前端 `bun run lint && bun run build` 通过；i18n 文案改动需同步 `messages/zh.json` 与 `messages/en.json`。
 
-- `BACKEND_URL` = `https://api.your-domain.com`
-- `BACKEND_WS_URL` = `wss://api.your-domain.com`
-- `NEXT_PUBLIC_AUTH_ENABLED` = `true`
-- `NEXT_PUBLIC_RAG_ENABLED` = `true`
+## License
 
-### Backend → your server
-
-```bash
-# 1. SSH to the box, clone the repo
-# 2. cp backend/.env.example backend/.env, fill in real secrets
-# 3. Configure nginx using nginx/nginx.conf as reference
-# 4. Bring up the stack:
-make prod
-
-# Day-to-day:
-make prod-logs
-make prod-down
-```
-
-Migrations run automatically on `make prod`. For a fresh deploy on a new host, the same `make prod` is the bootstrap command.
-
----
-
-## Guides
-
-| Guide | What |
-|-------|-------|
-| `docs/howto/add-api-endpoint.md` | Add a new REST endpoint |
-| `docs/howto/add-agent-tool.md` | Create an agent tool |
-| `docs/howto/customize-agent-prompt.md` | Tune system prompts |
-| `docs/howto/add-background-task.md` | Add a background task |
-| `docs/howto/add-rag-source.md` | Add a RAG document source |
-| `docs/howto/add-sync-connector.md` | Build a custom sync connector |
-
----
-
-*Generated with [Full-Stack AI Agent Template](https://github.com/vstorm-co/full-stack-ai-agent-template) v0.2.9.*
+派生自 [Full-Stack AI Agent Template](https://github.com/vstorm-co/full-stack-ai-agent-template)（MIT）。本目录未附带独立 LICENSE 文件，使用请遵循上游许可。

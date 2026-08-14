@@ -59,7 +59,7 @@ export function ContactForm() {
       // Other 5xx = retry might help, but mailto is still a reasonable escape hatch.
       const status = err instanceof ApiError ? err.status : 0;
       if (status >= 500) {
-        setError("Server error — please try again or email us directly.");
+        setError(t("errorServer"));
         setSubmitting(false);
         return;
       }
@@ -104,7 +104,7 @@ export function ContactForm() {
             id="cf-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Maya Chen"
+            placeholder={t("namePlaceholder")}
             required
             className="h-11 rounded-xl"
           />
@@ -121,7 +121,7 @@ export function ContactForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
+            placeholder={t("emailPlaceholder")}
             required
             className="h-11 rounded-xl"
           />

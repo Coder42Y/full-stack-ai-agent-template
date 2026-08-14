@@ -473,7 +473,7 @@ from app.services.rag.documents import DocumentProcessor
 from fastapi import Request
 from app.core.config import settings
 from app.services.rag.retrieval import RetrievalService
-from app.services.rag.vectorstore import MilvusVectorStore
+from app.services.rag.vectorstore import PgvectorVectorStore
 
 
 def get_embedding_service(request: Request) -> EmbeddingService:
@@ -493,7 +493,7 @@ def get_vectorstore(request: Request, embedder: EmbeddingSvc) -> BaseVectorStore
     """Get vector store client from lifespan state or create new."""
     if request and hasattr(request.state, "vector_store"):
         return request.state.vector_store  # type: ignore[no-any-return]
-    return MilvusVectorStore(settings=settings.rag, embedding_service=embedder)
+    return PgvectorVectorStore(settings=settings.rag, embedding_service=embedder)
 
 
 VectorStoreSvc = Annotated[BaseVectorStore, Depends(get_vectorstore)]

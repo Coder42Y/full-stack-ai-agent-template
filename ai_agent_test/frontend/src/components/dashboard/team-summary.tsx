@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, MailPlus, Plus, UserPlus, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { apiClient } from "@/lib/api-client";
 import { useOrganizations } from "@/hooks";
 import type { InvitationList, OrganizationMemberList } from "@/types";
 
 export function TeamSummary() {
+  const t = useTranslations("dashboard");
   const { activeOrg } = useOrganizations();
   const [members, setMembers] = useState<OrganizationMemberList | null>(null);
   const [invitations, setInvitations] = useState<InvitationList | null>(null);
@@ -46,22 +48,19 @@ export function TeamSummary() {
     return (
       <section className="border-border bg-card flex flex-col rounded-2xl border p-5 lg:p-6">
         <header>
-          <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">Team</p>
+          <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">{t("team")}</p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            Personal workspace
+            {t("personalWorkspace")}
           </h2>
         </header>
-        <p className="text-foreground/65 mt-3 text-sm">
-          You&apos;re working solo. Create an organization to invite teammates and share
-          conversations + knowledge bases.
-        </p>
+        <p className="text-foreground/65 mt-3 text-sm">{t("soloHint")}</p>
         <div className="mt-auto pt-5">
           <Link
             href="/orgs?create=1"
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Create organization
+            {t("createOrganization")}
           </Link>
         </div>
       </section>
@@ -76,17 +75,17 @@ export function TeamSummary() {
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Team · {activeOrg.name}
+            {t("teamOf", { name: activeOrg.name })}
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
-            Members &amp; invitations
+            {t("membersAndInvitations")}
           </h2>
         </div>
         <Link
           href={`/orgs/${activeOrg.id}/members`}
           className="text-foreground/55 hover:text-foreground inline-flex items-center gap-1 text-xs font-medium transition-colors"
         >
-          Manage
+          {t("manage")}
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       </header>
@@ -94,12 +93,12 @@ export function TeamSummary() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Stat
           icon={<Users className="h-4 w-4" />}
-          label={memberCount === 1 ? "member" : "members"}
+          label={t("memberCount", { count: memberCount })}
           value={loading ? null : memberCount}
         />
         <Stat
           icon={<MailPlus className="h-4 w-4" />}
-          label={pendingCount === 1 ? "pending invite" : "pending invites"}
+          label={t("pendingInviteCount", { count: pendingCount })}
           value={loading ? null : pendingCount}
           tone={pendingCount > 0 ? "accent" : "neutral"}
         />
@@ -111,7 +110,7 @@ export function TeamSummary() {
           className="border-foreground/15 hover:border-foreground/40 text-foreground inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
         >
           <UserPlus className="h-4 w-4" />
-          Invite teammate
+          {t("inviteTeammate")}
         </Link>
       </div>
     </section>

@@ -105,6 +105,16 @@ class CreditBalanceRead(BaseSchema):
     low_threshold: int
 
 
+class DeepSeekBalanceRead(BaseSchema):
+    """Real DeepSeek account balance, queried live from the DeepSeek API."""
+
+    currency: str
+    total_balance: str
+    granted_balance: str
+    topped_up_balance: str
+    is_available: bool
+
+
 class CreditTransactionRead(BaseSchema, TimestampSchema):
     id: UUID
     organization_id: UUID

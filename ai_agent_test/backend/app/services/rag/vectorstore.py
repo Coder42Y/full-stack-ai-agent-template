@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from abc import ABC, abstractmethod
@@ -240,3 +241,183 @@ class MilvusVectorStore(BaseVectorStore):
     async def list_collections(self) -> list[str]:
         result: list[str] = await self.client.list_collections()
         return result
+
+
+def _milvus_filter_to_sql(filter: str) -> str:
+    """Convert a Milvus-style filter expression to a SQL WHERE clause.
+
+    Milvus uses ``field == "value"``; pgvector/SQL uses ``field = 'value'``.
+    Empty filter → empty WHERE (no filtering).
+    """
+    if not filter or not filter.strip():
+        return ""
+    return re.sub(r'(\w+)\s*==\s*"([^"]*)"', r"\1 = '\2'", filter)
+
+
+class PgvectorVectorStore(BaseVectorStore):
+    """PostgreSQL pgvector vector store implementation.
+
+    Uses the app's own PostgreSQL (with the ``vector`` extension) instead of a
+    standalone vector DB like Milvus. Each collection maps to a ``rag_<name>``
+    table. Ideal for on-prem / single-instance deployments where you don't want
+    to run etcd + minio + milvus.
+    """
+
+    def __init__(self, settings: RAGSettings, embedding_service: EmbeddingService):
+        self.settings = settings
+        self.embedder = embedding_service
+        self.client = None  # asyncpg pool, lazily created
+        user = app_settings.POSTGRES_USER
+        password = app_settings.POSTGRES_PASSWORD
+        auth = f"{user}:{password}" if password else user
+        self._dsn = (
+            f"postgresql://{auth}@{app_settings.POSTGRES_HOST}:"
+            f"{app_settings.POSTGRES_PORT}/{app_settings.POSTGRES_DB}"
+        )
+
+    @staticmethod
+    def _table_name(collection_name: str) -> str:
+        return f"rag_{collection_name}"
+
+    async def _pool(self):
+        """Return the asyncpg pool, creating it on first use."""
+        if self.client is None:
+            import asyncpg
+
+            self.client = await asyncpg.create_pool(dsn=self._dsn, min_size=1, max_size=5)
+        return self.client
+
+    async def _ensure_collection(self, name: str) -> None:
+        from pgvector.asyncpg import register_vector
+
+        pool = await self._pool()
+        table = self._table_name(name)
+        dim = self.settings.embeddings_config.dim
+        async with pool.acquire() as conn:
+            await register_vector(conn)
+            await conn.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS "{table}" (
+                    id VARCHAR(100) PRIMARY KEY,
+                    parent_doc_id VARCHAR(100),
+                    content TEXT,
+                    vector vector({dim}),
+                    metadata JSONB
+                )
+                """
+            )
+            # HNSW cosine index (no-op if it already exists)
+            await conn.execute(
+                f'CREATE INDEX IF NOT EXISTS "{table}_vector_idx" '
+                f'ON "{table}" USING hnsw (vector vector_cosine_ops)'
+            )
+
+    async def insert_document(self, collection_name: str, document: Document) -> None:
+        from pgvector.asyncpg import register_vector
+
+        await self._ensure_collection(collection_name)
+        if not document.chunked_pages:
+            raise ValueError("Document has no chunked pages.")
+        vectors = self.embedder.embed_document(document)
+        table = self._table_name(collection_name)
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            await register_vector(conn)
+            for i, chunk in enumerate(document.chunked_pages):
+                await conn.execute(
+                    f'INSERT INTO "{table}" (id, parent_doc_id, content, vector, metadata) '
+                    f"VALUES ($1, $2, $3, $4, $5)",
+                    chunk.chunk_id,
+                    chunk.parent_doc_id,
+                    chunk.chunk_content,
+                    vectors[i],
+                    json.dumps(self._build_chunk_metadata(chunk, document), ensure_ascii=False),
+                )
+
+    async def search(
+        self, collection_name: str, query: str, limit: int = 4, filter: str = ""
+    ) -> list[SearchResult]:
+        from pgvector.asyncpg import register_vector
+
+        await self._ensure_collection(collection_name)
+        query_vector = self.embedder.embed_query(query)
+        table = self._table_name(collection_name)
+        where = _milvus_filter_to_sql(filter)
+        where_clause = f"WHERE {where}" if where else ""
+        sql = (
+            f'SELECT content, parent_doc_id, metadata, 1 - (vector <=> $1) AS similarity '
+            f'FROM "{table}" {where_clause} '
+            f"ORDER BY vector <=> $1 LIMIT $2"
+        )
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            await register_vector(conn)
+            rows = await conn.fetch(sql, query_vector, limit)
+        return [
+            SearchResult(
+                content=row["content"],
+                score=float(row["similarity"]),
+                metadata=json.loads(row["metadata"]) if row["metadata"] else {},
+                parent_doc_id=row["parent_doc_id"],
+            )
+            for row in rows
+        ]
+
+    async def get_collection_info(self, collection_name: str) -> CollectionInfo:
+        await self._ensure_collection(collection_name)
+        table = self._table_name(collection_name)
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            count = await conn.fetchval(f'SELECT count(*) FROM "{table}"')
+        return CollectionInfo(
+            name=collection_name,
+            total_vectors=count,
+            dim=self.settings.embeddings_config.dim,
+        )
+
+    async def delete_collection(self, collection_name: str) -> None:
+        pool = await self._pool()
+        table = self._table_name(collection_name)
+        async with pool.acquire() as conn:
+            await conn.execute(f'DROP TABLE IF EXISTS "{table}"')
+
+    async def delete_document(self, collection_name: str, document_id: str) -> None:
+        sanitized = self._sanitize_id(document_id)
+        table = self._table_name(collection_name)
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                f'DELETE FROM "{table}" WHERE parent_doc_id = $1', sanitized
+            )
+
+    async def get_documents(self, collection_name: str) -> list[DocumentInfo]:
+        await self._ensure_collection(collection_name)
+        table = self._table_name(collection_name)
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                f'SELECT DISTINCT ON (parent_doc_id) parent_doc_id, metadata FROM "{table}"'
+            )
+        return self._group_documents(
+            [
+                {
+                    "parent_doc_id": r["parent_doc_id"],
+                    "metadata": json.loads(r["metadata"]) if r["metadata"] else {},
+                }
+                for r in rows
+            ]
+        )
+
+    async def list_collections(self) -> list[str]:
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT tablename FROM pg_tables WHERE tablename LIKE 'rag_%'"
+            )
+        return [row["tablename"][len("rag_"):] for row in rows]
+
+    async def close(self) -> None:
+        """Close the underlying connection pool."""
+        if self.client is not None:
+            await self.client.close()
+            self.client = None

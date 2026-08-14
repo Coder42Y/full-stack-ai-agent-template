@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { Coins, TrendingDown, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ function TxTypeBadge({ type }: { type: string }) {
 }
 
 export function CreditsPanel() {
+  const t = useTranslations("billing");
   const { balance, transactions, isLoading, txLoading } = useCredits();
   const { isLoading: billingLoading, startCheckout } = useBilling();
 
@@ -32,7 +34,7 @@ export function CreditsPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Credits</CardTitle>
+          <CardTitle>{t("credits")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Skeleton className="h-12 w-32" />
@@ -52,21 +54,20 @@ export function CreditsPanel() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5" />
-              Credits
+              {t("credits")}
             </CardTitle>
-            {low && <Badge variant="destructive">Low balance</Badge>}
+            {low && <Badge variant="destructive">{t("lowBalance")}</Badge>}
           </div>
-          <CardDescription>Credits are consumed by AI operations.</CardDescription>
+          <CardDescription>{t("creditsConsumedDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-4xl font-bold tabular-nums">
             {balance?.balance.toLocaleString() ?? "—"}
           </div>
-          <p className="text-muted-foreground mt-1 text-sm">credits remaining</p>
+          <p className="text-muted-foreground mt-1 text-sm">{t("creditsRemaining")}</p>
           {low && (
             <p className="text-destructive mt-2 text-sm">
-              Balance is below the alert threshold of {balance?.low_threshold.toLocaleString()}{" "}
-              credits.
+              {t("balanceBelowThreshold", { count: balance?.low_threshold.toLocaleString() })}
             </p>
           )}
         </CardContent>
@@ -80,15 +81,15 @@ export function CreditsPanel() {
             }
             disabled={billingLoading}
           >
-            Top Up Credits
+            {t("topUpCredits")}
           </Button>
         </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Transaction History</CardTitle>
-          <CardDescription>Recent credit activity for your organization.</CardDescription>
+          <CardTitle className="text-base">{t("transactionHistory")}</CardTitle>
+          <CardDescription>{t("recentCreditActivity")}</CardDescription>
         </CardHeader>
         <CardContent>
           {txLoading ? (
@@ -98,13 +99,13 @@ export function CreditsPanel() {
               ))}
             </div>
           ) : !transactions || transactions.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No transactions yet.</p>
+            <p className="text-muted-foreground text-sm">{t("noTransactionsPanel")}</p>
           ) : (
             <div className="divide-y">
               {transactions.items.map((tx) => (
                 <div key={tx.id} className="flex items-center justify-between py-3 text-sm">
                   <div className="flex flex-col gap-1">
-                    <span className="font-medium">{tx.description ?? "Credit transaction"}</span>
+                    <span className="font-medium">{tx.description ?? t("creditTransaction")}</span>
                     <div className="flex items-center gap-2">
                       <TxTypeBadge type={tx.type} />
                       <span className="text-muted-foreground">

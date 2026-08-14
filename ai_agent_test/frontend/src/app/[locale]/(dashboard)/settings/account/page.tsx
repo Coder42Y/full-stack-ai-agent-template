@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +24,10 @@ import { useAuth } from "@/hooks";
 import { apiClient, ApiError } from "@/lib/api-client";
 
 export default function AccountSettingsPage() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
+  const tp = useTranslations("profile");
+  const ta = useTranslations("auth");
   const { user, logout } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -32,11 +37,11 @@ export default function AccountSettingsPage() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters");
+      toast.error(t("account.newPasswordMinLength"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(ta("passwordMismatch"));
       return;
     }
     setSaving(true);
@@ -45,16 +50,16 @@ export default function AccountSettingsPage() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      toast.success("Password updated");
+      toast.success(t("account.passwordUpdated"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
       // Backend may not have this endpoint yet — surface a helpful message.
       if (err instanceof ApiError && err.status === 404) {
-        toast.error("Password change requires backend wiring (POST /auth/password/change).");
+        toast.error(t("account.passwordChangeBackendRequired"));
       } else {
-        toast.error(err instanceof ApiError ? err.message : "Failed to update password");
+        toast.error(err instanceof ApiError ? err.message : t("account.passwordUpdateFailed"));
       }
     } finally {
       setSaving(false);
@@ -66,13 +71,13 @@ export default function AccountSettingsPage() {
     setDeleting(true);
     try {
       await apiClient.delete(`/users/${user.id}`);
-      toast.success("Account deleted");
+      toast.success(t("account.accountDeleted"));
       logout();
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        toast.error("Self-delete not enabled. Contact support.");
+        toast.error(t("account.selfDeleteNotEnabled"));
       } else {
-        toast.error(err instanceof ApiError ? err.message : "Failed to delete account");
+        toast.error(err instanceof ApiError ? err.message : t("account.accountDeleteFailed"));
       }
     } finally {
       setDeleting(false);
@@ -82,8 +87,8 @@ export default function AccountSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Change password"
-        description="Use a strong, unique password — 8+ characters, mixed case, numbers."
+        title={t("account.changePasswordTitle")}
+        description={t("account.changePasswordDescription")}
         action={
           <Button
             onClick={handleChangePassword}
@@ -91,7 +96,7 @@ export default function AccountSettingsPage() {
             size="sm"
             className="rounded-full"
           >
-            {saving ? "Saving…" : "Update password"}
+            {saving ? tc("saving") : t("account.updatePassword")}
           </Button>
         }
       >
@@ -101,7 +106,7 @@ export default function AccountSettingsPage() {
               htmlFor="current-pw"
               className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
             >
-              Current password
+              {tp("currentPassword")}
             </Label>
             <Input
               id="current-pw"
@@ -118,7 +123,7 @@ export default function AccountSettingsPage() {
                 htmlFor="new-pw"
                 className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
               >
-                New password
+                {tp("newPassword")}
               </Label>
               <Input
                 id="new-pw"
@@ -134,7 +139,7 @@ export default function AccountSettingsPage() {
                 htmlFor="confirm-pw"
                 className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
               >
-                Confirm new password
+                {t("account.confirmNewPassword")}
               </Label>
               <Input
                 id="confirm-pw"
@@ -150,37 +155,37 @@ export default function AccountSettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        title="Sign out everywhere"
-        description="Revoke every active session including this one. You'll be signed out immediately."
+        title={t("account.signOutEverywhere")}
+        description={t("account.signOutEverywhereDescription")}
       >
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" className="rounded-full">
               <Lock className="mr-2 h-3.5 w-3.5" />
-              Sign out everywhere
+              {t("account.signOutEverywhere")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Sign out from all devices?</AlertDialogTitle>
+              <AlertDialogTitle>{t("account.signOutAllDevices")}</AlertDialogTitle>
               <AlertDialogDescription>
-                This revokes every active session and signs you out of this device too.
+                {t("account.signOutAllDevicesDescription")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
                   try {
                     await apiClient.delete("/sessions");
-                    toast.success("Signed out from all devices");
+                    toast.success(t("account.signedOutAllDevices"));
                     logout();
                   } catch {
-                    toast.error("Failed to sign out everywhere");
+                    toast.error(t("account.signOutEverywhereFailed"));
                   }
                 }}
               >
-                Sign out everywhere
+                {t("account.signOutEverywhere")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -188,8 +193,8 @@ export default function AccountSettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        title="Delete account"
-        description="Permanently remove your account, conversations, and uploaded data. This can't be undone."
+        title={tp("deleteAccount")}
+        description={t("account.deleteAccountDescription")}
         danger
       >
         <div className="border-destructive/20 bg-destructive/[0.04] flex items-start gap-3 rounded-xl border p-4">
@@ -197,10 +202,9 @@ export default function AccountSettingsPage() {
             <AlertTriangle className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-foreground text-sm font-semibold">This is irreversible</p>
+            <p className="text-foreground text-sm font-semibold">{t("account.thisIsIrreversible")}</p>
             <p className="text-foreground/65 mt-0.5 text-xs leading-relaxed">
-              All conversations, knowledge base contents, API keys, and personal data will be
-              permanently deleted. Active subscriptions will be canceled.
+              {t("account.deleteAccountDetails")}
             </p>
           </div>
         </div>
@@ -208,25 +212,24 @@ export default function AccountSettingsPage() {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm" className="rounded-full">
-              Delete my account
+              {t("account.deleteMyAccount")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogTitle>{t("account.deleteAccountConfirmTitle")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Your conversations, knowledge base contents, API keys, and all personal data will be
-                permanently deleted. Active subscriptions will be canceled. This cannot be undone.
+                {t("account.deleteAccountConfirmDescription")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 disabled={deleting}
                 onClick={handleDeleteAccount}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? "Deleting…" : "Yes, delete my account"}
+                {deleting ? t("account.deleting") : t("account.yesDeleteMyAccount")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

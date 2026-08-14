@@ -98,12 +98,47 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
         pass
 
 
+class SentenceTransformerEmbeddingProvider(BaseEmbeddingProvider):
+    """Local sentence-transformers embedding provider.
+
+    Runs embeddings entirely on-device (no external API). Preferred for
+    on-prem / enterprise deployments where data must not leave the machine.
+    """
+
+    def __init__(self, model: str) -> None:
+        """Initialize the provider with a model name (e.g. 'BAAI/bge-small-zh-v1.5')."""
+        self.model_name = model
+        self._model = None
+
+    def _load(self):
+        """Lazily load the SentenceTransformer model."""
+        if self._model is None:
+            from sentence_transformers import SentenceTransformer
+
+            self._model = SentenceTransformer(self.model_name)
+        return self._model
+
+    def embed_queries(self, texts: list[str]) -> list[list[float]]:
+        model = self._load()
+        vectors = model.encode(texts, normalize_embeddings=True)
+        return vectors.tolist()
+
+    def embed_document(self, document: Document) -> list[list[float]]:
+        texts = [
+            doc.chunk_content if doc.chunk_content else "" for doc in (document.chunked_pages or [])
+        ]
+        return self.embed_queries(texts)
+
+    def warmup(self) -> None:
+        self._load()
+
+
 # Embedding orchestrator
 class EmbeddingService:
     """Service for managing text embeddings.
 
     Orchestrates embedding operations using a configured embedding provider.
-    Supports multiple backends: OpenAI, Voyage AI, and Sentence Transformers.
+    Supports OpenAI-compatible and local sentence-transformers backends.
     """
 
     def __init__(self, settings: RAGSettings):
@@ -114,7 +149,10 @@ class EmbeddingService:
         """
         config = settings.embeddings_config
         self.expected_dim = config.dim
-        self.provider = OpenAIEmbeddingProvider(model=config.model)
+        if config.provider == "sentence_transformers":
+            self.provider = SentenceTransformerEmbeddingProvider(model=config.model)
+        else:
+            self.provider = OpenAIEmbeddingProvider(model=config.model)
 
     def embed_query(self, query: str) -> list[float]:
         """Embed a single query text.

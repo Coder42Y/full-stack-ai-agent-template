@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ export function UsageGauge({
   hint,
   className,
 }: UsageGaugeProps) {
+  const t = useTranslations("common");
   const fmt = format ?? ((n: number) => n.toLocaleString());
   const hasLimit = typeof limit === "number" && limit > 0;
   const ratio = hasLimit ? Math.min(1, Math.max(0, used / limit)) : 0;
@@ -96,8 +98,12 @@ export function UsageGauge({
             />
           </div>
           <div className="mt-2 flex items-center justify-between font-mono text-[10px] tracking-wider uppercase">
-            <span className={labelClass}>{pct.toFixed(pct >= 10 ? 0 : 1)}% used</span>
-            <span className="text-foreground/45">{fmt(Math.max(0, limit! - used))} left</span>
+            <span className={labelClass}>
+              {t("percentUsed", { pct: pct.toFixed(pct >= 10 ? 0 : 1) })}
+            </span>
+            <span className="text-foreground/45">
+              {t("left", { n: fmt(Math.max(0, limit! - used)) })}
+            </span>
           </div>
         </>
       )}

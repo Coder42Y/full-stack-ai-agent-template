@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { Download, ExternalLink, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,14 +18,6 @@ const statusVariant: Record<InvoiceStatus, "default" | "secondary" | "destructiv
   uncollectible: "destructive",
 };
 
-const statusLabel: Record<InvoiceStatus, string> = {
-  paid: "Paid",
-  open: "Open",
-  draft: "Draft",
-  void: "Void",
-  uncollectible: "Uncollectible",
-};
-
 function formatMoney(amount: number, currency: string) {
   return (amount / 100).toLocaleString("en-US", {
     style: "currency",
@@ -33,13 +26,22 @@ function formatMoney(amount: number, currency: string) {
 }
 
 export function InvoicesPanel() {
+  const t = useTranslations("billing");
   const { invoices, isLoading } = useInvoices();
+
+  const statusLabel: Record<InvoiceStatus, string> = {
+    paid: t("invoiceStatus.paid"),
+    open: t("invoiceStatus.open"),
+    draft: t("invoiceStatus.draft"),
+    void: t("invoiceStatus.void"),
+    uncollectible: t("invoiceStatus.uncollectible"),
+  };
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Invoices</CardTitle>
+          <CardTitle>{t("invoices")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 4 }, (_, i) => (
@@ -55,13 +57,13 @@ export function InvoicesPanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Invoices
+          {t("invoices")}
         </CardTitle>
-        <CardDescription>Your billing history and downloadable invoices.</CardDescription>
+        <CardDescription>{t("invoicesHistoryDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         {invoices.length === 0 ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">No invoices yet.</p>
+          <p className="text-muted-foreground py-6 text-center text-sm">{t("noInvoices")}</p>
         ) : (
           <div className="divide-y">
             {invoices.map((inv) => (
@@ -87,7 +89,7 @@ export function InvoicesPanel() {
                       <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs" asChild>
                         <a href={inv.invoice_pdf} target="_blank" rel="noopener noreferrer">
                           <Download className="h-3 w-3" />
-                          PDF
+                          {t("pdf")}
                         </a>
                       </Button>
                     )}
@@ -95,7 +97,7 @@ export function InvoicesPanel() {
                       <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs" asChild>
                         <a href={inv.hosted_invoice_url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-3 w-3" />
-                          View
+                          {t("view")}
                         </a>
                       </Button>
                     )}

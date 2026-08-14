@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Building2, ChevronDown, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import { useOrganizations } from "@/hooks";
 import { useRouter } from "next/navigation";
 
 export function OrgSwitcher() {
+  const t = useTranslations("organizations");
   const { orgs, activeOrg, fetchOrgs, switchOrg } = useOrganizations();
   const router = useRouter();
 
@@ -28,7 +30,7 @@ export function OrgSwitcher() {
     return (
       <Button variant="outline" size="sm" onClick={() => router.push("/orgs")}>
         <Building2 className="mr-2 h-4 w-4" />
-        Select org
+        {t("selectOrg")}
       </Button>
     );
   }
@@ -43,7 +45,9 @@ export function OrgSwitcher() {
               {displayOrg.name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="max-w-28 truncate text-sm font-medium">{displayOrg.name}</span>
+          <span className="max-w-28 truncate text-sm font-medium">
+            {displayOrg.is_personal ? t("personal") : displayOrg.name}
+          </span>
           <ChevronDown className="text-muted-foreground h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
@@ -56,20 +60,20 @@ export function OrgSwitcher() {
                 {org.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="truncate">{org.name}</span>
+            <span className="truncate">{org.is_personal ? t("personal") : org.name}</span>
             {org.is_personal && (
-              <span className="text-muted-foreground ml-auto text-[10px]">Personal</span>
+              <span className="text-muted-foreground ml-auto text-[10px]">{t("personal")}</span>
             )}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push("/orgs")} className="gap-2">
           <Building2 className="h-4 w-4" />
-          Manage organizations
+          {t("manageOrganizations")}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => router.push("/orgs?create=1")} className="gap-2">
           <Plus className="h-4 w-4" />
-          New organization
+          {t("newOrg")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

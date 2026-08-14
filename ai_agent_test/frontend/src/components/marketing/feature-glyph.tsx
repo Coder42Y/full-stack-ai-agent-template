@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { cn } from "@/lib/utils";
 
 type Glyph = "agents" | "rag" | "billing";
@@ -9,7 +11,8 @@ interface FeatureGlyphProps {
 
 /** Decorative SVG illustrations used as visual fillers for FeatureSection.
  *  Two-color (foreground + brand), 1.5px stroke, abstract — not literal. */
-export function FeatureGlyph({ glyph, className }: FeatureGlyphProps) {
+export async function FeatureGlyph({ glyph, className }: FeatureGlyphProps) {
+  const t = await getTranslations("marketing.featureGlyph");
   const cls = cn("h-auto w-full max-w-md", className);
 
   if (glyph === "agents") {
@@ -122,7 +125,7 @@ export function FeatureGlyph({ glyph, className }: FeatureGlyphProps) {
         className="text-foreground/55"
         fill="currentColor"
       >
-        Monthly recurring
+        {t("monthlyRecurring")}
       </text>
       <path
         d="M100 230 L150 215 L200 220 L250 200 L300 195 L350 175 L390 160"

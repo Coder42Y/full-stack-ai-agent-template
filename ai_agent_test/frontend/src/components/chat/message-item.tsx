@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { ChatMessage, ChatMessageFile } from "@/types";
 import { ToolCallCard } from "./tool-call-card";
@@ -19,6 +20,7 @@ interface MessageItemProps {
 }
 
 export function MessageItem({ message, groupPosition, onRegenerate }: MessageItemProps) {
+  const t = useTranslations("chat");
   const isUser = message.role === "user";
   const updateMessage = useChatStore((state) => state.updateMessage);
   const openPreview = useFilePreviewStore((s) => s.open);
@@ -93,7 +95,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                       key={att.file.id}
                       onClick={() => openPreview(att.file)}
                       className="hover:ring-foreground/30 block overflow-hidden rounded-xl border ring-2 ring-transparent transition-all"
-                      title={`Open ${att.file.filename}`}
+                      title={t("openFile", { name: att.file.filename })}
                     >
                       <Image
                         src={getFileUrl(att.file.id)}
@@ -112,7 +114,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                       onClick={() => openPreview(att.file)}
                     />
                   ) : (
-                    <FileChip key={att.id} filename="Attached file" href={getFileUrl(att.id)} />
+                    <FileChip key={att.id} filename={t("attachedFile")} href={getFileUrl(att.id)} />
                   ),
                 )}
               </div>
@@ -138,7 +140,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
             >
               <summary className="text-foreground/55 hover:text-foreground/80 flex cursor-pointer items-center gap-2 font-mono text-[10px] tracking-wider uppercase select-none">
                 <span className="bg-foreground/30 inline-block h-1.5 w-1.5 rounded-full" />
-                Thinking
+                {t("thinking")}
                 {message.isStreaming && (
                   <span className="bg-foreground/40 inline-block h-1 w-1 animate-pulse rounded-full" />
                 )}
@@ -184,7 +186,7 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
                     <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
                     <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
                   </div>
-                  <span className="text-muted-foreground text-xs">Thinking...</span>
+                  <span className="text-muted-foreground text-xs">{t("thinking")}</span>
                 </div>
               )}
 
@@ -264,8 +266,8 @@ export function MessageItem({ message, groupPosition, onRegenerate }: MessageIte
               <button
                 type="button"
                 onClick={onRegenerate}
-                title="Regenerate response"
-                aria-label="Regenerate response"
+                title={t("regenerateResponse")}
+                aria-label={t("regenerateResponse")}
                 className="bg-muted hover:bg-muted/80 text-foreground/70 hover:text-foreground inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <RefreshCw className="h-3 w-3" />

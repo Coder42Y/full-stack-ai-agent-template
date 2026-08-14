@@ -1,19 +1,22 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { InvoicesPanel } from "@/components/billing";
 import { PageHero } from "@/components/dashboard/page-hero";
 
 export default function InvoicesPage() {
+  const t = useTranslations("billing");
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <PageHero
-        eyebrow="Billing · Invoices"
+        eyebrow={t("eyebrowInvoices")}
         title={
           <>
-            Billing <em>history.</em>
+            {t("billingHistoryPrefix")} <em>{t("billingHistoryEm")}</em>
           </>
         }
-        description="Every invoice sent to this workspace, with a download link straight to the Stripe-hosted PDF."
+        description={t("billingHistoryDesc")}
       />
       <InvoicesPanel />
     </div>

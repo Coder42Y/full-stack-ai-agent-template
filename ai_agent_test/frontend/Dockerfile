@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json bun.lockb* ./
 
-# Install dependencies
-RUN bun install --frozen-lockfile
+# Install dependencies (国内镜像加速，避免 npm registry 直连慢)
+RUN bun install --frozen-lockfile --registry https://registry.npmmirror.com
 
 # Rebuild the source code only when needed
 FROM base AS builder

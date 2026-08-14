@@ -21,6 +21,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +34,16 @@ import type { KBDocument, KBScope } from "@/types";
 
 type Tab = "documents" | "sources";
 
-const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
-  personal: { label: "Personal", icon: Lock },
-  org: { label: "Organization", icon: Users },
-  app: { label: "App-wide", icon: Sparkles },
+const SCOPE_META: Record<KBScope, { icon: LucideIcon }> = {
+  personal: { icon: Lock },
+  org: { icon: Users },
+  app: { icon: Sparkles },
+};
+
+const SCOPE_LABEL_KEY: Record<KBScope, string> = {
+  personal: "scopePersonalLabel",
+  org: "scopeOrgLabel",
+  app: "scopeAppLabel",
 };
 
 interface KBDetailPageProps {
@@ -45,6 +52,8 @@ interface KBDetailPageProps {
 
 export default function KBDetailPage({ params }: KBDetailPageProps) {
   const { id } = use(params);
+  const tk = useTranslations("knowledgeBases");
+  const tr = useTranslations("rag");
   const {
     kb,
     documents,
@@ -100,6 +109,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
   if (!kb) return null;
 
   const scopeMeta = SCOPE_META[kb.scope];
+  const scopeLabel = tk(SCOPE_LABEL_KEY[kb.scope]);
   const totalChunks = documents.reduce((sum, d) => sum + d.chunk_count, 0);
   const pendingCount = documents.filter(
     (d) => d.status === "pending" || d.status === "processing",
@@ -151,10 +161,11 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
             </span>
             <div className="text-center">
               <p className="font-display text-foreground text-2xl font-bold tracking-tight">
-                Drop to upload
+                {tr("dropToUpload")}
               </p>
               <p className="text-foreground/65 mt-1 text-sm">
-                Files will be added to <span className="text-foreground font-medium">{kb.name}</span>
+                {tr("filesWillBeAddedTo")}{" "}
+                <span className="text-foreground font-medium">{kb.name}</span>
               </p>
             </div>
           </div>
@@ -168,7 +179,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
           className="hover:text-foreground inline-flex items-center gap-1 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Knowledge bases
+          {tk("title")}
         </Link>
         <ChevronRight className="h-3 w-3" />
         <span className="text-foreground/80 truncate">{kb.name}</span>
@@ -194,8 +205,8 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
               </span>
               <div className="min-w-0">
                 <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-                  {scopeMeta.label}
-                  {kb.is_default && " · Default"}
+                  {scopeLabel}
+                  {kb.is_default && ` · ${tk("default")}`}
                 </p>
               </div>
             </div>
@@ -209,16 +220,16 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
 
             {/* Stats list */}
             <dl className="border-foreground/10 mt-6 space-y-2.5 border-t pt-5 text-xs">
-              <StatRow label="Documents" value={documents.length} />
-              <StatRow label="Vectors" value={totalChunks.toLocaleString()} />
+              <StatRow label={tk("statDocuments")} value={documents.length} />
+              <StatRow label={tk("statVectors")} value={totalChunks.toLocaleString()} />
               <StatRow
-                label="Last activity"
-                value={latestActivity > 0 ? relativeTime(latestActivity) : "—"}
+                label={tk("statLastActivity")}
+                value={latestActivity > 0 ? relativeTime(latestActivity, tr) : "—"}
               />
               {pendingCount > 0 && (
                 <StatRow
-                  label="Pending"
-                  value={`${pendingCount} ingesting`}
+                  label={tk("statPending")}
+                  value={tr("ingesting", { count: pendingCount })}
                   highlight
                 />
               )}
@@ -236,7 +247,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
                 className="gap-1.5"
               >
                 <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
-                Refresh
+                {tk("refresh")}
               </Button>
             </div>
           </div>
@@ -248,13 +259,13 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
           <div className="border-foreground/10 mb-5 flex items-center justify-between border-b">
             <div className="flex items-center gap-1">
               <TabButton
-                label="Documents"
+                label={tk("tabDocuments")}
                 count={documents.length}
                 active={tab === "documents"}
                 onClick={() => setTab("documents")}
               />
               <TabButton
-                label="Sources"
+                label={tk("tabSources")}
                 count={syncSources.length}
                 active={tab === "sources"}
                 onClick={() => setTab("sources")}
@@ -278,7 +289,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
                     disabled={isUploading}
                     className="bg-foreground text-background hover:bg-foreground/90 group inline-flex items-center gap-2.5 rounded-full py-1.5 pr-1.5 pl-3.5 text-xs font-medium transition-colors disabled:opacity-60"
                   >
-                    <span>{isUploading ? "Uploading…" : "Upload"}</span>
+                    <span>{isUploading ? tk("uploading") : tk("upload")}</span>
                     <span className="bg-brand text-brand-foreground flex h-6 w-6 items-center justify-center rounded-full transition-transform group-hover:rotate-90">
                       {isUploading ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -295,7 +306,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
                   onClick={() => setWizardOpen(true)}
                   className="bg-foreground text-background hover:bg-foreground/90 group inline-flex items-center gap-2.5 rounded-full py-1.5 pr-1.5 pl-3.5 text-xs font-medium transition-colors"
                 >
-                  <span>Connect</span>
+                  <span>{tk("connect")}</span>
                   <span className="bg-brand text-brand-foreground flex h-6 w-6 items-center justify-center rounded-full transition-transform group-hover:rotate-90">
                     <Plus className="h-3 w-3" />
                   </span>
@@ -336,7 +347,7 @@ export default function KBDetailPage({ params }: KBDetailPageProps) {
           {/* Inline hint: drag anywhere */}
           {tab === "documents" && documents.length > 0 && (
             <p className="text-foreground/35 mt-4 text-center font-mono text-[10px] tracking-wider uppercase">
-              Drag files anywhere to add
+              {tr("dragFilesAnywhere")}
             </p>
           )}
         </section>
@@ -429,6 +440,7 @@ function StatRow({
 }
 
 function EmptyDocs({ onPickFiles }: { onPickFiles: () => void }) {
+  const tr = useTranslations("rag");
   return (
     <div className="border-foreground/10 bg-foreground/[0.02] relative isolate overflow-hidden rounded-2xl border-2 border-dashed p-12 text-center">
       <div
@@ -446,9 +458,9 @@ function EmptyDocs({ onPickFiles }: { onPickFiles: () => void }) {
         >
           <Upload className="h-6 w-6" />
         </span>
-        <p className="text-foreground text-sm font-medium">No documents yet</p>
+        <p className="text-foreground text-sm font-medium">{tr("noDocuments")}</p>
         <p className="text-foreground/55 max-w-xs text-xs">
-          Drag files anywhere on this page, or pick from your computer.
+          {tr("emptyDocsHint")}
         </p>
         <button
           type="button"
@@ -456,7 +468,7 @@ function EmptyDocs({ onPickFiles }: { onPickFiles: () => void }) {
           className="border-foreground/15 hover:border-foreground/40 mt-2 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
         >
           <Upload className="h-3 w-3" />
-          Choose files
+          {tr("chooseFiles")}
         </button>
       </div>
     </div>
@@ -464,18 +476,17 @@ function EmptyDocs({ onPickFiles }: { onPickFiles: () => void }) {
 }
 
 function EmptySources({ hasConnectors, onAdd }: { hasConnectors: boolean; onAdd: () => void }) {
+  const tr = useTranslations("rag");
   return (
     <div className="border-foreground/10 bg-foreground/[0.02] rounded-2xl border border-dashed p-10 text-center">
       <span className="bg-foreground/8 text-foreground/65 mx-auto flex h-12 w-12 items-center justify-center rounded-2xl">
         <Plug className="h-5 w-5" />
       </span>
       <p className="text-foreground mt-3 text-sm font-medium">
-        {hasConnectors ? "No sources connected" : "No connectors configured"}
+        {hasConnectors ? tr("noSourcesConnected") : tr("noConnectorsConfigured")}
       </p>
       <p className="text-foreground/55 mx-auto mt-1 max-w-sm text-xs">
-        {hasConnectors
-          ? "Add one to keep this knowledge base in sync automatically."
-          : "Configure connectors on the workspace level to start syncing from external sources."}
+        {hasConnectors ? tr("emptySourcesHintConnected") : tr("emptySourcesHintNoConnectors")}
       </p>
       {hasConnectors && (
         <button
@@ -484,7 +495,7 @@ function EmptySources({ hasConnectors, onAdd }: { hasConnectors: boolean; onAdd:
           className="border-foreground/15 hover:border-foreground/40 mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
         >
           <Plus className="h-3 w-3" />
-          Connect source
+          {tr("connectSource")}
         </button>
       )}
     </div>
@@ -500,7 +511,10 @@ function SyncSourceRow({
   onTrigger: () => void;
   onDelete: () => void;
 }) {
-  const lastSync = source.last_sync_at ? new Date(source.last_sync_at).toLocaleString() : "Never";
+  const tr = useTranslations("rag");
+  const lastSync = source.last_sync_at
+    ? new Date(source.last_sync_at).toLocaleString()
+    : tr("never");
   const statusColor =
     source.last_sync_status === "completed"
       ? "text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300"
@@ -509,6 +523,9 @@ function SyncSourceRow({
         : source.last_sync_status === "running"
           ? "text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300"
           : "text-foreground/65 bg-foreground/8";
+  const statusLabel = source.last_sync_status
+    ? tr(`syncStatus${source.last_sync_status.charAt(0).toUpperCase()}${source.last_sync_status.slice(1)}`)
+    : "";
   return (
     <li className="hover:bg-foreground/[0.02] flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-2xl last:rounded-b-2xl">
       <div className="bg-foreground/8 text-foreground/65 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
@@ -522,11 +539,11 @@ function SyncSourceRow({
           </span>
         </div>
         <div className="text-foreground/55 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] tracking-wider uppercase">
-          <span>last sync · {lastSync}</span>
+          <span>{tr("lastSync", { time: lastSync })}</span>
           {source.schedule_minutes && source.schedule_minutes > 0 && (
             <>
               <span>·</span>
-              <span>every {source.schedule_minutes}m</span>
+              <span>{tr("everyMinutes", { minutes: source.schedule_minutes })}</span>
             </>
           )}
         </div>
@@ -539,7 +556,7 @@ function SyncSourceRow({
             statusColor,
           )}
         >
-          {source.last_sync_status}
+          {statusLabel}
         </Badge>
       )}
       <Button
@@ -547,7 +564,7 @@ function SyncSourceRow({
         size="sm"
         className="text-foreground/55 hover:text-foreground h-7 w-7 p-0"
         onClick={onTrigger}
-        title="Trigger sync now"
+        title={tr("triggerSyncNow")}
       >
         <RotateCw className="h-3.5 w-3.5" />
       </Button>
@@ -556,9 +573,9 @@ function SyncSourceRow({
         size="sm"
         className="text-foreground/55 hover:text-destructive h-7 w-7 p-0"
         onClick={() => {
-          if (confirm(`Disconnect "${source.name}"?`)) onDelete();
+          if (confirm(tr("disconnectConfirm", { name: source.name }))) onDelete();
         }}
-        title="Remove source"
+        title={tr("removeSource")}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -567,6 +584,7 @@ function SyncSourceRow({
 }
 
 function DocumentRow({ doc, onDelete }: { doc: KBDocument; onDelete: () => void }) {
+  const tr = useTranslations("rag");
   return (
     <li className="hover:bg-foreground/[0.02] flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-2xl last:rounded-b-2xl">
       <div className="bg-foreground/8 text-foreground/65 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
@@ -587,7 +605,7 @@ function DocumentRow({ doc, onDelete }: { doc: KBDocument; onDelete: () => void 
           {doc.chunk_count > 0 && (
             <>
               <span>·</span>
-              <span>{doc.chunk_count} chunks</span>
+              <span>{tr("chunksCount", { count: doc.chunk_count })}</span>
             </>
           )}
         </div>
@@ -598,9 +616,9 @@ function DocumentRow({ doc, onDelete }: { doc: KBDocument; onDelete: () => void 
         size="sm"
         className="text-foreground/55 hover:text-destructive h-7 w-7 p-0"
         onClick={() => {
-          if (confirm(`Remove "${doc.filename}" from this knowledge base?`)) onDelete();
+          if (confirm(tr("removeDocConfirm", { name: doc.filename }))) onDelete();
         }}
-        title="Remove document"
+        title={tr("removeDocument")}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -609,32 +627,34 @@ function DocumentRow({ doc, onDelete }: { doc: KBDocument; onDelete: () => void 
 }
 
 function StatusBadge({ status, message }: { status: string; message: string | null }) {
+  const tr = useTranslations("rag");
   const config = {
     completed: {
       Icon: CheckCircle2,
       cls: "text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300",
-      label: "Ready",
+      labelKey: "statusReady",
     },
     processing: {
       Icon: Loader2,
       cls: "text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300",
-      label: "Processing",
+      labelKey: "statusProcessing",
       spin: true,
     },
     pending: {
       Icon: Clock,
       cls: "text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300",
-      label: "Pending",
+      labelKey: "statusPending",
     },
     failed: {
       Icon: AlertCircle,
       cls: "text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300",
-      label: "Failed",
+      labelKey: "statusFailed",
     },
   } as const;
   const c = (config as Record<string, (typeof config)[keyof typeof config]>)[status] ?? {
     Icon: Clock,
     cls: "text-foreground/65 bg-foreground/8",
+    labelKey: null,
     label: status,
     spin: false,
   };
@@ -647,7 +667,7 @@ function StatusBadge({ status, message }: { status: string; message: string | nu
       )}
     >
       <c.Icon className={cn("h-3 w-3", "spin" in c && c.spin && "animate-spin")} />
-      {c.label}
+      {c.labelKey ? tr(c.labelKey) : c.label}
     </Badge>
   );
 }
@@ -659,15 +679,18 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function relativeTime(ts: number): string {
+function relativeTime(
+  ts: number,
+  tr: (key: string, values?: Record<string, string | number>) => string,
+): string {
   const diff = Date.now() - ts;
   const min = Math.floor(diff / 60_000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
+  if (min < 1) return tr("timeJustNow");
+  if (min < 60) return tr("timeMinAgo", { count: min });
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
+  if (hr < 24) return tr("timeHourAgo", { count: hr });
   const d = Math.floor(hr / 24);
-  if (d < 30) return `${d}d ago`;
+  if (d < 30) return tr("timeDayAgo", { count: d });
   const mo = Math.floor(d / 30);
-  return `${mo}mo ago`;
+  return tr("timeMonthAgo", { count: mo });
 }

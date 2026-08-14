@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores";
 import { apiClient } from "@/lib/api-client";
 import { ROUTES } from "@/lib/constants";
@@ -10,6 +11,7 @@ import { Spinner } from "@/components/ui";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const t = useTranslations("layout");
   const { isAuthenticated, setUser } = useAuthStore();
   const [checking, setChecking] = useState(!isAuthenticated);
 
@@ -34,7 +36,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen items-center justify-center" role="status" aria-live="polite">
         <Spinner className="text-muted-foreground h-6 w-6" />
-        <span className="sr-only">Checking authentication...</span>
+        <span className="sr-only">{t("checkingAuth")}</span>
       </div>
     );
   }

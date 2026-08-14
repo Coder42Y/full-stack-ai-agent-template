@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Database, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { CreateKBDialog, KBList } from "@/components/kb";
 import { EmptyState, LoadingState } from "@/components/states";
 import { useKnowledgeBases } from "@/hooks";
 
 export default function KBPage() {
+  const t = useTranslations("knowledgeBases");
   const { kbs, isLoading, fetchKBs, deleteKB } = useKnowledgeBases();
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -40,23 +42,22 @@ export default function KBPage() {
         />
 
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Knowledge bases
+          {t("title")}
         </p>
         <h1 className="font-display text-foreground mt-2 text-3xl leading-[1.05] font-bold tracking-tight sm:text-4xl [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-          Documents your assistant <em>can use.</em>
+          {t("heroTitlePre")} <em>{t("heroTitleEm")}</em>
         </h1>
         <p className="text-foreground/65 mt-4 max-w-xl text-sm">
-          Group related documents into a base. Open one to upload files, then toggle in chat which
-          ones the agent should search.
+          {t("heroDescription")}
         </p>
 
         {/* Stats row */}
         {counts.total > 0 && (
           <div className="text-foreground/55 mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[11px] tracking-wider uppercase">
-            <StatPill value={counts.total} label="bases" />
-            {counts.personal > 0 && <StatPill value={counts.personal} label="personal" />}
-            {counts.org > 0 && <StatPill value={counts.org} label="org" />}
-            {counts.app > 0 && <StatPill value={counts.app} label="app-wide" />}
+            <StatPill value={counts.total} label={t("statBases", { count: counts.total })} />
+            {counts.personal > 0 && <StatPill value={counts.personal} label={t("statPersonal")} />}
+            {counts.org > 0 && <StatPill value={counts.org} label={t("statOrg")} />}
+            {counts.app > 0 && <StatPill value={counts.app} label={t("statApp")} />}
           </div>
         )}
 
@@ -66,7 +67,7 @@ export default function KBPage() {
             onClick={() => setCreateOpen(true)}
             className="bg-foreground text-background hover:bg-foreground/90 group inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-5 text-sm font-medium transition-colors"
           >
-            <span>New base</span>
+            <span>{t("newKB")}</span>
             <span className="bg-brand text-brand-foreground flex h-8 w-8 items-center justify-center rounded-full transition-transform group-hover:rotate-90">
               <Plus className="h-4 w-4" />
             </span>
@@ -80,9 +81,9 @@ export default function KBPage() {
       ) : kbs.length === 0 ? (
         <EmptyState
           icon={Database}
-          title="No knowledge bases yet"
-          description="Create one to give your assistant access to documents from collections."
-          cta={{ label: "Create knowledge base", onClick: () => setCreateOpen(true) }}
+          title={t("noKBs")}
+          description={t("noKBsHint")}
+          cta={{ label: t("createTitle"), onClick: () => setCreateOpen(true) }}
         />
       ) : (
         <KBList kbs={kbs} onDelete={deleteKB} />

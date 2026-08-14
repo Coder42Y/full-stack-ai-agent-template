@@ -154,7 +154,7 @@ function ConversationItem({
                   }}
                 >
                   <ArchiveRestore className="h-4 w-4" />
-                  Restore
+                  {t("restore")}
                 </button>
               ) : (
                 <button
@@ -259,13 +259,13 @@ function ConversationList({
       <div className="px-3 pb-2">
         <div className="border-foreground/10 bg-background flex rounded-full border p-0.5">
           <ViewTab
-            label="Active"
+            label={t("active")}
             count={activeCount}
             active={view === "active"}
             onClick={() => setView("active")}
           />
           <ViewTab
-            label="Archived"
+            label={t("archived")}
             count={archivedCount}
             active={view === "archived"}
             onClick={() => setView("archived")}
@@ -302,10 +302,10 @@ function ConversationList({
               )}
             </span>
             <p className="text-foreground text-sm font-medium">
-              {isArchivedView ? "No archived conversations" : t("noConversations")}
+              {isArchivedView ? t("noArchivedConversations") : t("noConversations")}
             </p>
             <p className="text-muted-foreground mt-1 text-xs">
-              {isArchivedView ? "Conversations you archive will appear here." : t("startNewChat")}
+              {isArchivedView ? t("archivedEmptyHint") : t("startNewChat")}
             </p>
           </div>
         ) : (
@@ -391,7 +391,7 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           size="sm"
           className="mb-4 h-10 w-10 p-0"
           onClick={() => setIsCollapsed(false)}
-          aria-label="Expand conversations sidebar"
+          aria-label={t("expandSidebar")}
         >
           <ChevronRight className="h-4 w-4" aria-hidden />
         </Button>
@@ -400,8 +400,8 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           size="sm"
           className="h-10 w-10 p-0"
           onClick={startNewChat}
-          title="New Chat"
-          aria-label="New chat"
+          title={t("newChat")}
+          aria-label={t("newChat")}
         >
           <MessageSquarePlus className="h-4 w-4" aria-hidden />
         </Button>
@@ -421,7 +421,7 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => setIsCollapsed(true)}
-            aria-label="Collapse conversations sidebar"
+            aria-label={t("collapseSidebar")}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
           </Button>

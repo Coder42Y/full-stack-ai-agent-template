@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,7 @@ const STUB_EVENTS: StripeEvent[] = [
 ];
 
 export default function StripeEventsPage() {
+  const t = useTranslations("admin");
   const [events, setEvents] = useState<StripeEvent[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -217,15 +219,15 @@ export default function StripeEventsPage() {
 
   const handleReplay = async (evt: StripeEvent) => {
     if (usingStub) {
-      toast.info("Demo mode — backend wiring required (POST /admin/stripe-events/{id}/replay)");
+      toast.info(t("demoModeToast"));
       return;
     }
     try {
       await apiClient.post(`/admin/stripe-events/${evt.id}/replay`);
-      toast.success(`Replayed ${evt.type}`);
+      toast.success(t("replayedToast", { type: evt.type }));
       load();
     } catch {
-      toast.error("Replay failed");
+      toast.error(t("replayFailedToast"));
     }
   };
 
@@ -239,18 +241,18 @@ export default function StripeEventsPage() {
       <div className="mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Stripe events
+            {t("stripeEventsEyebrow")}
           </p>
           <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight [&_em]:font-accent [&_em]:font-normal [&_em]:italic">
-            Webhook <em>event log.</em>
+            {t.rich("stripeEventsHeading", { em: (chunks) => <em>{chunks}</em> })}
           </h2>
           <p className="text-foreground/65 mt-1 text-sm">
-            Replay failed events to debug billing flows.
+            {t("stripeEventsDesc")}
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={load} className="rounded-full">
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Refresh
+          {t("refresh")}
         </Button>
       </div>
 
@@ -258,10 +260,11 @@ export default function StripeEventsPage() {
         <div className="border-foreground/10 bg-muted/40 mb-4 flex items-start gap-3 rounded-lg border p-3">
           <Filter className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1 text-xs">
-            <p className="text-foreground font-medium">Demo data</p>
+            <p className="text-foreground font-medium">{t("demoData")}</p>
             <p className="text-muted-foreground mt-0.5">
-              Backend wiring required. Expected: <code>GET /admin/stripe-events</code>,{" "}
-              <code>POST /admin/stripe-events/&#123;id&#125;/replay</code>.
+              {t.rich("stubBannerDesc", {
+                code: (chunks) => <code className="font-mono">{chunks}</code>,
+              })}
             </p>
           </div>
         </div>
@@ -271,7 +274,7 @@ export default function StripeEventsPage() {
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Search id, type, customer…"
+            placeholder={t("searchIdTypeCustomer")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -283,10 +286,10 @@ export default function StripeEventsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="processed">Processed</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="processed">{t("processed")}</SelectItem>
+            <SelectItem value="failed">{t("failed")}</SelectItem>
+            <SelectItem value="pending">{t("pending")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -297,14 +300,14 @@ export default function StripeEventsPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                {t("perPage", { n })}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{total} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">{t("total", { count: total })}</div>
 
       <Table>
         <TableHeader>
@@ -315,35 +318,35 @@ export default function StripeEventsPage() {
               dir={sort.dir}
               onClick={() => toggleSort("type")}
             >
-              Event
+              {t("event")}
             </SortableHead>
             <SortableHead
               active={sort.by === "customer_email"}
               dir={sort.dir}
               onClick={() => toggleSort("customer_email")}
             >
-              Customer
+              {t("customer")}
             </SortableHead>
             <SortableHead
               active={sort.by === "amount_cents"}
               dir={sort.dir}
               onClick={() => toggleSort("amount_cents")}
             >
-              Amount
+              {t("amount")}
             </SortableHead>
             <SortableHead
               active={sort.by === "status"}
               dir={sort.dir}
               onClick={() => toggleSort("status")}
             >
-              Status
+              {t("status")}
             </SortableHead>
             <SortableHead
               active={sort.by === "created_at"}
               dir={sort.dir}
               onClick={() => toggleSort("created_at")}
             >
-              Time
+              {t("time")}
             </SortableHead>
             <TableHead />
           </TableRow>
@@ -387,7 +390,7 @@ export default function StripeEventsPage() {
                         {formatAmount(e.amount_cents, e.currency)}
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={e.status} attempts={e.attempts} />
+                        <StatusBadge status={e.status} attempts={e.attempts} t={t} />
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {formatDateTime(e.created_at)}
@@ -400,7 +403,7 @@ export default function StripeEventsPage() {
                             ev.stopPropagation();
                             handleReplay(e);
                           }}
-                          aria-label="Replay event"
+                          aria-label={t("replayEvent")}
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                         </Button>
@@ -410,23 +413,23 @@ export default function StripeEventsPage() {
                       <TableRow className="bg-muted/30">
                         <TableCell colSpan={7}>
                           <dl className="grid gap-3 p-2 text-xs sm:grid-cols-2">
-                            <KV label="Event ID" value={e.id} mono />
-                            <KV label="Type" value={e.type} mono />
-                            <KV label="Mode" value={e.livemode ? "live" : "test"} />
-                            <KV label="Attempts" value={String(e.attempts)} />
-                            {e.customer_email && <KV label="Customer" value={e.customer_email} />}
+                            <KV label={t("eventId")} value={e.id} mono />
+                            <KV label={t("type")} value={e.type} mono />
+                            <KV label={t("mode")} value={e.livemode ? t("live") : t("test")} />
+                            <KV label={t("attempts")} value={String(e.attempts)} />
+                            {e.customer_email && <KV label={t("customer")} value={e.customer_email} />}
                             {typeof e.amount_cents === "number" && (
-                              <KV label="Amount" value={formatAmount(e.amount_cents, e.currency)} />
+                              <KV label={t("amount")} value={formatAmount(e.amount_cents, e.currency)} />
                             )}
-                            <KV label="Created" value={new Date(e.created_at).toLocaleString()} />
+                            <KV label={t("created")} value={new Date(e.created_at).toLocaleString()} />
                             {e.last_error && (
-                              <KV label="Last error" value={e.last_error} accent="danger" />
+                              <KV label={t("lastError")} value={e.last_error} accent="danger" />
                             )}
                           </dl>
                           <div className="mt-2 flex flex-wrap items-center gap-2 px-2 pb-2">
                             <Button size="sm" variant="outline" onClick={() => handleReplay(e)}>
                               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                              Replay
+                              {t("replay")}
                             </Button>
                             <a
                               href={`https://dashboard.stripe.com/${e.livemode ? "" : "test/"}events/${e.id}`}
@@ -434,7 +437,7 @@ export default function StripeEventsPage() {
                               rel="noopener noreferrer"
                               className="text-muted-foreground hover:text-foreground inline-flex items-center text-xs"
                             >
-                              Open in Stripe →
+                              {t("openInStripe")}
                             </a>
                           </div>
                         </TableCell>
@@ -446,7 +449,7 @@ export default function StripeEventsPage() {
           {!loading && total === 0 && (
             <TableRow>
               <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
-                No events match.
+                {t("noEventsMatch")}
               </TableCell>
             </TableRow>
           )}
@@ -459,6 +462,7 @@ export default function StripeEventsPage() {
         total={total}
         totalPages={totalPages}
         isLoading={loading}
+        t={t}
         onPrev={() => setPage((p) => Math.max(0, p - 1))}
         onNext={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
       />
@@ -466,14 +470,22 @@ export default function StripeEventsPage() {
   );
 }
 
-function StatusBadge({ status, attempts }: { status: StripeEvent["status"]; attempts: number }) {
+function StatusBadge({
+  status,
+  attempts,
+  t,
+}: {
+  status: StripeEvent["status"];
+  attempts: number;
+  t: ReturnType<typeof useTranslations<"admin">>;
+}) {
   if (status === "processed") {
-    return <Badge variant="default">Processed{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
+    return <Badge variant="default">{t("processed")}{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
   }
   if (status === "failed") {
-    return <Badge variant="destructive">Failed{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
+    return <Badge variant="destructive">{t("failed")}{attempts > 1 ? ` · ${attempts}×` : ""}</Badge>;
   }
-  return <Badge variant="secondary">Pending</Badge>;
+  return <Badge variant="secondary">{t("pending")}</Badge>;
 }
 
 function KV({
@@ -538,6 +550,7 @@ function PaginationBar({
   total,
   totalPages,
   isLoading,
+  t,
   onPrev,
   onNext,
 }: {
@@ -546,6 +559,7 @@ function PaginationBar({
   total: number;
   totalPages: number;
   isLoading: boolean;
+  t: ReturnType<typeof useTranslations<"admin">>;
   onPrev: () => void;
   onNext: () => void;
 }) {
@@ -555,7 +569,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        {t("pageRange", { start, end, total })}
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -563,19 +577,19 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-muted-foreground px-2 text-sm">
-          {page + 1} / {totalPages}
+          {t("pageOf", { page: page + 1, total: totalPages })}
         </span>
         <Button
           variant="outline"
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label={t("nextPage")}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

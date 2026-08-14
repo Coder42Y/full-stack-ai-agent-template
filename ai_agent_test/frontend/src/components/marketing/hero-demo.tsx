@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot, FileText, Sparkles, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -8,15 +9,15 @@ import { cn } from "@/lib/utils";
 const SCRIPT = [
   {
     role: "user" as const,
-    text: "哪些站点存在车辆堆积？给我 SQL 依据和调度建议。",
+    text: "我最近三个月的报销记录和总额是多少？",
   },
   {
     role: "tool" as const,
-    text: "mcp_execute_query · vehicle_distribution · 4 rows",
+    text: "mcp_execute_query · reimbursements · 3 rows",
   },
   {
     role: "agent" as const,
-    text: "发现 4 个堆积站点：虹桥火车站、张江地铁站、陆家嘴、徐家汇商圈。建议优先处理虹桥和张江，并在 2 小时后复查库存变化。",
+    text: "你最近三个月共 3 笔报销，合计 1,240 元，其中 2 笔已到账、1 笔审批中。需要看明细吗？",
   },
 ];
 
@@ -27,8 +28,9 @@ interface HeroDemoProps {
 
 export function HeroDemo({
   script = SCRIPT,
-  placeholder = "询问车辆、订单或需求预测…",
+  placeholder = "询问报销、请假或制度…",
 }: HeroDemoProps) {
+  const t = useTranslations("marketing.heroDemo");
   const [step, setStep] = useState(0);
   const [typed, setTyped] = useState("");
 
@@ -66,11 +68,11 @@ export function HeroDemo({
           <span className="bg-foreground/20 h-2.5 w-2.5 rounded-full" />
         </div>
         <div className="text-foreground/50 ml-3 font-mono text-xs">
-          mobility-ops.ai / operations
+          workmate.ai / {t("assistant")}
         </div>
       </div>
 
-      <div className="space-y-4 p-5 md:p-8">
+      <div className="space-y-4 p-5 md:p-8 min-h-[280px]">
         {script.slice(0, step + 1).map((msg, i) => {
           const isLast = i === step;
           const text = isLast ? typed : msg.text;
@@ -99,7 +101,7 @@ export function HeroDemo({
               <div className="bg-card border-foreground/10 max-w-[85%] rounded-2xl rounded-tl-sm border p-5">
                 <div className="text-foreground/55 mb-2.5 flex items-center gap-2 text-xs">
                   <Bot className="h-3.5 w-3.5" />
-                  <span className="eyebrow">Ops Agent</span>
+                  <span className="eyebrow">WorkMate</span>
                   {isLast && (
                     <span className="bg-brand ml-auto inline-block h-2 w-2 animate-pulse rounded-full" />
                   )}

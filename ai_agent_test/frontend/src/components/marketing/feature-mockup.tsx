@@ -12,9 +12,9 @@ interface FeatureMockupCopy {
   ragResults: Array<{ title: string; snippet: string; score: number }>;
   operationsLabel: string;
   ordersLabel: string;
-  metricStations: string;
-  metricAnomaly: string;
-  metricForecast: string;
+  metricEmployees: string;
+  metricPending: string;
+  metricLeaves: string;
 }
 
 interface FeatureMockupProps {
@@ -24,32 +24,32 @@ interface FeatureMockupProps {
 }
 
 const DEFAULT_COPY: FeatureMockupCopy = {
-  agentQuery: "分析浦东新区缺车站点。",
-  agentAnswer: "张江地铁站、龙阳路交通枢纽、世纪大道未来 3 小时缺口最高，建议优先补车。",
-  agentPlaceholder: "询问车辆、订单或天气...",
-  ragSearch: "暴雨 堆积 调度",
+  agentQuery: "查我这个月的报销。",
+  agentAnswer: "本月共 5 笔报销，合计 860 元，均已到账。",
+  agentPlaceholder: "询问报销、请假或制度...",
+  ragSearch: "年假 报销 考勤",
   ragResults: [
     {
-      title: "暴雨天气调度预案.md",
-      snippet: "...heavy_rain 时优先保障地铁站、交通枢纽和商业区周边车辆供给...",
+      title: "员工手册.md",
+      snippet: "...入职满 1 年享 5 天年假，之后每满 1 年增加 1 天，上限 15 天...",
       score: 0.94,
     },
     {
-      title: "共享单车早晚高峰规则.pdf",
-      snippet: "...早高峰 7-9 点，晚高峰 17-19 点，按站点订单量和预测缺口排序...",
+      title: "报销制度.md",
+      snippet: "...费用发生后 30 天内提交，一线城市住宿每晚不超过 500 元...",
       score: 0.87,
     },
     {
-      title: "车辆堆积处理 SOP.docx",
-      snippet: "...total_count 超过阈值且 24 小时未移动时，触发巡检和清运建议...",
+      title: "考勤制度.md",
+      snippet: "...标准工时 9:00-18:00，每月迟到 3 次以内不扣款，超过按 50 元/次...",
       score: 0.82,
     },
   ],
-  operationsLabel: "Operations today",
-  ordersLabel: "30 天订单样本",
-  metricStations: "Stations",
-  metricAnomaly: "Anomaly",
-  metricForecast: "Forecast",
+  operationsLabel: "本月报销",
+  ordersLabel: "30 天报销样本",
+  metricEmployees: "员工数",
+  metricPending: "审批中",
+  metricLeaves: "请假数",
 };
 
 /** Stylized mini-UIs that hint at the actual product. Pure CSS/SVG, no real data. */
@@ -93,7 +93,7 @@ function AgentMockup({ className, copy }: { className?: string; copy: FeatureMoc
         <div className="flex">
           <div className="border-brand/40 bg-brand/15 flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px]">
             <Wrench className="h-3 w-3" />
-            <span className="text-foreground/80">mcp.execute_query · demand_forecast</span>
+            <span className="text-foreground/80">mcp.execute_query · reimbursements</span>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ function AgentMockup({ className, copy }: { className?: string; copy: FeatureMoc
           <div className="bg-card border-foreground/10 max-w-[88%] rounded-2xl rounded-tl-sm border p-3">
             <div className="text-foreground/55 mb-1.5 flex items-center gap-1.5">
               <Bot className="h-3 w-3" />
-              <span className="font-mono text-[10px] tracking-wider uppercase">Ops Agent</span>
+              <span className="font-mono text-[10px] tracking-wider uppercase">WorkMate</span>
             </div>
             <p className="text-foreground text-xs leading-relaxed">{copy.agentAnswer}</p>
           </div>
@@ -161,7 +161,7 @@ function BillingMockup({ className, copy }: { className?: string; copy: FeatureM
             {copy.operationsLabel}
           </p>
           <p className="text-foreground font-display mt-1 text-3xl font-bold tracking-tight">
-            2,010
+            81
           </p>
           <p className="text-brand mt-0.5 flex items-center gap-1 text-xs font-medium">
             <TrendingUp className="h-3 w-3" />
@@ -187,21 +187,21 @@ function BillingMockup({ className, copy }: { className?: string; copy: FeatureM
         <div className="border-foreground/10 grid grid-cols-3 gap-2 border-t pt-3">
           <div>
             <p className="text-foreground/45 font-mono text-[10px] uppercase">
-              {copy.metricStations}
+              {copy.metricEmployees}
             </p>
-            <p className="text-foreground font-mono text-sm font-medium">18</p>
+            <p className="text-foreground font-mono text-sm font-medium">16</p>
           </div>
           <div>
             <p className="text-foreground/45 font-mono text-[10px] uppercase">
-              {copy.metricAnomaly}
+              {copy.metricPending}
             </p>
-            <p className="text-foreground font-mono text-sm font-medium">4</p>
+            <p className="text-foreground font-mono text-sm font-medium">5</p>
           </div>
           <div>
             <p className="text-foreground/45 font-mono text-[10px] uppercase">
-              {copy.metricForecast}
+              {copy.metricLeaves}
             </p>
-            <p className="text-foreground font-mono text-sm font-medium">3,024</p>
+            <p className="text-foreground font-mono text-sm font-medium">42</p>
           </div>
         </div>
       </div>

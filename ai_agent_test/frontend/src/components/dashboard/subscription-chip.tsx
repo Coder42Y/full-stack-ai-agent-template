@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Clock, Sparkles, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { apiClient } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ function daysUntil(iso: string | null | undefined): number | null {
 }
 
 export function SubscriptionChip() {
+  const t = useTranslations("billing");
   const [sub, setSub] = useState<SubscriptionRead | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +67,7 @@ export function SubscriptionChip() {
         )}
       >
         <Sparkles className="h-3 w-3" />
-        Free · Upgrade
+        {t("freeUpgrade")}
         <ArrowUpRight className="h-2.5 w-2.5" />
       </Link>
     );
@@ -80,17 +82,17 @@ export function SubscriptionChip() {
   let icon = <Clock className="h-3 w-3" />;
 
   if (status === "trialing" && trialDays !== null) {
-    label = `Trial · ${trialDays}d left`;
+    label = t("trialLeft", { days: trialDays });
   } else if (status === "active" && sub.cancel_at_period_end && renewDays !== null) {
-    label = `Ends in ${renewDays}d`;
+    label = t("endsIn", { days: renewDays });
     icon = <XCircle className="h-3 w-3" />;
   } else if (status === "active" && renewDays !== null) {
-    label = `Active · renews in ${renewDays}d`;
+    label = t("activeRenews", { days: renewDays });
   } else if (status === "canceled") {
-    label = renewDays !== null ? `Canceled · ${renewDays}d access` : "Canceled";
+    label = renewDays !== null ? t("canceledAccess", { days: renewDays }) : t("canceled");
     icon = <XCircle className="h-3 w-3" />;
   } else if (status === "past_due") {
-    label = "Past due — update payment";
+    label = t("pastDue");
   } else {
     label = status.replace(/_/g, " ");
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Check,
   ChevronDown,
@@ -30,19 +31,19 @@ interface ChatControlsProps {
   onThinkingEffortChange?: (value: "low" | "medium" | "high" | null) => void;
 }
 
-const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
-  personal: { label: "Personal", icon: Lock },
-  org: { label: "Organization", icon: Users },
-  app: { label: "App-wide", icon: Sparkles },
+const SCOPE_META: Record<KBScope, { labelKey: string; icon: LucideIcon }> = {
+  personal: { labelKey: "scope.personal", icon: Lock },
+  org: { labelKey: "scope.org", icon: Users },
+  app: { labelKey: "scope.app", icon: Sparkles },
 };
 
 const SECTION_ORDER: KBScope[] = ["personal", "org", "app"];
 
-const EFFORT_OPTIONS: { label: string; value: ThinkingEffort; hint: string }[] = [
-  { label: "Off", value: "off", hint: "Direct answer, no reasoning" },
-  { label: "Low", value: "low", hint: "Quick reasoning" },
-  { label: "Medium", value: "medium", hint: "Balanced" },
-  { label: "High", value: "high", hint: "Deep, slower" },
+const EFFORT_OPTIONS: { labelKey: string; hintKey: string; value: ThinkingEffort }[] = [
+  { labelKey: "settings.effortOff", value: "off", hintKey: "settings.effortOffHint" },
+  { labelKey: "settings.effortLow", value: "low", hintKey: "settings.effortLowHint" },
+  { labelKey: "settings.effortMedium", value: "medium", hintKey: "settings.effortMediumHint" },
+  { labelKey: "settings.effortHigh", value: "high", hintKey: "settings.effortHighHint" },
 ];
 
 /**
@@ -55,6 +56,7 @@ export function ChatControls({
   onTemperatureChange,
   onThinkingEffortChange,
 }: ChatControlsProps) {
+  const t = useTranslations("chat");
   const [tab, setTab] = useState<Tab>("kb");
 
   // ── KB state ────────────────────────────────────────────────────────────
@@ -118,12 +120,13 @@ export function ChatControls({
   };
 
   // ── Model state ─────────────────────────────────────────────────────────
+  const [defaultModelName, setDefaultModelName] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<{ value: string; label: string }[]>([
-    { value: "", label: "Default" },
+    { value: "", label: "" },
   ]);
   const [selectedModel, setSelectedModel] = useState<{ value: string; label: string }>({
     value: "",
-    label: "Default",
+    label: "",
   });
 
   useEffect(() => {
@@ -135,9 +138,10 @@ export function ChatControls({
       .then((data) => {
         if (data?.models) {
           const models = [
-            { value: "", label: `Default (${data.default})` },
+            { value: "", label: "" },
             ...data.models.map((m: string) => ({ value: m, label: m })),
           ];
+          setDefaultModelName(typeof data.default === "string" ? data.default : null);
           setAvailableModels(models);
           setSelectedModel(models[0]);
         }
@@ -154,11 +158,11 @@ export function ChatControls({
   // ── Trigger summary ─────────────────────────────────────────────────────
   const triggerSummary = useMemo(() => {
     const parts: string[] = [];
-    if (activeCount > 0) parts.push(`${activeCount} KB${activeCount === 1 ? "" : "s"}`);
+    if (activeCount > 0) parts.push(t("controls.activeKB", { count: activeCount }));
     if (selectedModel.value) parts.push(selectedModel.value);
-    if (settingsOverridden) parts.push("Custom");
-    return parts.length ? parts.join(" · ") : "Controls";
-  }, [activeCount, selectedModel, settingsOverridden]);
+    if (settingsOverridden) parts.push(t("controls.triggerCustom"));
+    return parts.length ? parts.join(" · ") : t("controls.triggerDefault");
+  }, [activeCount, selectedModel, settingsOverridden, t]);
 
   const hasOverrides = activeCount > 0 || selectedModel.value !== "" || settingsOverridden;
 
@@ -167,7 +171,7 @@ export function ChatControls({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Chat controls"
+          aria-label={t("controls.ariaLabel")}
           className={cn(
             "border-foreground/10 bg-card hover:border-foreground/25 hover:bg-foreground/[0.04] inline-flex items-center gap-1.5 rounded-full border py-1 pr-2 pl-2.5 font-mono text-[11px] tracking-wider uppercase transition-colors",
             hasOverrides ? "text-foreground" : "text-foreground/65",
@@ -203,11 +207,16 @@ export function ChatControls({
 
         {/* Tabs */}
         <div className="border-foreground/10 flex items-center gap-1 border-b p-2">
-          <TabButton icon={Database} label="KB" active={tab === "kb"} onClick={() => setTab("kb")} />
+          <TabButton
+            icon={Database}
+            label={t("controls.tabKb")}
+            active={tab === "kb"}
+            onClick={() => setTab("kb")}
+          />
           {onModelChange && (
             <TabButton
               icon={Cpu}
-              label="Model"
+              label={t("controls.tabModel")}
               active={tab === "model"}
               onClick={() => setTab("model")}
             />
@@ -215,7 +224,7 @@ export function ChatControls({
           {onTemperatureChange && onThinkingEffortChange && (
             <TabButton
               icon={Settings2}
-              label="Settings"
+              label={t("controls.tabSettings")}
               active={tab === "settings"}
               onClick={() => setTab("settings")}
             />
@@ -239,6 +248,7 @@ export function ChatControls({
             <ModelPanel
               models={availableModels}
               selected={selectedModel}
+              defaultModelName={defaultModelName}
               onPick={(m) => {
                 setSelectedModel(m);
                 onModelChange?.(m.value || null);
@@ -269,9 +279,9 @@ export function ChatControls({
               className="bg-brand inline-block h-1 w-1 animate-pulse rounded-full"
               style={{ boxShadow: "0 0 6px var(--color-brand)" }}
             />
-            {currentConversationId ? "Saved for this chat" : "Saves on send"}
+            {currentConversationId ? t("controls.savedForChat") : t("controls.savesOnSend")}
           </span>
-          <span>esc to close</span>
+          <span>{t("controls.escToClose")}</span>
         </div>
       </PopoverContent>
     </Popover>
@@ -324,29 +334,26 @@ function KBPanel({
   currentConversationId: string | null;
   onToggle: (kb: KnowledgeBase, checked: boolean) => void;
 }) {
+  const t = useTranslations("chat");
   const activeCount = activeIds.size;
 
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between">
-        <p className="text-foreground text-sm font-semibold">Knowledge bases</p>
+        <p className="text-foreground text-sm font-semibold">{t("kb.title")}</p>
         <span className="text-foreground/55 font-mono text-[10px] tabular-nums">
-          {activeCount}/{kbs.length} active
+          {t("kb.active", { active: activeCount, total: kbs.length })}
         </span>
       </div>
-      <p className="text-foreground/55 mb-4 text-xs leading-relaxed">
-        Picked KBs are searched on every message you send.
-      </p>
+      <p className="text-foreground/55 mb-4 text-xs leading-relaxed">{t("kb.searchHint")}</p>
 
       {isLoading && kbs.length === 0 ? (
-        <p className="text-foreground/55 py-3 text-xs">Loading…</p>
+        <p className="text-foreground/55 py-3 text-xs">{t("kb.loading")}</p>
       ) : kbs.length === 0 ? (
         <div className="border-foreground/10 bg-foreground/[0.02] rounded-xl border px-4 py-6 text-center">
           <Database className="text-foreground/30 mx-auto mb-2 h-6 w-6" />
-          <p className="text-foreground/65 text-xs">No knowledge bases yet.</p>
-          <p className="text-foreground/45 mt-1 text-[11px]">
-            Create one on the Knowledge Bases page.
-          </p>
+          <p className="text-foreground/65 text-xs">{t("kb.empty")}</p>
+          <p className="text-foreground/45 mt-1 text-[11px]">{t("kb.emptyHint")}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -356,7 +363,7 @@ function KBPanel({
               <section key={scope}>
                 <div className="text-foreground/55 mb-2 flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase">
                   <meta.icon className="h-3 w-3" />
-                  {meta.label}
+                  {t(meta.labelKey)}
                 </div>
                 <ul className="space-y-1">
                   {grouped[scope].map((kb) => {
@@ -399,7 +406,7 @@ function KBPanel({
 
       {!currentConversationId && kbs.length > 0 && (
         <p className="text-foreground/45 mt-4 font-mono text-[10px] tracking-wider uppercase">
-          Draft selection — saves when you send.
+          {t("kb.draftSelection")}
         </p>
       )}
     </div>
@@ -410,21 +417,28 @@ function KBPanel({
 function ModelPanel({
   models,
   selected,
+  defaultModelName,
   onPick,
 }: {
   models: { value: string; label: string }[];
   selected: { value: string; label: string };
+  defaultModelName: string | null;
   onPick: (m: { value: string; label: string }) => void;
 }) {
+  const t = useTranslations("chat");
   return (
     <div>
-      <p className="text-foreground mb-1 text-sm font-semibold">Model</p>
-      <p className="text-foreground/55 mb-4 text-xs leading-relaxed">
-        Pick the model that handles this conversation.
-      </p>
+      <p className="text-foreground mb-1 text-sm font-semibold">{t("model.title")}</p>
+      <p className="text-foreground/55 mb-4 text-xs leading-relaxed">{t("model.desc")}</p>
       <ul className="space-y-1">
         {models.map((m) => {
           const isActive = selected.value === m.value;
+          const label =
+            m.value === ""
+              ? defaultModelName
+                ? t("model.defaultWithName", { name: defaultModelName })
+                : t("model.default")
+              : m.label;
           return (
             <li key={m.value || "default"}>
               <button
@@ -437,7 +451,7 @@ function ModelPanel({
                     : "border-foreground/10 text-foreground/75 hover:border-foreground/25 hover:bg-foreground/[0.02] hover:text-foreground",
                 )}
               >
-                <span className="truncate font-medium">{m.label}</span>
+                <span className="truncate font-medium">{label}</span>
                 {isActive && <Check className="text-brand h-3.5 w-3.5 shrink-0" />}
               </button>
             </li>
@@ -460,17 +474,19 @@ function SettingsPanel({
   onTemperatureChange: (v: number | null) => void;
   onEffortChange: (v: ThinkingEffort) => void;
 }) {
+  const t = useTranslations("chat");
+  const currentEffort = EFFORT_OPTIONS.find((o) => o.value === effort);
   return (
     <div className="space-y-6">
       {/* Temperature */}
       <div className="space-y-2.5">
         <div className="flex items-baseline justify-between">
           <label htmlFor="chat-temp" className="text-foreground text-sm font-semibold">
-            Temperature
+            {t("settings.temperature")}
           </label>
           <span className="text-foreground font-mono text-xs tabular-nums">
             {temperature === null ? (
-              <span className="text-foreground/55">default</span>
+              <span className="text-foreground/55">{t("settings.temperatureDefault")}</span>
             ) : (
               temperature.toFixed(2)
             )}
@@ -487,8 +503,8 @@ function SettingsPanel({
           className="bg-foreground/15 h-1.5 w-full cursor-pointer appearance-none rounded-full accent-[var(--color-brand)]"
         />
         <div className="text-foreground/45 flex justify-between font-mono text-[10px] tracking-wider uppercase">
-          <span>focused</span>
-          <span>creative</span>
+          <span>{t("settings.focused")}</span>
+          <span>{t("settings.creative")}</span>
         </div>
         {temperature !== null && (
           <button
@@ -496,7 +512,7 @@ function SettingsPanel({
             onClick={() => onTemperatureChange(null)}
             className="text-foreground/55 hover:text-foreground text-[11px] underline-offset-2 hover:underline"
           >
-            Reset to server default
+            {t("settings.resetTemperature")}
           </button>
         )}
       </div>
@@ -504,8 +520,8 @@ function SettingsPanel({
       {/* Thinking effort */}
       <div className="space-y-2.5">
         <div className="flex items-baseline justify-between">
-          <span className="text-foreground text-sm font-semibold">Thinking effort</span>
-          <span className="text-foreground/45 text-[10px]">model-dependent</span>
+          <span className="text-foreground text-sm font-semibold">{t("settings.thinkingEffort")}</span>
+          <span className="text-foreground/45 text-[10px]">{t("settings.modelDependent")}</span>
         </div>
         <div className="grid grid-cols-4 gap-1">
           {EFFORT_OPTIONS.map((opt) => (
@@ -520,19 +536,14 @@ function SettingsPanel({
                   : "border-foreground/15 text-foreground/55 hover:text-foreground border",
               )}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>
-        <p className="text-foreground/55 text-[11px]">
-          {EFFORT_OPTIONS.find((o) => o.value === effort)?.hint}
-        </p>
+        <p className="text-foreground/55 text-[11px]">{currentEffort ? t(currentEffort.hintKey) : null}</p>
       </div>
 
-      <p className="text-foreground/45 text-[10px] leading-relaxed">
-        Settings persist for the current chat session. Some controls are no-ops on models that
-        don&apos;t support them.
-      </p>
+      <p className="text-foreground/45 text-[10px] leading-relaxed">{t("settings.persistHint")}</p>
     </div>
   );
 }

@@ -33,7 +33,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 # LiteParse needs the Node.js CLI. Pre-installing here avoids a 30-60s
 # blocking npm install on the first parse request from a fresh container.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# NOTE(local): apt 默认走 http://deb.debian.org，在 Docker Desktop 的 gvisor/vpnkit
+# 网络下 HTTP 大文件下载会被 vpnkit 出站代理(127.0.0.1:1082)卡死；换成 HTTPS 的
+# 阿里云镜像可绕开该问题（HTTPS 走直连，docker pull / pip 均正常）。
+RUN sed -i 's|http://deb.debian.org/debian|https://mirrors.aliyun.com/debian|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \

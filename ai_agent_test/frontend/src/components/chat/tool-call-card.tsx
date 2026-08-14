@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, Button } from "@/components/ui";
 import type { ToolCall } from "@/types";
 import {
@@ -29,6 +30,7 @@ interface ToolCallCardProps {
 // --- Specialized renderers ---
 
 function DateTimeResult({ result }: { result: string }) {
+  const t = useTranslations("chat");
   // Parse "Current date: YYYY-MM-DD, Current time: HH:MM:SS"
   const dateMatch = result.match(/Current date:\s*(\d{4}-\d{2}-\d{2})/);
   const timeMatch = result.match(/Current time:\s*(\d{2}:\d{2}:\d{2})/);
@@ -39,7 +41,7 @@ function DateTimeResult({ result }: { result: string }) {
         <div className="flex items-center gap-2">
           <Calendar className="text-primary h-5 w-5" />
           <div>
-            <p className="text-muted-foreground text-xs">Date</p>
+            <p className="text-muted-foreground text-xs">{t("date")}</p>
             <p className="text-sm font-semibold">{dateMatch[1]}</p>
           </div>
         </div>
@@ -48,7 +50,7 @@ function DateTimeResult({ result }: { result: string }) {
         <div className="flex items-center gap-2">
           <Clock className="text-primary h-5 w-5" />
           <div>
-            <p className="text-muted-foreground text-xs">Time</p>
+            <p className="text-muted-foreground text-xs">{t("time")}</p>
             <p className="text-sm font-semibold">{timeMatch[1]}</p>
           </div>
         </div>
@@ -89,6 +91,7 @@ function parseRAGResults(result: string): RAGResultItem[] {
 }
 
 function RAGSearchResults({ result }: { result: string }) {
+  const t = useTranslations("chat");
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const items = parseRAGResults(result);
 
@@ -97,7 +100,7 @@ function RAGSearchResults({ result }: { result: string }) {
       return (
         <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
           <Search className="h-4 w-4" />
-          No relevant documents found
+          {t("noRelevantDocuments")}
         </div>
       );
     }
@@ -107,7 +110,7 @@ function RAGSearchResults({ result }: { result: string }) {
   // Group chunks by source filename so the same file doesn't render as N
   // duplicate cards. Preserve insertion order so the indices stay readable.
   const grouped = items.reduce<Map<string, RAGResultItem[]>>((acc, item) => {
-    const key = item.source || "Unknown";
+    const key = item.source || t("unknownSource");
     const list = acc.get(key) ?? [];
     list.push(item);
     acc.set(key, list);
@@ -119,13 +122,9 @@ function RAGSearchResults({ result }: { result: string }) {
     <div className="space-y-3 py-1">
       <div className="text-foreground/55 flex items-center gap-2 font-mono text-[10px] tracking-wider uppercase">
         <Search className="h-3 w-3" />
-        <span>
-          {items.length} chunk{items.length !== 1 ? "s" : ""}
-        </span>
+        <span>{t("chunkCount", { count: items.length })}</span>
         <span>·</span>
-        <span>
-          {sourceCount} source{sourceCount !== 1 ? "s" : ""}
-        </span>
+        <span>{t("sourceCount", { count: sourceCount })}</span>
       </div>
 
       <div className="border-foreground/10 divide-foreground/8 divide-y overflow-hidden rounded-xl border">
@@ -154,6 +153,7 @@ function RAGSourceGroup({
   expandedIdx: number | null;
   onToggle: (idx: number) => void;
 }) {
+  const t = useTranslations("chat");
   const collection = chunks[0]?.collection;
   const bestScore = Math.max(...chunks.map((c) => parseFloat(c.score) || 0));
   return (
@@ -165,13 +165,13 @@ function RAGSourceGroup({
           {source}
         </span>
         <span className="text-foreground/45 ml-auto font-mono text-[10px] tracking-wider uppercase">
-          {chunks.length} chunk{chunks.length !== 1 ? "s" : ""}
+          {t("chunkCount", { count: chunks.length })}
         </span>
         <ScoreDot score={bestScore} />
         {collection && (
           <span
             className="border-foreground/15 text-foreground/55 hidden shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[9px] tracking-wider uppercase sm:inline"
-            title={`Collection: ${collection}`}
+            title={t("collectionLabel", { name: collection })}
           >
             {collection}
           </span>
@@ -202,11 +202,11 @@ function RAGSourceGroup({
                   </p>
                   {(chunk.page || chunk.chunk) && (
                     <div className="text-foreground/45 mt-1 flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase">
-                      {chunk.page && <span>p.{chunk.page}</span>}
+                      {chunk.page && <span>{t("pagePrefix", { page: chunk.page })}</span>}
                       {chunk.chunk && (
                         <>
                           {chunk.page && <span>·</span>}
-                          <span>chunk {chunk.chunk}</span>
+                          <span>{t("chunkLabel", { chunk: chunk.chunk })}</span>
                         </>
                       )}
                     </div>
@@ -235,6 +235,7 @@ function RAGSourceGroup({
 
 /** Tiny dot indicating chunk relevance — neutral palette, no warning colors. */
 function ScoreDot({ score }: { score: number }) {
+  const t = useTranslations("chat");
   // Map score to brand-tone opacity instead of red/yellow/green so the UI
   // reads as a quality signal, not an alert.
   const tone =
@@ -242,7 +243,7 @@ function ScoreDot({ score }: { score: number }) {
   return (
     <span
       className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone)}
-      title={`Relevance: ${score.toFixed(2)}`}
+      title={t("relevance", { score: score.toFixed(2) })}
     />
   );
 }
@@ -282,11 +283,12 @@ function domainOf(url: string): string {
 }
 
 function WebSearchResults({ data }: { data: WebSearchPayload }) {
+  const t = useTranslations("chat");
   if (data.results.length === 0) {
     return (
       <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
         <Globe className="h-4 w-4" />
-        No web results found
+        {t("noWebResults")}
       </div>
     );
   }
@@ -295,9 +297,7 @@ function WebSearchResults({ data }: { data: WebSearchPayload }) {
     <div className="space-y-3 py-1">
       <div className="text-foreground/55 flex items-center gap-2 font-mono text-[10px] tracking-wider uppercase">
         <Globe className="h-3 w-3" />
-        <span>
-          {data.results.length} web result{data.results.length !== 1 ? "s" : ""}
-        </span>
+        <span>{t("webResultCount", { count: data.results.length })}</span>
       </div>
 
       <div className="border-foreground/10 divide-foreground/8 divide-y overflow-hidden rounded-xl border">
@@ -360,15 +360,16 @@ function isEmptyArgs(args: unknown): boolean {
 
 /** Raw view: arguments + the exact tool output, monospace, unparsed. */
 function RawToolView({ toolCall, resultText }: { toolCall: ToolCall; resultText: string }) {
+  const t = useTranslations("chat");
   return (
     <div className="space-y-3">
       {isEmptyArgs(toolCall.args) ? (
-        <p className="text-muted-foreground text-xs italic">No arguments</p>
+        <p className="text-muted-foreground text-xs italic">{t("noArguments")}</p>
       ) : (
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Arguments
+              {t("argumentsLabel")}
             </p>
             <CopyButton
               text={formatArgs(toolCall.args)}
@@ -384,7 +385,7 @@ function RawToolView({ toolCall, resultText }: { toolCall: ToolCall; resultText:
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Result
+              {t("resultLabel")}
             </p>
             <CopyButton text={resultText} className="opacity-0 group-hover:opacity-100" />
           </div>
@@ -401,6 +402,7 @@ function RawToolView({ toolCall, resultText }: { toolCall: ToolCall; resultText:
  *  Pretty-prints JSON output, otherwise shows readable wrapped text — so a
  *  newly added backend tool renders sensibly with no frontend changes. */
 function GenericToolResult({ toolCall, resultText }: { toolCall: ToolCall; resultText: string }) {
+  const t = useTranslations("chat");
   let prettyJson: string | null = null;
   try {
     const parsed = JSON.parse(resultText);
@@ -414,7 +416,7 @@ function GenericToolResult({ toolCall, resultText }: { toolCall: ToolCall; resul
   if (toolCall.status !== "completed" && !resultText) {
     return (
       <p className="text-muted-foreground py-2 text-xs italic">
-        {toolCall.status === "error" ? "Tool failed." : "Running…"}
+        {toolCall.status === "error" ? t("toolFailed") : t("running")}
       </p>
     );
   }
@@ -425,7 +427,7 @@ function GenericToolResult({ toolCall, resultText }: { toolCall: ToolCall; resul
         <div className="group relative">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">
-              Arguments
+              {t("argumentsLabel")}
             </p>
             <CopyButton
               text={formatArgs(toolCall.args)}
@@ -454,6 +456,7 @@ function GenericToolResult({ toolCall, resultText }: { toolCall: ToolCall; resul
 // --- Main component ---
 
 export function ToolCallCard({ toolCall }: ToolCallCardProps) {
+  const t = useTranslations("chat");
   // Collapsed by default — the bar acts as the toggle. `showRaw` swaps the
   // formatted view for args + raw output (the </> button). Charts are the
   // exception: they're only useful when visible, so expand them by default.
@@ -531,17 +534,17 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
   const hasSpecialRenderer =
     isDateTime || isRAGSearch || isWebSearch || isChart || isEChart || isPgQuery;
   const friendlyName = isDateTime
-    ? "Current Date & Time"
+    ? t("currentDateTime")
     : isRAGSearch
-      ? "Knowledge Base Search"
+      ? t("kbSearch")
       : isWebSearch
-        ? "Web Search"
+        ? t("webSearch")
         : isChart
-          ? "Chart"
+          ? t("chart")
           : isEChart
-            ? "图表生成"
+            ? t("echartTitle")
             : isPgQuery
-              ? "数据查询"
+              ? t("pgQueryTitle")
               : toolCall.name;
 
   const ToolIcon = isDateTime
@@ -610,7 +613,7 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
               showRaw && "text-primary",
             )}
             onClick={toggleRaw}
-            title={showRaw ? "Show formatted view" : "Show arguments + raw output"}
+            title={showRaw ? t("showFormattedView") : t("showArgsRaw")}
           >
             <Code2 className="h-3.5 w-3.5" />
           </Button>

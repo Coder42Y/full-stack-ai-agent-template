@@ -1,39 +1,42 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { BrandColorPicker } from "@/components/settings/brand-color-picker";
 import { SettingsRow, SettingsSection } from "@/components/settings/settings-section";
 
 export default function AppearanceSettingsPage() {
+  const t = useTranslations("settings");
+
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Theme"
-        description="The demo uses a fixed high-contrast light interface."
+        title={t("appearance.theme")}
+        description={t("appearance.themeDescription")}
       >
         <SettingsRow
-          label="Color scheme"
-          description="Dark mode is disabled so the dashboard and marketing pages stay visually consistent."
+          label={t("appearance.colorScheme")}
+          description={t("appearance.colorSchemeDescription")}
           control={
             <span className="border-foreground/15 bg-background inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
-              Light
+              {t("appearance.light")}
             </span>
           }
         />
       </SettingsSection>
 
       <SettingsSection
-        title="Brand color"
-        description="Pick the accent color used across the workspace. Saved per-device."
+        title={t("appearance.brandColor")}
+        description={t("appearance.brandColorDescription")}
       >
         <BrandColorPicker />
         <div className="border-foreground/8 bg-foreground/[0.02] mt-5 rounded-xl border p-4">
           <p className="text-foreground/65 text-xs leading-relaxed">
-            Choosing a preset updates CSS custom properties at runtime —{" "}
-            <code className="bg-foreground/8 rounded px-1 font-mono text-[11px]">--brand-h</code>,{" "}
-            <code className="bg-foreground/8 rounded px-1 font-mono text-[11px]">--brand-c</code>,{" "}
-            <code className="bg-foreground/8 rounded px-1 font-mono text-[11px]">--brand-l</code>.
-            Forking the template lets you bake any color in by editing one block in{" "}
-            <code className="bg-foreground/8 rounded px-1 font-mono text-[11px]">globals.css</code>.
+            {t.rich("appearance.brandColorHint", {
+              code: (chunks) => (
+                <code className="bg-foreground/8 rounded px-1 font-mono text-[11px]">{chunks}</code>
+              ),
+            })}
           </p>
         </div>
       </SettingsSection>

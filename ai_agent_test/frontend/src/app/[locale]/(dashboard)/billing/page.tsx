@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Activity,
   ArrowRight,
@@ -33,17 +34,6 @@ import {
 } from "@/hooks";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-const STATUS_LABELS: Record<string, string> = {
-  trialing: "Trial",
-  active: "Active",
-  past_due: "Past due",
-  canceled: "Canceled",
-  unpaid: "Unpaid",
-  incomplete: "Incomplete",
-  incomplete_expired: "Expired",
-  paused: "Paused",
-};
 
 const STATUS_TONES: Record<string, string> = {
   trialing: "border-foreground/15 text-foreground/70",
@@ -83,6 +73,7 @@ function formatDate(iso: string | null | undefined): string {
 }
 
 export default function BillingHubPage() {
+  const t = useTranslations("billing");
   const searchParams = useSearchParams();
   const { activeOrg, fetchOrgs } = useOrganizations();
   const { members } = useMembers(activeOrg?.id ?? "");
@@ -105,14 +96,31 @@ export default function BillingHubPage() {
 
   useEffect(() => {
     if (searchParams.get("success") === "1") {
-      toast.success("Subscription updated successfully");
+      toast.success(t("successMessage"));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const status = subscription?.status ?? "free";
-  const statusLabel = STATUS_LABELS[status] ?? "Free";
+  const statusLabels: Record<string, string> = {
+    trialing: t("statusTrialing"),
+    active: t("statusActive"),
+    past_due: t("statusPastDue"),
+    canceled: t("statusCanceled"),
+    unpaid: t("statusUnpaid"),
+    incomplete: t("statusIncomplete"),
+    incomplete_expired: t("statusIncompleteExpired"),
+    paused: t("statusPaused"),
+  };
+  const statusLabel = statusLabels[status] ?? t("tierFree");
   const statusTone = STATUS_TONES[status] ?? "border-foreground/15 text-foreground/70";
-  const planName = subscription?.price?.plan?.display_name ?? "Free";
+  const planName = subscription?.price?.plan?.display_name ?? t("tierFree");
+  const invoiceStatusLabels: Record<string, string> = {
+    paid: t("invoiceStatus.paid"),
+    open: t("invoiceStatus.open"),
+    draft: t("invoiceStatus.draft"),
+    void: t("invoiceStatus.void"),
+    uncollectible: t("invoiceStatus.uncollectible"),
+  };
   const seatsUsed = members?.length ?? 0;
   const seatsLimit = subscription?.seats_quantity ?? activeOrg?.seats_limit ?? null;
 
@@ -125,14 +133,14 @@ export default function BillingHubPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
       <PageHero
-        eyebrow="Billing"
+        eyebrow={t("title")}
         title={
           <>
-            {activeOrg?.name ?? "Your workspace"}
+            {activeOrg?.is_personal ? t("workspacePersonal") : (activeOrg?.name ?? t("yourWorkspace"))}
             <em className="text-foreground/30">.</em>
           </>
         }
-        description="Plan, usage, invoices, payment methods — all in one place."
+        description={t("hubDescription")}
         actions={
           <Button
             onClick={() => openPortal()}
@@ -141,11 +149,11 @@ export default function BillingHubPage() {
             className="rounded-full"
           >
             {portalLoading ? (
-              "Opening…"
+              t("opening")
             ) : (
               <>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Manage in Stripe
+                {t("manageInStripe")}
               </>
             )}
           </Button>
@@ -159,7 +167,7 @@ export default function BillingHubPage() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-                Current plan
+                {t("currentPlan")}
               </span>
               <span
                 className={cn(
@@ -175,34 +183,32 @@ export default function BillingHubPage() {
             </p>
             {subscription ? (
               <p className="text-foreground/65 mt-2 text-sm">
-                Renews{" "}
+                {t("renews")}{" "}
                 <span className="text-foreground font-medium">
                   {formatDate(subscription.current_period_end)}
                 </span>
                 {subscription.cancel_at_period_end && (
                   <span className="text-destructive ml-2 font-mono text-[11px] tracking-wider uppercase">
-                    · Cancels at period end
+                    · {t("cancelsAtPeriodEnd")}
                   </span>
                 )}
               </p>
             ) : !subLoading ? (
-              <p className="text-foreground/65 mt-2 text-sm">
-                Free plan. Upgrade to unlock more credits, seats, and integrations.
-              </p>
+              <p className="text-foreground/65 mt-2 text-sm">{t("freePlanUpgrade")}</p>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             {!subscription && (
               <Button asChild className="rounded-full">
                 <Link href={ROUTES.PRICING}>
-                  See plans
+                  {t("seePlans")}
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
             )}
             {subscription && (
               <Button asChild variant="outline" className="rounded-full">
-                <Link href={ROUTES.PRICING}>Compare plans</Link>
+                <Link href={ROUTES.PRICING}>{t("comparePlans")}</Link>
               </Button>
             )}
           </div>
@@ -212,40 +218,38 @@ export default function BillingHubPage() {
       {/* Usage gauges */}
       <section>
         <h2 className="font-display text-foreground mb-4 text-base font-semibold tracking-tight">
-          This period
+          {t("thisPeriod")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <UsageGauge
-            label="Credits"
+            label={t("credits")}
             icon={Sparkles}
             used={balance?.balance ?? 0}
             limit={creditsLimit}
-            unit="credits"
+            unit={t("unitCredits")}
             hint={
               balance && balance.low_threshold > 0
-                ? `Auto-refill threshold ${balance.low_threshold.toLocaleString()}`
+                ? t("autoRefillThreshold", { value: balance.low_threshold.toLocaleString() })
                 : undefined
             }
           />
           {seatsLimit !== null && (
             <UsageGauge
-              label="Seats"
+              label={t("seats")}
               icon={Users}
               used={seatsUsed}
               limit={seatsLimit}
-              unit="seats"
-              hint="Add seats from the Stripe portal"
+              unit={t("unitSeats")}
+              hint={t("addSeatsHint")}
             />
           )}
           <UsageGauge
-            label="Storage"
+            label={t("storage")}
             icon={HardDrive}
             used={storage?.total_bytes ?? 0}
             limit={storage?.limit_bytes ?? 0}
             format={formatBytes}
-            hint={
-              storage ? `Chat attachments + indexed RAG documents` : "Failed to load storage usage"
-            }
+            hint={storage ? t("storageHint") : t("storageLoadFailed")}
           />
         </div>
       </section>
@@ -255,32 +259,32 @@ export default function BillingHubPage() {
         <SubLink
           href="/billing/credits"
           icon={Sparkles}
-          title="Credits"
-          description="Balance, transactions, top-up"
+          title={t("credits")}
+          description={t("creditsDesc")}
         />
         <SubLink
           href="/billing/usage"
           icon={Activity}
-          title="Usage"
-          description="Per-model breakdown, by-day timeline"
+          title={t("usage")}
+          description={t("usageDesc")}
         />
         <SubLink
           href="/billing/invoices"
           icon={Receipt}
-          title="Invoices"
-          description="Download PDFs, view history"
+          title={t("invoices")}
+          description={t("invoicesDesc")}
         />
         <SubLink
           href="/billing/payment-methods"
           icon={CreditCard}
-          title="Payment methods"
-          description="Cards on file, set default"
+          title={t("paymentMethods")}
+          description={t("paymentMethodsDesc")}
         />
         <SubLink
           href="/billing/subscription"
           icon={ArrowUpRight}
-          title="Subscription"
-          description="Change plan, manage seats"
+          title={t("subscriptionNav")}
+          description={t("subscriptionNavDesc")}
         />
       </section>
 
@@ -289,14 +293,14 @@ export default function BillingHubPage() {
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="font-display text-foreground text-base font-semibold tracking-tight">
-              Recent invoices
+              {t("recentInvoices")}
             </h2>
             <p className="text-foreground/55 text-xs">
-              Last {Math.min(5, invoices.length)} of {invoices.length}
+              {t("lastOf", { count: Math.min(5, invoices.length), total: invoices.length })}
             </p>
           </div>
           <Button asChild variant="ghost" size="sm" className="rounded-full">
-            <Link href="/billing/invoices">View all →</Link>
+            <Link href="/billing/invoices">{t("viewAll")} →</Link>
           </Button>
         </div>
 
@@ -304,7 +308,7 @@ export default function BillingHubPage() {
           <LoadingState variant="skeleton-list" rows={3} />
         ) : invoices.length === 0 ? (
           <div className="text-foreground/55 border-foreground/10 bg-background rounded-xl border-2 border-dashed p-8 text-center text-sm">
-            No invoices yet. They appear here after your first paid period.
+            {t("noInvoicesYet")}
           </div>
         ) : (
           <ul className="border-foreground/10 divide-foreground/10 -mx-2 divide-y overflow-hidden rounded-xl">
@@ -315,7 +319,7 @@ export default function BillingHubPage() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground text-sm font-medium">
-                    {inv.number ?? `Invoice ${inv.id.slice(0, 8)}`}
+                    {inv.number ?? t("invoiceNumber", { id: inv.id.slice(0, 8) })}
                   </p>
                   <p className="text-foreground/55 mt-0.5 font-mono text-[11px] tracking-wider uppercase">
                     {formatDate(inv.period_start)} — {formatDate(inv.period_end)}
@@ -335,7 +339,7 @@ export default function BillingHubPage() {
                           : "text-foreground/55",
                     )}
                   >
-                    {inv.status}
+                    {invoiceStatusLabels[inv.status] ?? inv.status}
                   </p>
                 </div>
                 {inv.invoice_pdf && (
@@ -344,7 +348,7 @@ export default function BillingHubPage() {
                       href={inv.invoice_pdf}
                       target="_blank"
                       rel="noopener noreferrer"
-                      title="Download PDF"
+                      title={t("downloadPdf")}
                     >
                       <Download className="h-3.5 w-3.5" />
                     </a>

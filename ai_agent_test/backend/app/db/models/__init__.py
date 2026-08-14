@@ -24,6 +24,7 @@ from app.db.models.mobility import (
     VehicleDistribution,
     Weather,
 )
+from app.db.models.enterprise import Employee, Leave, Reimbursement
 
 __all__ = [
     "User",
@@ -51,4 +52,7 @@ __all__ = [
     "Order",
     "Weather",
     "DemandForecast",
+    "Employee",
+    "Reimbursement",
+    "Leave",
 ]

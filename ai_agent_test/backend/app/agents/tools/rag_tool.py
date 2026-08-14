@@ -22,11 +22,11 @@ def _get_retrieval_service() -> "BaseRetrievalService":
     from app.core.config import settings
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.retrieval import RetrievalService
-    from app.services.rag.vectorstore import MilvusVectorStore
+    from app.services.rag.vectorstore import PgvectorVectorStore
 
     rag_settings = settings.rag
     embedding_service = EmbeddingService(rag_settings)
-    vector_store = MilvusVectorStore(rag_settings, embedding_service)
+    vector_store = PgvectorVectorStore(rag_settings, embedding_service)
     _retrieval_service = RetrievalService(vector_store, rag_settings)
     return _retrieval_service
 

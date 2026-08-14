@@ -16,10 +16,10 @@ import { defaultLocale, locales } from "@/i18n";
 export const SITE = {
   name: APP_NAME,
   /** Tagline used in title templates + OG defaults. */
-  tagline: "Shared mobility operations intelligence",
+  tagline: "Enterprise employee assistant workspace",
   /** One-paragraph default description (≤160 chars for SERP truncation). */
   description:
-    "Ask operational questions about vehicles, orders, weather, and demand forecasts. Get SQL-backed answers and charts.",
+    "Ask questions about reimbursements, leaves, and company policies. Get SQL-backed answers and cited sources.",
   /** Canonical absolute origin. NO trailing slash. */
   url:
     (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") as string | undefined) ??
@@ -30,14 +30,14 @@ export const SITE = {
   themeColor: "#F7F9FC",
   /** Long-form keywords. Light SEO weight today; useful for clarity. */
   keywords: [
-    "shared mobility",
-    "operations intelligence",
+    "enterprise assistant",
+    "employee self-service",
     "AI agent",
     "MCP",
     "PostgreSQL analytics",
     "ECharts",
-    "vehicle dispatch",
-    "demand forecasting",
+    "expense management",
+    "leave management",
   ],
   /** Locale defaults — pulls from your i18n config. */
   defaultLocale,

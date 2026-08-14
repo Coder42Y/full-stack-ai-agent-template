@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,6 +13,8 @@ import { OnboardingShell } from "./onboarding-shell";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function StepTeam() {
+  const t = useTranslations("onboarding.team");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [emails, setEmails] = useState<string[]>(["", "", ""]);
 
@@ -26,13 +29,11 @@ export function StepTeam() {
 
   const handleContinue = () => {
     if (invalid) {
-      toast.error("One of the emails looks invalid");
+      toast.error(t("invalidEmail"));
       return;
     }
     if (validInvites.length > 0) {
-      toast.success(
-        `Invites queued for ${validInvites.length} ${validInvites.length === 1 ? "person" : "people"}`,
-      );
+      toast.success(t("invitesQueued", { count: validInvites.length }));
     }
     router.push("/onboarding/done");
   };
@@ -40,15 +41,15 @@ export function StepTeam() {
   return (
     <OnboardingShell
       step="team"
-      title="Bring your team along"
-      description="Invite up to 5 teammates now — they'll get an email with a magic-link to join."
+      title={t("title")}
+      description={t("description")}
     >
       <div className="space-y-2">
         {emails.map((email, i) => (
           <div key={i} className="flex items-center gap-2">
             <Input
               type="email"
-              placeholder="teammate@company.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => updateEmail(i, e.target.value)}
               autoComplete="email"
@@ -59,7 +60,7 @@ export function StepTeam() {
                 type="button"
                 onClick={() => removeRow(i)}
                 className="text-foreground/45 hover:text-foreground hover:bg-foreground/5 h-9 w-9 shrink-0 rounded-full transition-colors"
-                aria-label="Remove invite"
+                aria-label={t("removeInvite")}
               >
                 <X className="mx-auto h-4 w-4" />
               </button>
@@ -75,7 +76,7 @@ export function StepTeam() {
           className="text-foreground/55 hover:text-foreground mt-3 inline-flex items-center gap-1.5 font-mono text-xs tracking-wider uppercase"
         >
           <Plus className="h-3.5 w-3.5" />
-          Add another
+          {t("addAnother")}
         </button>
       )}
 
@@ -86,8 +87,8 @@ export function StepTeam() {
           className="bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium transition-colors"
         >
           {validInvites.length > 0
-            ? `Send ${validInvites.length} invite${validInvites.length === 1 ? "" : "s"}`
-            : "Continue"}
+            ? t("sendInvites", { count: validInvites.length })
+            : tc("continue")}
           <ArrowRight className="h-4 w-4" />
         </button>
         <button
@@ -95,7 +96,7 @@ export function StepTeam() {
           onClick={() => router.push("/onboarding/done")}
           className="text-foreground/55 hover:text-foreground text-sm font-medium"
         >
-          Skip
+          {t("skip")}
         </button>
       </div>
     </OnboardingShell>

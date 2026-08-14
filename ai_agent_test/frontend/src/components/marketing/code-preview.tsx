@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ interface CodePreviewProps {
 }
 
 export function CodePreview({ tabs }: CodePreviewProps) {
+  const t = useTranslations("marketing.codePreview");
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
   const tab = tabs[active];
@@ -52,11 +54,11 @@ export function CodePreview({ tabs }: CodePreviewProps) {
         <button
           type="button"
           onClick={onCopy}
-          aria-label="Copy code"
+          aria-label={t("copyCode")}
           className="text-foreground/55 hover:text-foreground mr-3 inline-flex items-center gap-1.5 rounded px-2 py-1 font-mono text-xs transition-colors"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("copied") : t("copy")}
         </button>
       </div>
 

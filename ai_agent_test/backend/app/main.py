@@ -18,7 +18,7 @@ from app.core.logfire_setup import instrument_app, setup_logfire
 from app.core.logging import setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.services.rag.embeddings import EmbeddingService
-from app.services.rag.vectorstore import BaseVectorStore, MilvusVectorStore
+from app.services.rag.vectorstore import BaseVectorStore, PgvectorVectorStore
 
 
 class LifespanState(TypedDict, total=False):
@@ -56,14 +56,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[LifespanState, None]:
         state["embedding_service"] = embedder
     except Exception as e:
         logger.error(f"Embedding service warmup failed: {e}. RAG will not be available.")
-    # Warmup Milvus and verify health
+    # Warmup vector store and verify health (pgvector, same Postgres)
     if "embedding_service" in state:
         try:
-            vector_store = MilvusVectorStore(settings=settings.rag, embedding_service=embedder)
-            await vector_store.client.list_collections()
+            vector_store = PgvectorVectorStore(settings=settings.rag, embedding_service=embedder)
+            await vector_store.list_collections()
             state["vector_store"] = vector_store
         except Exception as e:
-            logger.error(f"Milvus connection failed: {e}. Vector store will not be available.")
+            logger.error(f"pgvector connection failed: {e}. Vector store will not be available.")
 
     # === MCP (Model Context Protocol) ===
     if settings.MCP_ENABLED:
@@ -156,7 +156,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[LifespanState, None]:
     await close_db()
     try:
         if "vector_store" in state:
-            await state["vector_store"].client.close()  # type: ignore[attr-defined]
+            await state["vector_store"].close()
     except Exception:
         pass
     for _bid in list(_telegram_adapter._polling_tasks.keys()):

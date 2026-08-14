@@ -220,3 +220,6 @@ website/.astro/
 
 # Custom
 .playground/
+
+# CodeGraphContext generated reports
+codegraph-report.md

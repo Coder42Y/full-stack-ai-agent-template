@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 interface Testimonial {
@@ -16,6 +17,7 @@ interface TestimonialCarouselProps {
 }
 
 export function TestimonialCarousel({ items, autoPlayMs = 7000 }: TestimonialCarouselProps) {
+  const tNav = useTranslations("marketing.testimonials");
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export function TestimonialCarousel({ items, autoPlayMs = 7000 }: TestimonialCar
             <button
               type="button"
               onClick={() => setActive((i) => (i - 1 + items.length) % items.length)}
-              aria-label="Previous testimonial"
+              aria-label={tNav("previousTestimonial")}
               className="border-foreground/20 hover:bg-foreground hover:text-background flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -53,7 +55,7 @@ export function TestimonialCarousel({ items, autoPlayMs = 7000 }: TestimonialCar
             <button
               type="button"
               onClick={() => setActive((i) => (i + 1) % items.length)}
-              aria-label="Next testimonial"
+              aria-label={tNav("nextTestimonial")}
               className="border-foreground/20 hover:bg-foreground hover:text-background flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
             >
               <ChevronRight className="h-4 w-4" />

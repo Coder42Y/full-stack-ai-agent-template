@@ -39,24 +39,47 @@ interface PlanRead {
 
 // FAQs moved to messages JSON (`marketing.pricing.faqs`).
 
-const TESTIMONIALS = [
+const TESTIMONIALS_ZH = [
   {
-    quote: "We replaced four separate SaaS tools and shipped our first AI feature in two weeks.",
-    name: "Maya Chen",
-    title: "CTO",
-    company: "Lumen Labs",
+    quote: "以前查报销、算年假要开好几个系统，现在一个助手就能搞定。",
+    name: "王敏",
+    title: "HR 专员",
+    company: "人事部",
   },
   {
-    quote: "The pricing was the easy part. The pre-built billing flow saved us a sprint.",
-    name: "Jonas Berg",
-    title: "Founder",
-    company: "Stash AI",
+    quote: "报销和请假数据能直接生成图表，面试时讲数据链路特别清楚。",
+    name: "李强",
+    title: "财务经理",
+    company: "财务部",
   },
   {
-    quote: "Onboarded our entire ops team in an afternoon. The defaults are sensible.",
-    name: "Priya Nair",
-    title: "Head of Operations",
-    company: "Northwind",
+    quote: "问制度问题直接带来源文档，不用再翻员工手册了。",
+    name: "张伟",
+    title: "普通员工",
+    company: "技术部",
+  },
+];
+
+const TESTIMONIALS_EN = [
+  {
+    quote:
+      "I used to check reimbursement and leave across several systems. Now one assistant handles it.",
+    name: "Wang Min",
+    title: "HR Specialist",
+    company: "HR Dept",
+  },
+  {
+    quote:
+      "Reimbursement and leave data turn into charts directly — great for explaining the data flow.",
+    name: "Li Qiang",
+    title: "Finance Manager",
+    company: "Finance",
+  },
+  {
+    quote: "Policy questions come with source documents, no more digging through the handbook.",
+    name: "Zhang Wei",
+    title: "Employee",
+    company: "Engineering",
   },
 ];
 
@@ -307,7 +330,7 @@ export default function PricingPage() {
               <span className="eyebrow-badge mb-6">{tPricing("loved")}</span>
               <h2 className="text-display-lg">{tPricing("lovedTitle")}</h2>
             </div>
-            <TestimonialGrid items={TESTIMONIALS} />
+            <TestimonialGrid items={locale === "zh" ? TESTIMONIALS_ZH : TESTIMONIALS_EN} />
           </div>
         </Section>
 

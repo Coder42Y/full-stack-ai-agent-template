@@ -65,28 +65,28 @@ export const TEASER_PLANS: TeaserPlan[] = [
 /** Chinese demo plans. Returned by helpers when locale=zh. */
 export const TEASER_PLANS_ZH: TeaserPlan[] = [
   {
-    name: "MVP Demo",
+    name: "MVP 演示",
     price: "4",
     cadence: " 个核心场景",
     description: "面试演示所需的最小业务闭环。",
-    features: ["车辆堆积识别", "早晚高峰趋势", "预测缺口排序"],
+    features: ["报销查询", "请假记录", "制度问答"],
     cta: { label: "打开聊天", href: ROUTES.CHAT },
   },
   {
-    name: "Ops Pilot",
+    name: "运营试跑",
     price: "18",
-    cadence: " 个站点",
-    description: "带真实 seed 数据的运营试跑版本。",
+    cadence: " 位员工",
+    description: "带真实 seed 数据的员工助手试跑版本。",
     features: ["PostgreSQL 业务库", "MCP 查询工具", "ECharts 图表渲染", "三套业务 Prompt"],
     cta: { label: "进入工作台", href: ROUTES.DASHBOARD },
     featured: true,
     badge: "当前版本",
   },
   {
-    name: "Production",
+    name: "生产落地",
     price: "可扩展",
-    description: "真实落地时加入空间计算和调度约束。",
-    features: ["PostGIS 距离权重", "容量和车型约束", "实时数据同步", "阈值配置中心"],
+    description: "真实落地时接入更多内部系统（工单、审批、知识库）。",
+    features: ["审批流接入", "工单系统", "更多内部系统", "权限与审计"],
     cta: { label: "查看方案", href: "/contact" },
   },
 ];

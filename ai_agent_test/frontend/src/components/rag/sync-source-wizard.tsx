@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Calendar, Check, Cog, Database, Plug } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Dialog,
@@ -34,23 +35,23 @@ interface SyncSourceWizardProps {
 
 type Step = "connector" | "configure" | "schedule";
 
-const STEPS: { id: Step; label: string; icon: typeof Plug }[] = [
-  { id: "connector", label: "Pick source", icon: Plug },
-  { id: "configure", label: "Configure", icon: Cog },
-  { id: "schedule", label: "Schedule", icon: Calendar },
+const STEPS: { id: Step; labelKey: string; icon: typeof Plug }[] = [
+  { id: "connector", labelKey: "stepPickSource", icon: Plug },
+  { id: "configure", labelKey: "stepConfigure", icon: Cog },
+  { id: "schedule", labelKey: "stepSchedule", icon: Calendar },
 ];
 
 const SYNC_MODES = [
-  { value: "full", label: "Full", description: "Reprocess everything every run" },
-  { value: "new_only", label: "New only", description: "Only ingest files added since last sync" },
-  { value: "update_only", label: "Update only", description: "Re-ingest files that changed" },
+  { value: "full", labelKey: "syncModeFull", descriptionKey: "syncModeFullDesc" },
+  { value: "new_only", labelKey: "syncModeNewOnly", descriptionKey: "syncModeNewOnlyDesc" },
+  { value: "update_only", labelKey: "syncModeUpdateOnly", descriptionKey: "syncModeUpdateOnlyDesc" },
 ];
 
 const SCHEDULE_PRESETS = [
-  { value: 0, label: "Manual" },
-  { value: 60, label: "Every hour" },
-  { value: 360, label: "Every 6h" },
-  { value: 1440, label: "Daily" },
+  { value: 0, labelKey: "scheduleManual" },
+  { value: 60, labelKey: "scheduleHourly" },
+  { value: 360, labelKey: "scheduleEvery6h" },
+  { value: 1440, labelKey: "scheduleDaily" },
 ];
 
 const CONNECTOR_BRAND: Record<string, "gdrive" | "github" | "notion" | "slack" | "dropbox"> = {
@@ -72,6 +73,8 @@ export function SyncSourceWizard({
   onSubmit,
   submitting,
 }: SyncSourceWizardProps) {
+  const t = useTranslations("rag");
+  const tc = useTranslations("common");
   const [step, setStep] = useState<Step>("connector");
   const [form, setForm] = useState<SyncSourceCreate>({
     name: "",
@@ -138,7 +141,7 @@ export function SyncSourceWizard({
       <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-2xl">
         <DialogHeader className="border-foreground/10 border-b px-6 py-4">
           <DialogTitle className="font-display text-base font-semibold">
-            Add sync source
+            {t("addSyncSource")}
           </DialogTitle>
           <ol className="mt-3 flex items-center gap-2">
             {STEPS.map((s, i) => {
@@ -162,7 +165,7 @@ export function SyncSourceWizard({
                       active || done ? "text-foreground" : "text-foreground/45",
                     )}
                   >
-                    {s.label}
+                    {t(s.labelKey)}
                   </span>
                   {i < STEPS.length - 1 && (
                     <span
@@ -199,7 +202,7 @@ export function SyncSourceWizard({
               className="text-foreground/65 hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              {tc("back")}
             </button>
           ) : (
             <button
@@ -207,7 +210,7 @@ export function SyncSourceWizard({
               onClick={() => onOpenChange(false)}
               className="text-foreground/65 hover:text-foreground text-sm font-medium"
             >
-              Cancel
+              {tc("cancel")}
             </button>
           )}
 
@@ -220,16 +223,16 @@ export function SyncSourceWizard({
             {submitting && step === "schedule" ? (
               <>
                 <Spinner className="h-3.5 w-3.5" />
-                Creating…
+                {t("creating")}
               </>
             ) : step === "schedule" ? (
               <>
-                Create source
+                {t("createSource")}
                 <Check className="h-4 w-4" />
               </>
             ) : (
               <>
-                Continue
+                {tc("next")}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -249,6 +252,7 @@ function ConnectorStep({
   form: SyncSourceCreate;
   setForm: React.Dispatch<React.SetStateAction<SyncSourceCreate>>;
 }) {
+  const t = useTranslations("rag");
   return (
     <div className="space-y-5">
       <div className="space-y-1.5">
@@ -256,11 +260,11 @@ function ConnectorStep({
           htmlFor="source-name"
           className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
         >
-          Source name
+          {t("sourceName")}
         </Label>
         <Input
           id="source-name"
-          placeholder="e.g. Engineering docs (S3)"
+          placeholder={t("sourceNamePlaceholder")}
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           className="h-10 rounded-xl"
@@ -269,11 +273,11 @@ function ConnectorStep({
 
       <div className="space-y-2">
         <Label className="text-foreground/80 text-xs font-medium tracking-wider uppercase">
-          Connector
+          {t("connector")}
         </Label>
         {connectors.length === 0 ? (
           <p className="border-foreground/10 bg-foreground/[0.03] text-foreground/65 rounded-xl border px-4 py-3 text-sm">
-            No connectors enabled. Configure a connector in the backend first.
+            {t("noConnectorsEnabled")}
           </p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
@@ -332,6 +336,7 @@ function ConfigureStep({
   form: SyncSourceCreate;
   setForm: React.Dispatch<React.SetStateAction<SyncSourceCreate>>;
 }) {
+  const t = useTranslations("rag");
   const fields = Object.entries(connector.config_schema);
 
   if (fields.length === 0) {
@@ -339,10 +344,9 @@ function ConfigureStep({
       <div className="border-foreground/10 bg-foreground/[0.03] rounded-xl border p-5 text-center">
         <Cog className="text-foreground/45 mx-auto h-6 w-6" />
         <p className="text-foreground/70 mt-3 text-sm">
-          No additional configuration needed for{" "}
-          <span className="text-foreground font-medium">{connector.name}</span>.
+          {t("noConfigNeeded", { name: connector.name })}
         </p>
-        <p className="text-foreground/50 mt-1 text-xs">Continue to schedule the source.</p>
+        <p className="text-foreground/50 mt-1 text-xs">{t("continueToSchedule")}</p>
       </div>
     );
   }
@@ -350,8 +354,8 @@ function ConfigureStep({
   return (
     <div className="space-y-4">
       <p className="text-foreground/65 text-sm">
-        Configure {connector.name}. Required fields are marked with{" "}
-        <span className="text-destructive">*</span>.
+        {t("configureFields", { name: connector.name })}{" "}
+        <span className="text-destructive">*</span>
       </p>
       {fields.map(([key, field]) => (
         <div key={key} className="space-y-1.5">
@@ -413,18 +417,19 @@ function ScheduleStep({
   form: SyncSourceCreate;
   setForm: React.Dispatch<React.SetStateAction<SyncSourceCreate>>;
 }) {
+  const t = useTranslations("rag");
   return (
     <div className="space-y-5">
       <div className="space-y-1.5">
         <Label className="text-foreground/80 text-xs font-medium tracking-wider uppercase">
-          Target collection
+          {t("targetCollection")}
         </Label>
         <Select
           value={form.collection_name}
           onValueChange={(val) => setForm((f) => ({ ...f, collection_name: val }))}
         >
           <SelectTrigger className="h-10 rounded-xl">
-            <SelectValue placeholder="Select collection…" />
+            <SelectValue placeholder={t("selectCollectionPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {collections.map((c) => (
@@ -438,7 +443,7 @@ function ScheduleStep({
 
       <div className="space-y-2">
         <Label className="text-foreground/80 text-xs font-medium tracking-wider uppercase">
-          Sync mode
+          {t("syncMode")}
         </Label>
         <div className="grid gap-2 sm:grid-cols-3">
           {SYNC_MODES.map((mode) => {
@@ -455,8 +460,8 @@ function ScheduleStep({
                     : "border-foreground/10 bg-card hover:border-foreground/30",
                 )}
               >
-                <p className="text-foreground text-sm font-semibold">{mode.label}</p>
-                <p className="text-foreground/55 mt-0.5 text-xs">{mode.description}</p>
+                <p className="text-foreground text-sm font-semibold">{t(mode.labelKey)}</p>
+                <p className="text-foreground/55 mt-0.5 text-xs">{t(mode.descriptionKey)}</p>
               </button>
             );
           })}
@@ -465,7 +470,7 @@ function ScheduleStep({
 
       <div className="space-y-2">
         <Label className="text-foreground/80 text-xs font-medium tracking-wider uppercase">
-          Schedule
+          {t("schedule")}
         </Label>
         <div className="flex flex-wrap gap-2">
           {SCHEDULE_PRESETS.map((p) => {
@@ -484,20 +489,20 @@ function ScheduleStep({
                     : "text-foreground/65 hover:text-foreground hover:border-foreground/40",
                 )}
               >
-                {p.label}
+                {t(p.labelKey)}
               </button>
             );
           })}
         </div>
         <div className="flex items-center gap-2 pt-1">
           <Label htmlFor="custom-schedule" className="text-foreground/55 text-xs">
-            Custom (minutes):
+            {t("customMinutes")}
           </Label>
           <Input
             id="custom-schedule"
             type="number"
             min={0}
-            placeholder="0 = manual"
+            placeholder={t("customMinutesPlaceholder")}
             value={form.schedule_minutes ?? ""}
             onChange={(e) =>
               setForm((f) => ({

@@ -18,11 +18,9 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("pg-query")
 
 ALLOWED_TABLES = {
-    "stations",
-    "vehicle_distribution",
-    "orders",
-    "weather",
-    "demand_forecast",
+    "employees",
+    "reimbursements",
+    "leaves",
 }
 FORBIDDEN_KEYWORDS = {
     "alter",
@@ -282,14 +280,12 @@ def _validate_sql(sql: str) -> str:
 
 @mcp.tool()
 def execute_query(sql: str) -> str:
-    """Execute a read-only SQL query against the shared mobility database.
+    """Execute a read-only SQL query against the enterprise employee database.
 
-    The database contains Shanghai shared mobility operational data:
-    - stations: stations and operating areas with district, location, capacity, type
-    - vehicle_distribution: hourly vehicle counts by station
-    - orders: ride orders with pickup/dropoff stations, amount, vehicle type
-    - weather: daily weather observations by station
-    - demand_forecast: predicted demand by station, date, and hour
+    The database contains company employee records:
+    - employees: employees with name, department, title, level, hire_date
+    - reimbursements: expense reimbursement records (category, amount, status, submitted_at)
+    - leaves: leave records (leave_type, start_date, end_date, days, status)
 
     Args:
         sql: A PostgreSQL SELECT query. Only read-only SELECT/WITH queries are allowed.
@@ -330,75 +326,46 @@ def execute_query(sql: str) -> str:
 
 @mcp.tool()
 def list_tables() -> str:
-    """List the whitelisted mobility demo tables and columns."""
+    """List the whitelisted enterprise demo tables and columns."""
     payload = {
         "kind": "pg_schema",
         "tables": [
             {
-                "name": "stations",
-                "description": "Shanghai shared mobility stations and operating areas.",
+                "name": "employees",
+                "description": "Company employees with department, title, level, hire date.",
                 "columns": [
                     "id",
                     "name",
-                    "district",
-                    "address",
-                    "lat",
-                    "lng",
-                    "capacity",
-                    "station_type",
+                    "department",
+                    "title",
+                    "level",
+                    "hire_date",
                 ],
             },
             {
-                "name": "vehicle_distribution",
-                "description": "Hourly vehicle inventory snapshots by station.",
+                "name": "reimbursements",
+                "description": "Expense reimbursement records (category, amount, status, submitted_at).",
                 "columns": [
                     "id",
-                    "station_id",
-                    "bike_count",
-                    "ebike_count",
-                    "scooter_count",
-                    "total_count",
-                    "recorded_at",
-                ],
-            },
-            {
-                "name": "orders",
-                "description": "Ride orders with pickup and dropoff station references.",
-                "columns": [
-                    "id",
-                    "user_id",
-                    "vehicle_type",
-                    "pickup_station_id",
-                    "dropoff_station_id",
+                    "employee_id",
+                    "category",
                     "amount",
-                    "duration_minutes",
-                    "created_at",
+                    "status",
+                    "description",
+                    "submitted_at",
                 ],
             },
             {
-                "name": "weather",
-                "description": "Daily weather near each station.",
+                "name": "leaves",
+                "description": "Employee leave records (leave_type, start_date, end_date, days, status).",
                 "columns": [
                     "id",
-                    "station_id",
-                    "date",
-                    "weather_type",
-                    "temperature",
-                    "precipitation_mm",
-                    "wind_speed",
-                ],
-            },
-            {
-                "name": "demand_forecast",
-                "description": "Hourly predicted demand by station.",
-                "columns": [
-                    "id",
-                    "station_id",
-                    "forecast_date",
-                    "hour",
-                    "predicted_demand",
-                    "confidence",
-                    "model_version",
+                    "employee_id",
+                    "leave_type",
+                    "start_date",
+                    "end_date",
+                    "days",
+                    "status",
                 ],
             },
         ],

@@ -85,7 +85,7 @@ async def _run_ingestion(
     from app.services.rag.documents import DocumentProcessor
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.ingestion import IngestionService
-    from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
+    from app.services.rag.vectorstore import PgvectorVectorStore as VectorStore
     from app.services.rag_document import RAGDocumentService
 
     rag_settings = settings.rag
@@ -125,7 +125,7 @@ async def _run_sync(
     from app.services.rag.documents import DocumentProcessor
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.ingestion import IngestionService
-    from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
+    from app.services.rag.vectorstore import PgvectorVectorStore as VectorStore
     from app.services.rag_document import RAGDocumentService
     from app.services.rag_sync import RAGSyncService
 
@@ -307,7 +307,7 @@ async def _run_source_sync(source_id: str, sync_log_id: str | None = None) -> di
     from app.services.rag.documents import DocumentProcessor
     from app.services.rag.embeddings import EmbeddingService
     from app.services.rag.ingestion import IngestionService
-    from app.services.rag.vectorstore import MilvusVectorStore as VectorStore
+    from app.services.rag.vectorstore import PgvectorVectorStore as VectorStore
     from app.services.rag_sync import RAGSyncService
     from app.services.sync_source import SyncSourceService
 

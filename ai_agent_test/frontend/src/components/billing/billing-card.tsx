@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CreditCard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,16 +16,17 @@ interface BillingCardProps {
   memberCount: number;
 }
 
-const tierLabels: Record<string, string> = {
-  free: "Free",
-  solo: "Solo",
-  team: "Team",
-  business: "Business",
-};
-
 export function BillingCard({ org, memberCount }: BillingCardProps) {
+  const t = useTranslations("billing");
   const { isLoading, openPortal } = useBilling();
   const [seatDialogOpen, setSeatDialogOpen] = useState(false);
+
+  const tierLabels: Record<string, string> = {
+    free: t("tierFree"),
+    solo: t("tierSolo"),
+    team: t("tierTeam"),
+    business: t("tierBusiness"),
+  };
 
   const seatsUsed = memberCount;
   const seatsLimit = org.seats_limit;
@@ -38,16 +40,14 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">
               <CreditCard className="h-4 w-4" />
-              Billing & Subscription
+              {t("subscription")}
             </CardTitle>
             <Badge variant={tier === "free" ? "secondary" : "default"}>
               {tierLabels[tier] ?? tier}
             </Badge>
           </div>
           <CardDescription>
-            {tier === "free"
-              ? "Upgrade to add more seats and unlock features."
-              : "Manage your subscription and billing details."}
+            {tier === "free" ? t("subscriptionDesc") : t("subscriptionDescPaid")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -56,7 +56,7 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
-                  Seats used
+                  {t("seatsUsed")}
                 </span>
                 <span className="font-medium">
                   {seatsUsed} / {seatsLimit}
@@ -72,7 +72,7 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
                 disabled={isLoading}
                 className="flex-1"
               >
-                Upgrade plan
+                {t("upgrade")}
               </Button>
             ) : (
               <Button
@@ -81,7 +81,7 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
                 disabled={isLoading}
                 className="flex-1"
               >
-                {isLoading ? "Redirecting…" : "Manage billing"}
+                {isLoading ? t("redirecting") : t("manageBilling")}
               </Button>
             )}
           </div>

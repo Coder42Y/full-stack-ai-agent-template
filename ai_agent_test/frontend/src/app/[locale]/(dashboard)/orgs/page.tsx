@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRightLeft, Building2, Camera, Plus, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { CreateOrgDialog } from "@/components/teams";
@@ -12,6 +13,7 @@ import { useOrganizations } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 export default function OrgsPage() {
+  const t = useTranslations("organizations");
   const { orgs, activeOrgId, fetchOrgs, switchOrg } = useOrganizations();
   const [createOpen, setCreateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +25,7 @@ export default function OrgsPage() {
 
   const handleAvatarUpload = async (orgId: string, file: File) => {
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Avatar too large. Maximum 2MB.");
+      toast.error(t("avatarTooLarge"));
       return;
     }
     setUploadingFor(orgId);
@@ -32,13 +34,13 @@ export default function OrgsPage() {
       fd.append("file", file);
       const res = await fetch(`/api/orgs/${orgId}/avatar`, { method: "POST", body: fd });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-        throw new Error(err.detail || "Upload failed");
+        const err = await res.json().catch(() => ({ detail: t("uploadFailed") }));
+        throw new Error(err.detail || t("uploadFailed"));
       }
-      toast.success("Organization avatar updated");
+      toast.success(t("avatarUpdated"));
       await fetchOrgs();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+      toast.error(err instanceof Error ? err.message : t("failedUploadAvatar"));
     } finally {
       setUploadingFor(null);
     }
@@ -59,19 +61,19 @@ export default function OrgsPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <PageHero
-        eyebrow="Organizations"
+        eyebrow={t("title")}
         title={
           <>
-            Workspaces and <em>teams.</em>
+            {t("heroTitlePre")} <em>{t("heroTitleEm")}</em>
           </>
         }
-        description="Switch between workspaces, manage members, and spin up new organizations to collaborate with your team."
+        description={t("heroDescription")}
         stats={
           orgs.length > 0
-            ? [{ value: orgs.length, label: orgs.length === 1 ? "workspace" : "workspaces" }]
+            ? [{ value: orgs.length, label: t("workspaceCount", { count: orgs.length }) }]
             : undefined
         }
-        cta={{ label: "New organization", onClick: () => setCreateOpen(true), icon: Plus }}
+        cta={{ label: t("newOrg"), onClick: () => setCreateOpen(true), icon: Plus }}
       />
 
       {isLoading ? (
@@ -79,9 +81,9 @@ export default function OrgsPage() {
       ) : orgs.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title="No organizations yet"
-          description="Create your first workspace to invite teammates and share access to conversations and knowledge bases."
-          cta={{ label: "Create organization", onClick: () => setCreateOpen(true) }}
+          title={t("noOrgs")}
+          description={t("emptyDescription")}
+          cta={{ label: t("createTitle"), onClick: () => setCreateOpen(true) }}
         />
       ) : (
         <ul className="space-y-3">
@@ -112,7 +114,7 @@ export default function OrgsPage() {
                     fileInputRef.current?.click();
                   }}
                   disabled={uploadingFor !== null}
-                  title="Change organization avatar"
+                  title={t("changeAvatar")}
                 >
                   {org.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -131,20 +133,21 @@ export default function OrgsPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-foreground truncate text-base font-semibold">{org.name}</h2>
-                    {org.is_personal && (
-                      <span className="border-foreground/15 text-foreground/65 rounded-full border px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase">
-                        Personal
-                      </span>
-                    )}
+                    <h2 className="text-foreground truncate text-base font-semibold">
+                      {org.is_personal ? t("personal") : org.name}
+                    </h2>
                     {isActive && (
                       <span className="bg-brand/15 text-foreground rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase">
-                        Active
+                        {t("active")}
                       </span>
                     )}
                   </div>
                   <p className="text-foreground/55 mt-0.5 truncate text-xs">
-                    <span className="capitalize">{org.subscription_tier}</span>
+                    <span className="capitalize">
+                      {org.subscription_tier === "free"
+                        ? t("tierFree")
+                        : org.subscription_tier}
+                    </span>
                     {org.slug && <> · {org.slug}</>}
                   </p>
                 </div>
@@ -165,7 +168,7 @@ export default function OrgsPage() {
                     )}
                   >
                     <ArrowRightLeft className="h-3.5 w-3.5" />
-                    {isActive ? "Current" : "Switch"}
+                    {isActive ? t("current") : t("switchTo")}
                   </button>
                   <button
                     type="button"
@@ -173,7 +176,7 @@ export default function OrgsPage() {
                     className="border-foreground/15 hover:border-foreground/40 text-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                   >
                     <Settings className="h-3.5 w-3.5" />
-                    Manage
+                    {t("manage")}
                   </button>
                 </div>
               </li>

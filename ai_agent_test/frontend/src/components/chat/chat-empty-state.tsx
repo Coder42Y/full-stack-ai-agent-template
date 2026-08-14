@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Bike, CloudRain, MapPinned, TrendingUp } from "lucide-react";
+import { ArrowUpRight, BookOpen, CalendarCheck, ReceiptText, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/hooks";
@@ -8,22 +8,22 @@ import { cn } from "@/lib/utils";
 
 const PROMPTS = [
   {
-    icon: Bike,
+    icon: ReceiptText,
     key: "pileup",
     accent: "from-amber-500/30 to-brand/5",
   },
   {
-    icon: TrendingUp,
+    icon: CalendarCheck,
     key: "peak",
     accent: "from-sky-500/30 to-brand/5",
   },
   {
-    icon: MapPinned,
+    icon: Users,
     key: "gap",
     accent: "from-emerald-500/30 to-brand/5",
   },
   {
-    icon: CloudRain,
+    icon: BookOpen,
     key: "weather",
     accent: "from-rose-500/30 to-brand/5",
   },

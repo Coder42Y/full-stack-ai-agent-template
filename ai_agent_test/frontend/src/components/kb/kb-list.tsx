@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Lock, Sparkles, Trash2, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { KBScope, KnowledgeBase } from "@/types";
@@ -13,10 +14,10 @@ interface KBListProps {
   canDelete?: boolean;
 }
 
-const SCOPE_META: Record<KBScope, { label: string; icon: LucideIcon }> = {
-  personal: { label: "Personal", icon: Lock },
-  org: { label: "Organization", icon: Users },
-  app: { label: "App-wide", icon: Sparkles },
+const SCOPE_META: Record<KBScope, { labelKey: string; icon: LucideIcon }> = {
+  personal: { labelKey: "scopePersonalLabel", icon: Lock },
+  org: { labelKey: "scopeOrgLabel", icon: Users },
+  app: { labelKey: "scopeAppLabel", icon: Sparkles },
 };
 
 /**
@@ -57,7 +58,9 @@ interface KBCardProps {
 }
 
 function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
+  const t = useTranslations("knowledgeBases");
   const meta = SCOPE_META[kb.scope];
+  const scopeLabel = t(meta.labelKey);
 
   return (
     <div
@@ -91,7 +94,7 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
       <Link
         href={`/kb/${kb.id}`}
         className="focus-visible:ring-foreground/20 absolute inset-0 z-10 rounded-[inherit] focus-visible:ring-2 focus-visible:outline-none"
-        aria-label={`Open ${kb.name}`}
+        aria-label={t("openKB", { name: kb.name })}
       />
 
       <div className="pointer-events-none relative z-20 flex h-full flex-col p-5 sm:p-6">
@@ -114,7 +117,7 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
             {kb.is_default && (
               <span className="bg-brand/15 text-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase">
                 <Sparkles className="h-2.5 w-2.5" />
-                Default
+                {t("default")}
               </span>
             )}
             {canDelete && !kb.is_default && (
@@ -123,16 +126,12 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (
-                    confirm(
-                      `Delete "${kb.name}"? This will remove the knowledge base and all its documents.`,
-                    )
-                  ) {
+                  if (confirm(t("deleteConfirm", { name: kb.name }))) {
                     onDelete();
                   }
                 }}
                 className="text-foreground/45 hover:bg-destructive/10 hover:text-destructive pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-lg opacity-0 transition-all group-hover:opacity-100 focus-visible:opacity-100"
-                aria-label="Delete knowledge base"
+                aria-label={t("deleteKB")}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -168,7 +167,7 @@ function KBCard({ kb, canDelete, onDelete, featured }: KBCardProps) {
         <div className="mt-6 flex items-center justify-between gap-2 font-mono text-[10px] tracking-wider uppercase">
           <span className="text-foreground/45 inline-flex items-center gap-1.5 truncate">
             <meta.icon className="h-3 w-3 shrink-0" />
-            <span className="truncate">{meta.label}</span>
+            <span className="truncate">{scopeLabel}</span>
             {kb.description && (
               <>
                 <span className="text-foreground/20">·</span>

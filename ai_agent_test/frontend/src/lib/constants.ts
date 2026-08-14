@@ -2,8 +2,8 @@
  * Application constants.
  */
 
-export const APP_NAME = "MobilityOps AI";
-export const APP_DESCRIPTION = "Shared mobility operations intelligence workspace";
+export const APP_NAME = "WorkMate AI";
+export const APP_DESCRIPTION = "Enterprise employee assistant workspace";
 
 // API Routes (Next.js internal routes)
 export const API_ROUTES = {

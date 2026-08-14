@@ -230,6 +230,7 @@ class Settings(BaseSettings):
 
     # Embeddings
     EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_PROVIDER: str = "openai"  # "openai" | "sentence_transformers" (local, no API)
 
     # Chunking
     RAG_CHUNK_SIZE: int = 512
@@ -350,7 +351,10 @@ class Settings(BaseSettings):
             chunking_strategy=self.RAG_CHUNKING_STRATEGY,
             enable_hybrid_search=self.RAG_HYBRID_SEARCH,
             enable_ocr=self.RAG_ENABLE_OCR,
-            embeddings_config=EmbeddingsConfig(model=self.EMBEDDING_MODEL),
+            embeddings_config=EmbeddingsConfig(
+                model=self.EMBEDDING_MODEL,
+                provider=self.EMBEDDING_PROVIDER,
+            ),
             document_parser=DocumentParser(),
             pdf_parser=pdf_parser,
             enable_image_description=self.RAG_ENABLE_IMAGE_DESCRIPTION,

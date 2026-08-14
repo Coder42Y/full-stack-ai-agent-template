@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { LoadingState } from "@/components/states";
 import { apiClient } from "@/lib/api-client";
@@ -9,6 +10,7 @@ import { useAuthStore } from "@/stores";
 import type { User } from "@/types";
 
 export default function AuthCallbackPage() {
+  const t = useTranslations("auth.callback");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function AuthCallbackPage() {
         router.replace("/dashboard");
       } catch {
         if (!cancelled) {
-          setError("Sign-in failed");
+          setError(t("signInFailed"));
           router.replace("/login?error=oauth_failed");
         }
       }
@@ -52,14 +54,14 @@ export default function AuthCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, searchParams]);
+  }, [router, searchParams, t]);
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
       {error ? (
-        <p className="text-foreground/65 text-sm">Sign-in failed. Redirecting…</p>
+        <p className="text-foreground/65 text-sm">{t("redirecting")}</p>
       ) : (
-        <LoadingState variant="dot-pulse" label="Completing sign-in…" />
+        <LoadingState variant="dot-pulse" label={t("completing")} />
       )}
     </div>
   );

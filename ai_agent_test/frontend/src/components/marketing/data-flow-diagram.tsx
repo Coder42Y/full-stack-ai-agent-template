@@ -1,15 +1,15 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, Bike, CloudRain, MapPinned, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, BookOpen, CalendarCheck, ReceiptText, Sparkles, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const SOURCES: Array<{ icon: LucideIcon; label: string }> = [
-  { icon: Bike, label: "车辆分布" },
-  { icon: BarChart3, label: "订单流水" },
-  { icon: CloudRain, label: "天气观测" },
-  { icon: TrendingUp, label: "需求预测" },
-  { icon: MapPinned, label: "站点档案" },
+  { icon: ReceiptText, label: "报销记录" },
+  { icon: BarChart3, label: "请假记录" },
+  { icon: CalendarCheck, label: "考勤记录" },
+  { icon: Users, label: "员工信息" },
+  { icon: BookOpen, label: "制度文档" },
 ];
 
 interface DataFlowCopy {
@@ -23,13 +23,13 @@ interface DataFlowCopy {
 }
 
 const DEFAULT_COPY: DataFlowCopy = {
-  sourcesEyebrow: "运营数据",
+  sourcesEyebrow: "企业数据",
   sources: SOURCES.map((source) => source.label),
   rowsLabel: "demo rows",
   readyLabel: "MCP ready",
-  question: "哪些站点存在车辆堆积？",
+  question: "我这个月报销了多少？",
   answerEyebrow: "建议",
-  answer: "发现 4 个车辆堆积站点，优先处理虹桥火车站和张江地铁站，并在 2 小时后复查库存变化。",
+  answer: "本月共 5 笔报销，合计 860 元，均已到账。",
 };
 
 interface Endpoints {
@@ -222,7 +222,7 @@ export function DataFlowDiagram({ copy = DEFAULT_COPY }: { copy?: DataFlowCopy }
 
             <div className="relative z-10 text-center">
               <p className="eyebrow text-foreground/55 mb-1.5">PostgreSQL</p>
-              <AnimatedCount target={31240} suffix="" />
+              <AnimatedCount target={123} suffix="" />
               <p className="text-foreground/55 mt-0.5 font-mono text-[10px] tracking-wider uppercase">
                 {copy.rowsLabel}
               </p>
@@ -259,7 +259,7 @@ export function DataFlowDiagram({ copy = DEFAULT_COPY }: { copy?: DataFlowCopy }
             <p className="text-foreground text-sm leading-snug">{copy.question}</p>
           </div>
 
-          <p className="eyebrow text-foreground/55">Ops Agent</p>
+          <p className="eyebrow text-foreground/55">WorkMate</p>
 
           <div
             ref={assistantRef}
@@ -282,9 +282,9 @@ export function DataFlowDiagram({ copy = DEFAULT_COPY }: { copy?: DataFlowCopy }
               </div>
               <p className="text-foreground text-sm leading-relaxed">{copy.answer}</p>
               <div className="border-foreground/10 mt-3 flex flex-wrap gap-1.5 border-t pt-3">
-                <Cite>vehicle_distribution</Cite>
-                <Cite>stations</Cite>
-                <Cite>demand_forecast</Cite>
+                <Cite>reimbursements</Cite>
+                <Cite>employees</Cite>
+                <Cite>leaves</Cite>
               </div>
             </div>
           </div>

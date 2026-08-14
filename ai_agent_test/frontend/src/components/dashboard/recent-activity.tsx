@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Coins, MessageSquare, Receipt, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { apiClient } from "@/lib/api-client";
@@ -36,6 +37,8 @@ interface CreditTx {
 }
 
 export function RecentActivity({ limit = 6 }: { limit?: number }) {
+  const t = useTranslations("dashboard");
+  const format = useFormatter();
   const [items, setItems] = useState<ActivityItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,8 +58,8 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
           events.push({
             id: `conv-${c.id}`,
             icon: MessageSquare,
-            title: c.title?.trim() || "New conversation",
-            description: "Conversation",
+            title: c.title?.trim() || t("newConversation"),
+            description: t("conversation"),
             timestamp: c.updated_at || c.created_at,
             href: `${ROUTES.CHAT}?id=${c.id}`,
           });
@@ -84,8 +87,26 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
       events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setItems(events.slice(0, limit));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load activity");
+      setError(err instanceof Error ? err.message : t("loadActivityError"));
     }
+  };
+
+  const formatRelative = (iso: string): string => {
+    const then = new Date(iso);
+    if (Number.isNaN(then.getTime())) return "";
+    const diffSec = Math.round((then.getTime() - Date.now()) / 1000);
+    if (Math.abs(diffSec) < 60) return t("justNow");
+    return format.relativeTime(then, new Date());
+  };
+
+  const humanizeTxType = (type: string): string => {
+    const map: Record<string, string> = {
+      subscription_renewal: t("txSubscriptionRenewal"),
+      topup: t("txTopup"),
+      consumption: t("txConsumption"),
+      admin_adjustment: t("txAdminAdjustment"),
+    };
+    return map[type] ?? t("txGeneric");
   };
 
   useEffect(() => {
@@ -96,29 +117,29 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
   return (
     <div className="border-border bg-card flex h-full flex-col rounded-2xl border p-5 lg:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-display text-foreground text-base font-semibold">Recent activity</h2>
+        <h2 className="font-display text-foreground text-base font-semibold">{t("recentActivity")}</h2>
         <Link
           href={ROUTES.CHAT}
           className="text-foreground/55 hover:text-foreground font-mono text-[11px] tracking-wider uppercase"
         >
-          View all →
+          {t("viewAll")} →
         </Link>
       </div>
 
       {items === null && !error && <LoadingState variant="skeleton-list" rows={4} />}
       {error && (
         <ErrorState
-          title="Couldn't load activity"
+          title={t("loadActivityFailed")}
           description={error}
-          cta={{ label: "Retry", onClick: load }}
+          cta={{ label: t("retry"), onClick: load }}
         />
       )}
       {items && items.length === 0 && !error && (
         <EmptyState
           icon={MessageSquare}
-          title="Nothing yet"
-          description="Start a chat or upload a document — recent events will appear here."
-          cta={{ label: "Start a chat", href: ROUTES.CHAT }}
+          title={t("activityEmptyTitle")}
+          description={t("activityEmptyDesc")}
+          cta={{ label: t("startChat"), href: ROUTES.CHAT }}
           fill
         />
       )}
@@ -126,7 +147,7 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
         <ul className="-mx-2 flex-1 space-y-0.5">
           {items.map((item) => (
             <li key={item.id}>
-              <ActivityRow item={item} />
+              <ActivityRow item={item} formatRelative={formatRelative} />
             </li>
           ))}
         </ul>
@@ -135,7 +156,13 @@ export function RecentActivity({ limit = 6 }: { limit?: number }) {
   );
 }
 
-function ActivityRow({ item }: { item: ActivityItem }) {
+function ActivityRow({
+  item,
+  formatRelative,
+}: {
+  item: ActivityItem;
+  formatRelative: (iso: string) => string;
+}) {
   const content = (
     <div
       className={cn(
@@ -171,17 +198,3 @@ function ActivityRow({ item }: { item: ActivityItem }) {
   return content;
 }
 
-function formatRelative(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const diffSec = Math.round((Date.now() - then) / 1000);
-  if (diffSec < 60) return "just now";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function humanizeTxType(t: string): string {
-  return t.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
-}

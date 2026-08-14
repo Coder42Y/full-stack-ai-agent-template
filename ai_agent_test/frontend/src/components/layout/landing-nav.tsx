@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks";
 import { LanguageSwitcherCompact } from "@/components/language-switcher";
 import { APP_NAME, ROUTES } from "@/lib/constants";
@@ -14,6 +15,8 @@ interface LandingNavProps {
 
 export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: LandingNavProps) {
   const { user, isAuthenticated, logout } = useAuth();
+  const tMarketing = useTranslations("marketing");
+  const tAppNav = useTranslations("appNav");
 
   return (
     <div className="fixed top-0 right-0 left-0 z-50 flex justify-center px-4 pt-4">
@@ -27,7 +30,7 @@ export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: Lan
             href={ROUTES.PRICING}
             className="text-muted-foreground hover:text-foreground hidden rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:inline-flex"
           >
-            Pricing
+            {tMarketing("nav.pricing")}
           </Link>
           <LanguageSwitcherCompact />
           {isAuthenticated ? (
@@ -45,7 +48,7 @@ export function LandingNav({ signInLabel, getStartedLabel, dashboardLabel }: Lan
               <button
                 onClick={logout}
                 className="text-muted-foreground hover:text-foreground rounded-full p-1.5 transition-colors"
-                title="Logout"
+                title={tAppNav("logout")}
               >
                 <LogOut className="h-3.5 w-3.5" />
               </button>

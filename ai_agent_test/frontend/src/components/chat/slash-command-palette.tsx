@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { SlashCommand } from "./slash-commands";
@@ -19,6 +20,7 @@ export function SlashCommandPalette({
   onSelectIndex,
   onPick,
 }: SlashCommandPaletteProps) {
+  const t = useTranslations("chat");
   const listRef = useRef<HTMLUListElement>(null);
 
   // Keep the highlighted row in view as the user arrow-keys through the list.
@@ -31,7 +33,9 @@ export function SlashCommandPalette({
     return (
       <div className="border-foreground/10 bg-popover absolute bottom-full left-0 mb-2 w-full max-w-sm rounded-xl border p-3 shadow-lg">
         <p className="text-foreground/55 text-xs">
-          No matching commands. Press <kbd className="font-mono">Esc</kbd> to dismiss.
+          {t.rich("noMatchingCommands", {
+            esc: (chunks) => <kbd className="font-mono">{chunks}</kbd>,
+          })}
         </p>
       </div>
     );
@@ -40,8 +44,8 @@ export function SlashCommandPalette({
   return (
     <div className="border-foreground/10 bg-popover absolute bottom-full left-0 mb-2 w-full max-w-md overflow-hidden rounded-xl border shadow-lg">
       <div className="border-foreground/8 text-foreground/55 flex items-center justify-between border-b px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase">
-        <span>Commands</span>
-        <span className="hidden sm:inline">↑↓ to navigate · ↵ to run · esc to dismiss</span>
+        <span>{t("commandsTitle")}</span>
+        <span className="hidden sm:inline">{t("commandsHint")}</span>
       </div>
       <ul ref={listRef} className="max-h-64 overflow-y-auto py-1">
         {commands.map((cmd, i) => (

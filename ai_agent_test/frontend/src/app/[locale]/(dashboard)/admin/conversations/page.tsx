@@ -124,7 +124,7 @@ export default function AdminConversationsPage() {
     <div className="flex h-full flex-col">
       <div className="mb-6">
         <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-          Conversations
+          {t("conversations")}
         </p>
         <h2 className="font-display text-foreground mt-1 text-xl font-semibold tracking-tight">
           {t("conversationsTitle")}
@@ -148,9 +148,9 @@ export default function AdminConversationsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="active">{t("active")}</SelectItem>
+            <SelectItem value="archived">{t("archived")}</SelectItem>
+            <SelectItem value="all">{t("all")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -159,10 +159,10 @@ export default function AdminConversationsPage() {
           onValueChange={(v) => setSelectedUserId(v === "all" ? null : v)}
         >
           <SelectTrigger className="w-[260px]">
-            <SelectValue placeholder="All owners" />
+            <SelectValue placeholder={t("allOwners")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All owners</SelectItem>
+            <SelectItem value="all">{t("allOwners")}</SelectItem>
             {userOptions.map((u) => (
               <SelectItem key={u.id} value={u.id}>
                 <span className="flex items-center gap-2">
@@ -181,14 +181,14 @@ export default function AdminConversationsPage() {
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
               <SelectItem key={n} value={String(n)}>
-                {n} / page
+                {t("perPage", { n })}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="text-muted-foreground mb-2 text-xs">{conversationsTotal} total</div>
+      <div className="text-muted-foreground mb-2 text-xs">{t("total", { count: conversationsTotal })}</div>
 
       <Table>
         <TableHeader>
@@ -257,9 +257,9 @@ export default function AdminConversationsPage() {
                   <TableCell>{new Date(conv.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     {conv.is_archived ? (
-                      <Badge variant="secondary">Archived</Badge>
+                      <Badge variant="secondary">{t("archived")}</Badge>
                     ) : (
-                      <Badge variant="default">Active</Badge>
+                      <Badge variant="default">{t("active")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -288,6 +288,7 @@ export default function AdminConversationsPage() {
         total={conversationsTotal}
         totalPages={totalPages}
         isLoading={isLoading}
+        t={t}
         onPrev={() => setPage((p) => Math.max(0, p - 1))}
         onNext={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
       />
@@ -330,6 +331,7 @@ function PaginationBar({
   total,
   totalPages,
   isLoading,
+  t,
   onPrev,
   onNext,
 }: {
@@ -338,6 +340,7 @@ function PaginationBar({
   total: number;
   totalPages: number;
   isLoading: boolean;
+  t: ReturnType<typeof useTranslations<"admin">>;
   onPrev: () => void;
   onNext: () => void;
 }) {
@@ -347,7 +350,7 @@ function PaginationBar({
   return (
     <div className="flex items-center justify-between border-t px-4 py-3">
       <span className="text-muted-foreground text-sm">
-        {start}–{end} of {total}
+        {t("pageRange", { start, end, total })}
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -355,19 +358,19 @@ function PaginationBar({
           size="sm"
           onClick={onPrev}
           disabled={page === 0 || isLoading}
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-muted-foreground px-2 text-sm">
-          {page + 1} / {totalPages}
+          {t("pageOf", { page: page + 1, total: totalPages })}
         </span>
         <Button
           variant="outline"
           size="sm"
           onClick={onNext}
           disabled={page >= totalPages - 1 || isLoading}
-          aria-label="Next page"
+          aria-label={t("nextPage")}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

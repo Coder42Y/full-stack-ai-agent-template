@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Activity } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Area,
   AreaChart,
@@ -38,13 +39,14 @@ const RANGES = [
 
 type Metric = "credits" | "calls" | "tokens";
 
-const METRIC_LABELS: Record<Metric, string> = {
-  credits: "Credits",
-  calls: "Calls",
-  tokens: "Tokens",
-};
-
 export function UsageTimeline() {
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
+  const METRIC_LABELS: Record<Metric, string> = {
+    credits: t("metricCredits"),
+    calls: t("metricCalls"),
+    tokens: t("metricTokens"),
+  };
   const [days, setDays] = useState<number>(30);
   const [metric, setMetric] = useState<Metric>("credits");
   const [data, setData] = useState<UsageBucket[] | null>(null);
@@ -77,16 +79,25 @@ export function UsageTimeline() {
     fetchTimeline(days);
   }, [days, fetchTimeline]);
 
+  const formatDayLabel = (day: string): string => {
+    const d = new Date(day);
+    if (Number.isNaN(d.getTime())) return day;
+    return d.toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const chartData = useMemo(() => {
     if (!data) return [];
     return data.map((b) => ({
       day: b.day,
-      label: formatDayLabel(b.day, days),
+      label: formatDayLabel(b.day),
       credits: b.credits_charged,
       calls: b.total_calls,
       tokens: b.input_tokens + b.output_tokens,
     }));
-  }, [data, days]);
+  }, [data, days, formatDayLabel]);
 
   const totalForMetric = chartData.reduce((sum, p) => sum + (p[metric] as number), 0);
 
@@ -95,7 +106,7 @@ export function UsageTimeline() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-foreground/55 font-mono text-[11px] tracking-wider uppercase">
-            Usage over time
+            {t("usageOverTime")}
           </p>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="font-display text-foreground text-2xl font-bold">
@@ -112,9 +123,9 @@ export function UsageTimeline() {
             value={metric}
             onChange={(v) => setMetric(v as Metric)}
             options={[
-              { label: "Credits", value: "credits" },
-              { label: "Calls", value: "calls" },
-              { label: "Tokens", value: "tokens" },
+              { label: t("metricCredits"), value: "credits" },
+              { label: t("metricCalls"), value: "calls" },
+              { label: t("metricTokens"), value: "tokens" },
             ]}
           />
           <SegmentedControl
@@ -127,19 +138,19 @@ export function UsageTimeline() {
 
       <div className="mt-5 h-56 w-full">
         {loading ? (
-          <LoadingState variant="dot-pulse" label="Loading usage…" />
+          <LoadingState variant="dot-pulse" label={t("loadingUsage")} />
         ) : error ? (
           <ErrorState
-            title="Couldn't load usage"
+            title={t("loadUsageFailed")}
             description={error}
-            cta={{ label: "Retry", onClick: () => fetchTimeline(days) }}
+            cta={{ label: t("retry"), onClick: () => fetchTimeline(days) }}
             className="h-full"
           />
         ) : !chartData || chartData.length === 0 ? (
           <EmptyState
             icon={Activity}
-            title="No usage yet"
-            description="Once you start sending messages, usage will appear here."
+            title={t("noUsageYet")}
+            description={t("usageEmptyDesc")}
             fill
           />
         ) : (
@@ -174,7 +185,7 @@ export function UsageTimeline() {
                 width={36}
               />
               <Tooltip
-                content={<UsageTooltip metric={metric} />}
+                content={<UsageTooltip metricLabel={METRIC_LABELS[metric]} />}
                 cursor={{ stroke: "var(--color-chart)", strokeOpacity: 0.4 }}
               />
               <Area
@@ -197,12 +208,12 @@ function UsageTooltip({
   active,
   payload,
   label,
-  metric,
+  metricLabel,
 }: {
   active?: boolean;
   payload?: Array<{ value: number }>;
   label?: string;
-  metric: Metric;
+  metricLabel: string;
 }) {
   const first = payload?.[0];
   if (!active || !first) return null;
@@ -210,14 +221,8 @@ function UsageTooltip({
     <div className="border-border bg-card text-foreground rounded-lg border px-3 py-2 text-xs shadow-lg">
       <p className="text-foreground/55 font-mono text-[10px] tracking-wider uppercase">{label}</p>
       <p className="mt-1 font-semibold">
-        {first.value.toLocaleString()} {METRIC_LABELS[metric].toLowerCase()}
+        {first.value.toLocaleString()} {metricLabel}
       </p>
     </div>
   );
-}
-
-function formatDayLabel(day: string, _range: number): string {
-  const d = new Date(day);
-  if (Number.isNaN(d.getTime())) return day;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

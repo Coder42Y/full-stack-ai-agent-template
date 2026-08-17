@@ -13,7 +13,7 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-![WorkMate · Enterprise Employee AI Assistant — one Chinese question, agent queries data + policy KB, cited answers](ai_agent_test/docs/hero-demo.gif)
+![WorkMate · Enterprise Employee AI Assistant — one Chinese question, agent queries data + policy KB, cited answers](ai_agent_test/docs/hero-demo.webp)
 
 ---
 

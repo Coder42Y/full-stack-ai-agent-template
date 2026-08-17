@@ -13,7 +13,7 @@
 
 ## ✨ 一图看懂
 
-![WorkMate · 企业员工 AI 助手 —— 一句中文问题，Agent 查数 + 检索制度 + 带引用回答](ai_agent_test/docs/hero-demo.webp)
+![WorkMate · 企业员工 AI 助手 —— 一句中文问题，Agent 查数 + 检索制度 + 带引用回答](ai_agent_test/docs/hero-demo.svg)
 
 ---
 

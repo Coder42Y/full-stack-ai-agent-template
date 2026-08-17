@@ -1,262 +1,174 @@
-# Requirement KB Full-Stack Generator
+# Full-Stack AI Agent Template
 
-This repository is a project generator. It produces FastAPI + Next.js applications
-with AI agents, RAG, teams, billing, admin workflows, and deployment scaffolding.
+> 一条命令生成带 AI Agent、RAG 知识库、团队协作、计费和管理后台的 **FastAPI + Next.js** 全栈应用。
 
-The current `main` branch also includes a requirement knowledge-base MVP path. It
-turns the generated app into an internal Chinese-first requirement system where
-product managers can create and revise requirements, while developers and testers
-query, break down, and suggest changes against cited source material.
+[English](README.en.md) | **中文**
 
-## What This Repo Contains
+这是一个 **AI 应用生成器**，也是一个**可直接运行的展示项目**：
 
-| Path | Purpose |
-| --- | --- |
-| `fastapi_gen/` | Click CLI, Pydantic config models, prompts, and Cookiecutter invocation. |
-| `template/` | The generated app template: backend, optional frontend, docs, Docker, hooks. |
-| `tests/` | Generator and template contract tests. |
-| `ai_agent_test/` | A generated validation app checked into the repo for development reference. |
-| `docs/` | Architecture docs plus the requirement KB PRD, specs, demo notes, and test plan. |
-| `scripts/` | Repo-level verification and live preview helpers. |
+- **生成器**（`fastapi-fullstack`）：交互式 CLI，从 199 个配置项里挑出你要的组合，生成生产级全栈代码。
+- **展示实例**（`ai_agent_test/`）：用这个模板生成的一个完整应用，定制为 **WorkMate · 企业员工 AI 助手**，开箱即跑，适合做 Demo 和面试展示。
 
-## Generated Stack
+---
 
-The generator can create a backend-only API or a full-stack app.
+## ✨ 一图看懂
 
-| Area | Options / implementation |
-| --- | --- |
-| Backend | FastAPI, Pydantic v2, SQLAlchemy or SQLModel, Alembic, service/repository layers. |
-| Frontend | Optional Next.js 15 App Router frontend with dashboard, chat, KB, admin, billing, and settings flows. |
-| Databases | PostgreSQL, SQLite, MongoDB-oriented paths where configured. |
-| Auth | JWT, refresh tokens, API keys, local auth, delegated IdP JWT validation, optional Google OAuth. |
-| AI frameworks | PydanticAI, LangChain, LangGraph, CrewAI, DeepAgents, PydanticDeep, or no AI. |
-| LLM providers | OpenAI, Anthropic, Google Gemini, OpenRouter, or all providers for runtime selection. |
-| RAG | Milvus, Qdrant, ChromaDB, pgvector, embeddings, reranking, document parsing, sync sources. |
-| Operations | Docker Compose, optional Kubernetes, Nginx/Traefik config, CI, Redis, task queues. |
-| SaaS | Organizations, teams, invitations, Stripe billing, credits, admin screens, usage views. |
+```
+你                          fastapi-fullstack                  生成的项目
+┌──────────┐   --database postgresql     ┌────────────────────┐
+│ 提问一句 │   --rag --vector-store      │ FastAPI 后端        │
+│ "年假怎么算"│ ──────────────────────▶ │  AI Agent + RAG     │
+│          │   --frontend nextjs        │  Next.js 前端       │
+└──────────┘                            │  PostgreSQL + 向量库 │
+                                        │  Stripe / 管理后台   │
+                                        └────────────────────┘
+```
 
-Run this to see the currently supported flags and presets:
+---
+
+## 🚀 WorkMate · 企业员工 AI 助手（当前展示）
+
+`ai_agent_test/` 是这个模板生成的真实应用，定制为企业内部 AI 助手：员工不用翻制度文档、不用找 HR，直接问一句话就能查报销、看请假、问制度，答案带 **SQL 依据**和**文档引用**。
+
+**核心能力**
+
+| 场景 | 能力 |
+|---|---|
+| 报销查询 | 查记录 / 查总额 / 按部门·时间·状态聚合，SQL 依据可展开 |
+| 请假与年假 | 请假记录、剩余年假计算，制度口径进 Prompt |
+| 制度问答 | 员工手册、报销制度等入库向量库，答案带来源引用 |
+| 图表渲染 | SQL 结果直接渲染成 ECharts 图表 |
+| DeepSeek 余额 | 工作台实时展示 API 账户真实余额 |
+
+**技术栈**：FastAPI · PostgreSQL(pgvector) · 本地 bge 中文 Embedding · PydanticAI · MCP · Next.js 15 · ECharts · DeepSeek
+
+**一键启动（macOS / Linux）**
 
 ```bash
-uv run fastapi-fullstack templates
+cd ai_agent_test
+./run.sh --local        # 本地模式：自动装依赖 + 起前后端 + 跑迁移
+./run.sh --local status # 查看状态
+# 或 Docker 模式：./run.sh
 ```
 
-## Requirement KB MVP
+- 前端 http://localhost:3000 · 后端 http://localhost:8000 · 文档 http://localhost:8000/docs
+- 预置 admin 账号：`admin@example.com / admin123`
 
-The active product direction on `main` is the requirement knowledge-base demo.
-It is generated when the template uses PostgreSQL, JWT auth, teams, RAG, and the
-pgvector path. The frontend workbench is available under `/kb` when Next.js is
-enabled.
+详见 [ai_agent_test/README.zh-CN.md](ai_agent_test/README.zh-CN.md)。
 
-Implemented demo workflow:
+---
 
-- Product creates a requirement project.
-- Product uploads requirement documents or creates a requirement from one sentence.
-- The backend stores full Markdown source in `RAGDocument.markdown_content`.
-- The requirement AI asks clarification questions, persists clarification rounds,
-  and can rewrite Markdown.
-- Developer/tester queries return answers with `[来源: 文档名 > 章节名]` citations.
-- Documents can be broken down by section with source labels.
-- Developer changes are suggestion-only; product changes create drafts or new versions.
-- Version history, Markdown diff, draft review queues, draft approval, and
-  audited rollback endpoints are generated.
-- Requirement events are returned as `notification_event` payloads and broadcast
-  as `requirement_notification` over the existing WebSocket manager.
-- Redis-enabled builds fan requirement notifications out across app processes.
-- The generated Chinese workbench has five modes: 录入, 查询, 拆解, 变更, 历史.
+## 🧩 生成器能力全景
 
-Core generated endpoints:
+生成器内置 **199 个配置项**，覆盖从「纯后端 API」到「生产级 SaaS」的所有组合。
 
-```text
-POST /api/v1/kb/{kb_id}/requirements/from-text
-POST /api/v1/kb/{kb_id}/query
-GET  /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown
-POST /api/v1/kb/{kb_id}/documents/{doc_id}/change
-GET  /api/v1/kb/{kb_id}/documents/drafts
-POST /api/v1/kb/{kb_id}/documents/{doc_id}/apply-draft
-POST /api/v1/kb/{kb_id}/documents/{doc_id}/reject-draft
-GET  /api/v1/kb/{kb_id}/documents/{doc_id}/comments
-POST /api/v1/kb/{kb_id}/documents/{doc_id}/comments
-GET  /api/v1/kb/{kb_id}/documents/{doc_id}/versions
-GET  /api/v1/kb/{kb_id}/documents/{doc_id}/diff
-POST /api/v1/kb/{kb_id}/documents/{doc_id}/rollback
-GET  /api/v1/kb/{kb_id}/audit-logs
-```
+### 后端
 
-The requirement AI adapter reads Anthropic Messages-compatible settings:
+| 领域 | 可选项 |
+|---|---|
+| 数据库 | PostgreSQL（异步 asyncpg）· MongoDB（异步 motor）· SQLite（同步）· 无 |
+| ORM | SQLAlchemy · SQLModel |
+| 分层 | FastAPI + Pydantic v2 + Alembic + Service / Repository 架构 |
+| 认证 | JWT + refresh token + API key · 本地认证 · OAuth（Google）· Magic Link |
 
-```bash
-ANTHROPIC_AUTH_TOKEN=...
-ANTHROPIC_BASE_URL=https://api.anthropic.com
-ANTHROPIC_MODEL=claude-sonnet-4-5
-```
+### AI 与 RAG
 
-If the model gateway is not configured or fails, generated projects keep a
-deterministic local fallback so the demo and tests remain runnable.
+| 领域 | 可选项 |
+|---|---|
+| AI 框架 | PydanticAI · LangChain · LangGraph · CrewAI · DeepAgents · 无 |
+| LLM 供应商 | OpenAI · Anthropic · Google Gemini · OpenRouter · 全部（运行时切换）|
+| 向量库 | Milvus · Qdrant · ChromaDB · pgvector |
+| Embedding | OpenAI · Voyage · Gemini · 本地 Sentence-Transformers |
+| Reranker | Cohere · 本地 Cross-Encoder |
+| PDF 解析 | PyMuPDF（本地）· LlamaParse（云端 AI）· LiteParse（本地 AI）· 全部 |
+| RAG 进阶 | 混合检索 · OCR · 图片描述 · Google Drive / S3 同步源 |
 
-See [docs/product/req-kb/prd.md](docs/product/req-kb/prd.md) and
-[docs/product/req-kb/mvp-demo.md](docs/product/req-kb/mvp-demo.md) for the product spec and demo
-flow.
+### 前端（Next.js 15）
 
-## Quick Start
+- App Router + Tailwind · 中英双语（next-intl）· 深色/浅色主题
+- 页面：登录注册 · 聊天 · 知识库 · 仪表盘 · 管理后台 · 计费 · 营销站
 
-Install repository dependencies:
+### SaaS 与运维
+
+| 领域 | 可选项 |
+|---|---|
+| 多租户 | 单租户 · 多组织（团队/邀请）· 平台模式 |
+| 计费 | Stripe：订阅 / 按量 / 混合 / 一次性，积分系统 |
+| 邮件 | Resend · SMTP · 控制台打印（开发用）|
+| 任务队列 | Celery · Taskiq · ARQ |
+| 部署 | Docker Compose · 可选 Kubernetes · Nginx / Traefik |
+| CI/CD | GitHub Actions · GitLab CI |
+| 其他 | 管理后台 · 用量看板 · 需求知识库 MVP（中文工作台）· 渠道机器人 |
+
+---
+
+## 🛠 快速开始
+
+### 安装仓库依赖
 
 ```bash
 uv sync
 ```
 
-Create a project with the interactive wizard:
+### 交互式向导创建项目
 
 ```bash
 uv run fastapi-fullstack
 ```
 
-Create a backend-only minimal project:
+### 命令行直接创建
 
 ```bash
-uv run fastapi-fullstack new --minimal
+uv run fastapi-fullstack new --minimal                    # 纯后端最小项目
+uv run fastapi-fullstack create my_app --database sqlite  # SQLite
+uv run fastapi-fullstack create my_app --database postgresql --rag
+uv run fastapi-fullstack create my_app --frontend nextjs --preset production-saas
+uv run fastapi-fullstack templates                        # 查看所有选项/预设
 ```
 
-Create a requirement KB demo project:
+生成后用项目自带的 README 和 Makefile 操作：
 
 ```bash
-uv run fastapi-fullstack create req_kb_demo \
-  --database postgresql \
-  --frontend nextjs \
-  --rag \
-  --vector-store pgvector \
-  --teams \
-  --websockets \
-  --task-queue none \
-  --python-version 3.11
+cd my_app
+make bootstrap    # Docker 全栈：build + up + 迁移 + seed
 ```
 
-Then follow the generated project's README. For the full-stack Docker path this
-usually starts with:
+---
+
+## 📁 目录结构
+
+| 路径 | 用途 |
+|---|---|
+| `fastapi_gen/` | 生成器：CLI、Pydantic 配置模型、交互式提示、Cookiecutter 调用 |
+| `template/` | 应用模板：后端、前端、文档、Docker、生成后 hooks |
+| `tests/` | 生成器与模板契约测试 |
+| `ai_agent_test/` | WorkMate 企业员工 AI 助手（生成的真实应用，见上）|
+| `docs/` | 架构文档、需求知识库 PRD、规格、演示说明 |
+| `scripts/` | 仓库级验证与预览脚本 |
+
+---
+
+## 🔧 开发
+
+### 验证
 
 ```bash
-cd req_kb_demo
-make bootstrap
-```
-
-## Live Preview
-
-For the current requirement KB MVP, this repo includes a one-command preview:
-
-```bash
-bash scripts/start_req_kb_preview.sh
-```
-
-The script regenerates the latest template into a temporary directory, starts a
-pgvector PostgreSQL container, applies migrations, installs frontend/backend
-dependencies, starts backend and frontend in tmux, and smoke-checks `/kb`.
-
-Default local preview outputs are printed by the script. The important routes
-are:
-
-```text
-Frontend: /kb
-Backend health: /api/v1/health
-```
-
-Prerequisites for the preview script: `uv`, `docker`, `tmux`, `npm`, and `curl`.
-
-## Verification
-
-General development checks:
-
-```bash
-uv run pytest
+uv run pytest            # 全部测试
 uv run ruff check . --fix
 uv run ruff format .
 uv run ty check fastapi_gen
 ```
 
-Requirement KB MVP verification:
+### 添加功能
 
-```bash
-bash scripts/verify_req_kb_mvp.sh
-```
+**新增生成器选项**：`config.py` 加枚举 → `prompts.py` 加提示 → `cookiecutter.json` 加默认值 → `template/` 加条件 → `post_gen_project.py` 加清理 → `VARIABLES.md` 加文档。
 
-That script currently checks:
+**新增向量库**：`VectorStoreType` 加值 → `vectorstore.py` 加适配器 → 接通依赖与 RAG 命令。
 
-- `git diff --check`
-- repo ruff over `fastapi_gen` and `tests`
-- `tests/test_req_kb_mvp_template.py`
-- generated PostgreSQL requirement KB backend compile, ruff, and focused tests
-- generated SQLite guard compile and ruff
-- frontend BFF/workbench template presence
+**新增需求知识库工作流**：后端 service 保持行为源头 → `schemas/rag.py` 扩展 → `knowledge_bases.py` 加路由 → 更新测试与前端。
 
-## CLI Shape
+---
 
-```bash
-fastapi-fullstack
-fastapi-fullstack new --minimal
-fastapi-fullstack new --no-input --name my_app
-fastapi-fullstack create my_app --database sqlite
-fastapi-fullstack create my_app --database postgresql --rag
-fastapi-fullstack create my_app --frontend nextjs --preset production-saas
-fastapi-fullstack templates
-```
+## 📜 License
 
-Generated projects also include operational commands. RAG-enabled projects expose
-local ingestion/search commands and sync-source commands:
-
-```bash
-uv run <project_slug> rag-ingest /path/to/docs --collection documents
-uv run <project_slug> rag-search "your query" --collection documents
-uv run <project_slug> rag-collections
-uv run <project_slug> cmd rag-sources
-uv run <project_slug> cmd rag-source-add
-uv run <project_slug> cmd rag-source-sync
-```
-
-## How Generation Works
-
-1. `fastapi_gen/cli.py` receives flags or starts the interactive wizard.
-2. `fastapi_gen/config.py` validates option combinations in `ProjectConfig`.
-3. The config is converted to Cookiecutter context values.
-4. Cookiecutter renders `template/{{cookiecutter.project_slug}}/`.
-5. `template/hooks/post_gen_project.py` removes files that do not apply to the selected stack.
-6. The generated project README and Makefile become the main operating guide for that app.
-
-## Adding Features
-
-New generator option:
-
-1. Add enum or fields in `fastapi_gen/config.py`.
-2. Add prompts in `fastapi_gen/prompts.py`.
-3. Add context defaults in `template/cookiecutter.json`.
-4. Add template conditionals under `template/{{cookiecutter.project_slug}}/`.
-5. Update `template/hooks/post_gen_project.py` cleanup.
-6. Document the variable in `template/VARIABLES.md`.
-
-New vector store:
-
-1. Add a `VectorStoreType` value and context flags.
-2. Implement the adapter in `backend/app/services/rag/vectorstore.py`.
-3. Wire backend dependencies, RAG commands, and agent tools.
-4. Add Docker/dependency support if the store needs infrastructure.
-
-New requirement KB workflow:
-
-1. Keep source-of-truth behavior in backend services, not frontend-only code.
-2. Extend schemas in `backend/app/schemas/rag.py`.
-3. Add route coverage in `backend/app/api/routes/v1/knowledge_bases.py`.
-4. Update generated service tests in `backend/tests/test_requirement_query.py`.
-5. Update frontend BFF routes, hooks, types, and workbench UI when Next.js is enabled.
-6. Add or update contract checks in `tests/test_req_kb_mvp_template.py`.
-
-## Current Limits
-
-- The requirement KB flow is an MVP/demo path, not a complete production approval system.
-- Requirement-specific workflow routes are generated for the PostgreSQL RAG + teams path.
-- SQLite is kept as a guard path and intentionally does not expose the PostgreSQL-only requirement workflow routes.
-- Confirmation-before-ingest clarification, threaded/resolved draft comments,
-  organization-member notification filtering, and cross-KB notification aggregation are follow-up work.
-- Payment providers other than Stripe are modeled as options, but Stripe is the fully implemented billing path.
-
-## License
-
-This project is distributed under the license included in [LICENSE](LICENSE).
+见 [LICENSE](LICENSE)。

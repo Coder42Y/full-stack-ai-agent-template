@@ -361,7 +361,7 @@ async def list_connectors(
     return sync_source_svc.list_connectors()
 
 
-@router.get("/status/stream", response_class=EventSourceResponse)
+@router.get("/status/stream", response_class=EventSourceResponse, response_model=None)
 async def rag_status_stream(
     rag_status_svc: RAGStatusSvc,
 ) -> AsyncIterable[ServerSentEvent]:

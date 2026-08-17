@@ -13,16 +13,7 @@
 
 ## ✨ 一图看懂
 
-```
-你                          fastapi-fullstack                  生成的项目
-┌──────────┐   --database postgresql     ┌────────────────────┐
-│ 提问一句 │   --rag --vector-store      │ FastAPI 后端        │
-│ "年假怎么算"│ ──────────────────────▶ │  AI Agent + RAG     │
-│          │   --frontend nextjs        │  Next.js 前端       │
-└──────────┘                            │  PostgreSQL + 向量库 │
-                                        │  Stripe / 管理后台   │
-                                        └────────────────────┘
-```
+![WorkMate · 企业员工 AI 助手 —— 一句中文问题，Agent 查数 + 检索制度 + 带引用回答](ai_agent_test/docs/hero-demo.gif)
 
 ---
 

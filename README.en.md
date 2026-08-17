@@ -13,16 +13,7 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-```
-You                        fastapi-fullstack                   Generated app
-┌──────────┐   --database postgresql     ┌────────────────────┐
-│ Ask      │   --rag --vector-store      │ FastAPI backend    │
-│ "How many│ ──────────────────────────▶ │  AI Agent + RAG    │
-│ days off"│   --frontend nextjs         │  Next.js frontend  │
-└──────────┘                             │  PostgreSQL + vec  │
-                                         │  Stripe / admin    │
-                                         └────────────────────┘
-```
+![WorkMate · Enterprise Employee AI Assistant — one Chinese question, agent queries data + policy KB, cited answers](ai_agent_test/docs/hero-demo.gif)
 
 ---
 

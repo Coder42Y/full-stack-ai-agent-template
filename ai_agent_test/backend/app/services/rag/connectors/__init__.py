@@ -54,9 +54,13 @@ class BaseSyncConnector(ABC):
 
 # Registry of available connectors -- import conditionally to avoid missing deps
 CONNECTOR_REGISTRY: dict[str, type[BaseSyncConnector]] = {}
-from app.services.rag.connectors.google_drive import GoogleDriveConnector
+try:
+    from app.services.rag.connectors.google_drive import GoogleDriveConnector
 
-CONNECTOR_REGISTRY["gdrive"] = GoogleDriveConnector
+    CONNECTOR_REGISTRY["gdrive"] = GoogleDriveConnector
+except ImportError:
+    # google-api-python-client is optional -- GDrive sync disabled without it
+    logger.debug("Google Drive connector unavailable (google-api-python-client not installed)")
 from app.services.rag.connectors.s3 import S3Connector
 
 CONNECTOR_REGISTRY["s3"] = S3Connector

@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG 架构、数据流与原理说明</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #657184;
+      --line: #d8dee9;
+      --strong: #0f766e;
+      --accent: #1d4ed8;
+      --warn: #b45309;
+      --code-bg: #eef2f7;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 28px 22px;
+      border-right: 1px solid var(--line);
+      background: #fff;
+    }
+
+    aside h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.25;
+    }
+
+    aside p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    nav {
+      display: grid;
+      gap: 5px;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 9px;
+      border-radius: 7px;
+      color: #273449;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      background: #edf4ff;
+      text-decoration: none;
+    }
+
+    main {
+      width: 100%;
+      max-width: none;
+      padding: 44px clamp(28px, 4vw, 76px) 72px;
+    }
+
+    .hero {
+      margin-bottom: 30px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--strong);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .hero h2 {
+      margin: 8px 0 12px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.08;
+    }
+
+    .hero p {
+      max-width: 1180px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    section {
+      margin: 30px 0;
+      scroll-margin-top: 20px;
+    }
+
+    section h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      line-height: 1.25;
+    }
+
+    section h3 {
+      margin: 24px 0 8px;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 10px 0;
+      max-width: 1120px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin: 16px 0;
+      width: 100%;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border: 1px solid #b9d4ff;
+      border-radius: 999px;
+      background: #edf4ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .warn {
+      border-color: #fed7aa;
+      background: #fff7ed;
+      color: var(--warn);
+    }
+
+    code,
+    pre {
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: var(--code-bg);
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 14px 0 0;
+      padding: 16px;
+      border-radius: 8px;
+      background: #111827;
+      color: #f8fafc;
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    section:has(table) {
+      overflow-x: auto;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #243247;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .node {
+      position: relative;
+      min-height: 78px;
+      padding: 12px;
+      border: 1px solid #c8d4e8;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .node strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .node span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .arrow {
+      align-self: center;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .sequence {
+      counter-reset: step;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .step {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .step::before {
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #e6f4f1;
+      color: #0f766e;
+      font-weight: 800;
+    }
+
+    .step h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .callout {
+      border-left: 4px solid var(--strong);
+      background: #eefaf7;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .callout.warning {
+      border-left-color: var(--warn);
+      background: #fff7ed;
+    }
+
+    details {
+      margin: 12px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 13px 16px;
+      font-weight: 700;
+    }
+
+    details .details-body {
+      padding: 0 16px 16px;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      main {
+        padding: 28px 18px 54px;
+      }
+
+      p {
+        max-width: none;
+      }
+
+      table {
+        min-width: 720px;
+      }
+
+      .grid.two,
+      .grid.three,
+      .flow-row {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>RAG 项目架构说明</h1>
+      <p>面向这个代码仓库的生成器、模板、运行时和需求知识库业务层。</p>
+      <nav>
+        <a href="#summary">一页总览</a>
+        <a href="#repo-shape">仓库结构</a>
+        <a href="#generator">生成器层</a>
+        <a href="#template">模板层</a>
+        <a href="#runtime">运行时服务层</a>
+        <a href="#ingestion-flow">文档入库流</a>
+        <a href="#retrieval-flow">检索问答流</a>
+        <a href="#req-kb">需求知识库层</a>
+        <a href="#sync">同步源</a>
+        <a href="#data-models">核心数据模型</a>
+        <a href="#entrypoints">入口与文件索引</a>
+        <a href="#limits">当前边界</a>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="hero">
+        <div class="eyebrow">Full-Stack AI Agent Template</div>
+        <h2>RAG 架构、数据流与原理说明</h2>
+        <p>
+          这个仓库本质上是一个项目生成器。它根据 CLI 选择生成 FastAPI + Next.js 项目，
+          RAG 代码通过 Cookiecutter 模板按需写入生成结果。生成出的应用再负责文档上传、
+          解析、向量化、检索、引用和需求知识库业务流。
+        </p>
+      </div>
+
+      <section id="summary">
+        <h2>一页总览</h2>
+        <div class="card">
+          <div class="flow">
+            <div class="flow-row">
+              <div class="node">
+                <strong>CLI 配置</strong>
+                <span><code>fastapi-fullstack create ... --rag --vector-store pgvector</code></span>
+              </div>
+              <div class="node">
+                <strong>ProjectConfig</strong>
+                <span><code>RAGFeatures</code> 校验并转换生成选项</span>
+              </div>
+              <div class="node">
+                <strong>Cookiecutter 模板</strong>
+                <span>根据 <code>enable_rag</code> / <code>use_pgvector</code> 渲染代码</span>
+              </div>
+              <div class="node">
+                <strong>生成应用</strong>
+                <span>只包含本次选择的 RAG、DB、队列、前端代码</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>最关键的理解：</strong>
+            <code>fastapi_gen/</code> 是生成器自己的代码；
+            <code>template/{{cookiecutter.project_slug}}/</code> 是未来被生成出去的应用代码；
+            <code>{% if cookiecutter.use_pgvector %}</code> 是生成时判断，不是 FastAPI 运行时判断。
+          </div>
+        </div>
+      </section>
+
+      <section id="repo-shape">
+        <h2>仓库结构</h2>
+        <div class="grid two">
+          <div class="box">
+            <h3>生成器代码</h3>
+            <p><code>fastapi_gen/</code> 负责解析 CLI 参数、交互式提问、校验配置、生成 Cookiecutter context，然后调用 Cookiecutter。</p>
+            <ul>
+              <li><code>cli.py</code>：命令入口</li>
+              <li><code>config.py</code>：配置模型和校验规则</li>
+              <li><code>prompts.py</code>：交互式问题</li>
+              <li><code>generator.py</code>：实际渲染模板</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>应用模板</h3>
+            <p><code>template/</code> 是要被复制和渲染出去的项目骨架，里面大量文件带 Jinja 条件。</p>
+            <ul>
+              <li><code>backend/app/services/rag/</code>：RAG 服务</li>
+              <li><code>backend/app/api/routes/v1/rag.py</code>：通用 RAG API</li>
+              <li><code>backend/app/api/routes/v1/knowledge_bases.py</code>：需求知识库 API</li>
+              <li><code>frontend/src/</code>：Next.js 前端与 BFF routes</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="generator">
+        <h2>生成器层</h2>
+        <p>
+          生成器层决定“最终项目里会有什么代码”。它不直接执行 RAG 检索，而是把用户选择变成模板变量。
+        </p>
+
+        <div class="card">
+          <h3>RAGFeatures 是生成选项，不是运行时服务</h3>
+          <pre><code>class RAGFeatures(BaseModel):
+    enable_rag: bool = False
+    enable_google_drive_ingestion: bool = False
+    enable_s3_ingestion: bool = False
+    reranker_type: RerankerType = RerankerType.NONE
+    enable_image_description: bool = False
+    pdf_parser: PdfParserType = PdfParserType.PYMUPDF
+    vector_store: VectorStoreType = VectorStoreType.MILVUS</code></pre>
+
+          <p>
+            用户在 CLI 里选 <code>--rag --vector-store pgvector</code> 后，
+            <code>to_cookiecutter_context()</code> 会展开成简单布尔值：
+          </p>
+
+          <pre><code>{
+  "enable_rag": True,
+  "vector_store": "pgvector",
+  "use_milvus": False,
+  "use_qdrant": False,
+  "use_chromadb": False,
+  "use_pgvector": True
+}</code></pre>
+        </div>
+
+        <div class="sequence">
+          <div class="step">
+            <div>
+              <h3>CLI 收集选择</h3>
+              <p><code>fastapi-fullstack create demo --rag --vector-store pgvector</code> 进入 <code>fastapi_gen/cli.py</code>。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>ProjectConfig 校验组合</h3>
+              <p>例如 Milvus/Qdrant 通常需要 Docker；pgvector 要求 PostgreSQL；Google Drive/S3 ingestion 必须先启用 RAG。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>转换 Cookiecutter context</h3>
+              <p>枚举值变成模板容易判断的布尔值，例如 <code>use_pgvector=True</code>。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>渲染 template/</h3>
+              <p>Jinja 条件裁剪掉不需要的代码，最终生成一个普通 FastAPI/Next.js 项目。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="template">
+        <h2>模板层</h2>
+        <p>
+          模板文件看起来像 Python/TypeScript，但里面有 Jinja 语句。
+          这些语句在生成项目时执行，生成后不会留给应用运行时判断。
+        </p>
+
+        <div class="grid two">
+          <div class="box">
+            <h3>模板中的代码</h3>
+            <pre><code>{%- if cookiecutter.enable_rag %}
+from app.services.rag.retrieval import RetrievalService
+
+{%- if cookiecutter.use_pgvector %}
+from app.services.rag.vectorstore import PgVectorStore
+{%- elif cookiecutter.use_milvus %}
+from app.services.rag.vectorstore import MilvusVectorStore
+{%- endif %}
+{%- endif %}</code></pre>
+          </div>
+
+          <div class="box">
+            <h3>选择 pgvector 后生成的代码</h3>
+            <pre><code>from app.services.rag.retrieval import RetrievalService
+from app.services.rag.vectorstore import PgVectorStore</code></pre>
+            <p class="muted">
+              Milvus/Qdrant/Chroma 的 import 分支不会进入生成结果。生成后的应用更像“专用项目”，不是运行时大杂烩。
+            </p>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>模板变量</th>
+              <th>含义</th>
+              <th>影响</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>enable_rag</code></td>
+              <td>是否生成 RAG 功能</td>
+              <td>控制 <code>services/rag/</code>、RAG API、RAG CLI、依赖项是否存在</td>
+            </tr>
+            <tr>
+              <td><code>use_pgvector</code></td>
+              <td>使用 PostgreSQL pgvector</td>
+              <td>生成 <code>PgVectorStore</code> 路径，不需要额外向量数据库容器</td>
+            </tr>
+            <tr>
+              <td><code>use_milvus</code></td>
+              <td>使用 Milvus</td>
+              <td>生成 Milvus client、Docker service 和对应配置</td>
+            </tr>
+            <tr>
+              <td><code>enable_reranker</code></td>
+              <td>是否启用 reranker</td>
+              <td>检索服务会注入 <code>RerankService</code>，查询时可二次排序</td>
+            </tr>
+            <tr>
+              <td><code>enable_google_drive_ingestion</code></td>
+              <td>是否生成 Google Drive connector</td>
+              <td>同步源 registry 中注册 <code>gdrive</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="runtime">
+        <h2>运行时服务层</h2>
+        <p>
+          生成后的 FastAPI 应用启动后，RAG 的核心服务通过 <code>api/deps.py</code> 装配。
+          路由层只处理 HTTP，真正逻辑放在 service/repository/worker。
+        </p>
+
+        <div class="grid three">
+          <div class="box">
+            <h3>DocumentProcessor</h3>
+            <p>负责把 PDF、DOCX、TXT、MD 等文件解析成页面、Markdown-like 文本和 chunks。</p>
+          </div>
+          <div class="box">
+            <h3>EmbeddingService</h3>
+            <p>统一 OpenAI、Voyage、Gemini、SentenceTransformers，输出固定维度向量。</p>
+          </div>
+          <div class="box">
+            <h3>BaseVectorStore</h3>
+            <p>统一 Milvus、Qdrant、Chroma、pgvector 的插入、搜索、删除、列表接口。</p>
+          </div>
+          <div class="box">
+            <h3>IngestionService</h3>
+            <p>编排解析、去重、embedding、写入向量库，并返回完整 Markdown。</p>
+          </div>
+          <div class="box">
+            <h3>RetrievalService</h3>
+            <p>编排向量搜索、可选 BM25 hybrid、可选 rerank、分数过滤和去重。</p>
+          </div>
+          <div class="box">
+            <h3>RAGDocumentService</h3>
+            <p>管理 SQL 中的文档状态、文件路径、完整 Markdown、版本和下载信息。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="ingestion-flow">
+        <h2>文档入库流</h2>
+        <p>
+          文档入库有两份存储目标：向量库保存可检索 chunks，SQL 保存文件状态和完整原文。
+          这是需求知识库后续能做“可信引用”的基础。
+        </p>
+
+        <div class="card">
+          <div class="flow-row">
+            <div class="node">
+              <strong>HTTP 上传</strong>
+              <span><code>POST /api/v1/rag/collections/{name}/ingest</code> 或 KB 上传接口</span>
+            </div>
+            <div class="node">
+              <strong>DB 追踪记录</strong>
+              <span><code>RAGDocument.status=processing</code>，保存文件元数据</span>
+            </div>
+            <div class="node">
+              <strong>后台任务</strong>
+              <span>Celery / Taskiq / ARQ / in-process background</span>
+            </div>
+            <div class="node">
+              <strong>解析与 chunk</strong>
+              <span><code>DocumentProcessor.process_file()</code></span>
+            </div>
+          </div>
+          <div class="flow-row">
+            <div class="node">
+              <strong>Embedding</strong>
+              <span><code>EmbeddingService.embed_document()</code></span>
+            </div>
+            <div class="node">
+              <strong>写向量库</strong>
+              <span><code>VectorStore.insert_document()</code> 写 chunk、vector、metadata</span>
+            </div>
+            <div class="node">
+              <strong>保存 Markdown</strong>
+              <span><code>RAGDocument.markdown_content</code> 保存完整解析结果</span>
+            </div>
+            <div class="node">
+              <strong>完成状态</strong>
+              <span><code>status=done</code>、<code>vector_document_id</code>、<code>chunk_count</code></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>不要把向量库当成唯一真相。</strong>
+          向量库里的 chunk 是为了召回；需求知识库的事实依据来自 SQL 中保存的完整 Markdown 原文。
+        </div>
+      </section>
+
+      <section id="retrieval-flow">
+        <h2>检索问答流</h2>
+        <p>
+          通用 RAG 搜索和需求知识库问答不是同一层。通用 RAG 返回相似 chunk；
+          Req KB 会进一步映射回完整 Markdown，组织带来源的业务回答。
+        </p>
+
+        <div class="grid two">
+          <div class="box">
+            <h3>通用 RAG 搜索</h3>
+            <ol>
+              <li>用户调用 <code>POST /api/v1/rag/search</code></li>
+              <li><code>RetrievalService.retrieve()</code> 接收 query</li>
+              <li>调用 <code>VectorStore.search()</code> 做相似度搜索</li>
+              <li>可选 BM25 hybrid 和 reranker</li>
+              <li>按分数过滤、去重、返回 chunks</li>
+            </ol>
+          </div>
+
+          <div class="box">
+            <h3>需求知识库查询</h3>
+            <ol>
+              <li>用户调用 <code>POST /api/v1/kb/{kb_id}/query</code></li>
+              <li>先用 query variants 做向量检索</li>
+              <li>用 <code>vector_document_id</code> 找最新 <code>RAGDocument</code></li>
+              <li>在完整 <code>markdown_content</code> 中定位章节证据</li>
+              <li>没有向量命中时走 Markdown fallback</li>
+              <li>生成 <code>[来源: 文件 &gt; 章节 &gt; page/chunk]</code> 引用</li>
+            </ol>
+          </div>
+        </div>
+
+        <pre><code>用户问题
+  -> query variants
+  -> vector search
+  -> hit.parent_doc_id
+  -> RAGDocument.vector_document_id
+  -> RAGDocument.markdown_content
+  -> 章节证据 + 引用
+  -> RequirementAIService 可选组织中文回答</code></pre>
+      </section>
+
+      <section id="req-kb">
+        <h2>需求知识库层</h2>
+        <p>
+          Req KB 是建立在通用 RAG 之上的业务层。它把“文档检索”变成“需求录入、查询、拆解、变更、版本管理”。
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>能力</th>
+              <th>接口</th>
+              <th>核心服务</th>
+              <th>原理</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>一句话创建需求</td>
+              <td><code>POST /api/v1/kb/{kb_id}/requirements/from-text</code></td>
+              <td><code>RequirementWorkflowService.create_from_text</code></td>
+              <td>AI 或 fallback 生成 Markdown，直接写入 <code>RAGDocument</code></td>
+            </tr>
+            <tr>
+              <td>原文引用查询</td>
+              <td><code>POST /api/v1/kb/{kb_id}/query</code></td>
+              <td><code>RequirementQueryService.query_kb</code></td>
+              <td>向量定位 + Markdown 原文校验 + 来源标签</td>
+            </tr>
+            <tr>
+              <td>需求拆解</td>
+              <td><code>GET /api/v1/kb/{kb_id}/documents/{doc_id}/breakdown</code></td>
+              <td><code>RequirementWorkflowService.break_down_document</code></td>
+              <td>按 Markdown heading 切章节，并输出来源</td>
+            </tr>
+            <tr>
+              <td>修改建议/草稿/应用</td>
+              <td><code>POST /api/v1/kb/{kb_id}/documents/{doc_id}/change</code></td>
+              <td><code>RequirementWorkflowService.change_document</code></td>
+              <td>产品可生成新版，开发/测试偏建议或草稿</td>
+            </tr>
+            <tr>
+              <td>版本与 diff</td>
+              <td><code>versions</code> / <code>diff</code> / <code>apply-draft</code></td>
+              <td><code>RequirementWorkflowService</code></td>
+              <td><code>previous_version_id</code> 串版本链，<code>is_latest</code> 标当前版</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Req KB 的核心设计：</strong>
+          RAG 负责召回可能相关的文档位置；业务层必须回到完整 Markdown 原文后再回答。
+          这样可以减少只凭 chunk 片段误答的问题，也方便做版本、diff 和审批。
+        </div>
+      </section>
+
+      <section id="sync">
+        <h2>同步源</h2>
+        <p>
+          同步源是“批量把外部文档送进同一条 ingestion pipeline”的入口。
+          Google Drive 和 S3 connector 只负责列文件、下载文件、提供稳定的 <code>source_path</code> 去重键。
+        </p>
+
+        <div class="flow-row">
+          <div class="node">
+            <strong>SyncSource</strong>
+            <span>保存 connector 类型、collection、config、schedule</span>
+          </div>
+          <div class="node">
+            <strong>Connector Registry</strong>
+            <span><code>gdrive</code> / <code>s3</code> 根据生成选项注册</span>
+          </div>
+          <div class="node">
+            <strong>下载临时文件</strong>
+            <span><code>download_file()</code> 到临时目录</span>
+          </div>
+          <div class="node">
+            <strong>复用入库链路</strong>
+            <span><code>IngestionService.ingest_file()</code></span>
+          </div>
+        </div>
+
+        <p>
+          所以新增一个同步源时，通常不需要重写 RAG。只要实现
+          <code>BaseSyncConnector.list_files()</code> 和 <code>download_file()</code>，
+          再注册到 <code>CONNECTOR_REGISTRY</code>。
+        </p>
+      </section>
+
+      <section id="data-models">
+        <h2>核心数据模型</h2>
+        <div class="grid two">
+          <div class="box">
+            <h3>向量库中的数据</h3>
+            <ul>
+              <li><code>id</code>：chunk id</li>
+              <li><code>parent_doc_id</code>：解析出的 document id</li>
+              <li><code>content</code>：chunk 文本</li>
+              <li><code>embedding</code> / <code>vector</code>：向量</li>
+              <li><code>metadata</code>：filename、page_num、chunk_num、source_path、content_hash</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>SQL RAGDocument</h3>
+            <ul>
+              <li><code>id</code>：业务追踪记录 id</li>
+              <li><code>collection_name</code>：向量 collection</li>
+              <li><code>status</code>：processing / done / error</li>
+              <li><code>vector_document_id</code>：向量库 parent_doc_id</li>
+              <li><code>markdown_content</code>：完整 Markdown 原文</li>
+              <li><code>version</code>、<code>is_latest</code>、<code>previous_version_id</code>：需求版本链</li>
+              <li><code>knowledge_base_id</code>、<code>organization_id</code>：团队/KB 归属</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>两个 id 要区分：</strong>
+          <code>RAGDocument.id</code> 是 SQL 业务记录；
+          <code>vector_document_id</code> 对应向量库中的 <code>parent_doc_id</code>。
+          查询从向量 hit 回 SQL 时靠这个关联。
+        </div>
+      </section>
+
+      <section id="entrypoints">
+        <h2>入口与文件索引</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>你想看什么</th>
+              <th>入口文件</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>生成选项如何定义</td>
+              <td><code>fastapi_gen/config.py</code></td>
+              <td><code>RAGFeatures</code>、<code>VectorStoreType</code>、<code>to_cookiecutter_context()</code></td>
+            </tr>
+            <tr>
+              <td>RAG API</td>
+              <td><code>backend/app/api/routes/v1/rag.py</code></td>
+              <td>collection、search、upload、sync、status stream</td>
+            </tr>
+            <tr>
+              <td>依赖装配</td>
+              <td><code>backend/app/api/deps.py</code></td>
+              <td>按生成选项选择 vector store，并注入 retrieval / ingestion service</td>
+            </tr>
+            <tr>
+              <td>解析入库</td>
+              <td><code>services/rag/ingestion.py</code></td>
+              <td>文件解析、去重、写向量库、返回 Markdown</td>
+            </tr>
+            <tr>
+              <td>向量库适配</td>
+              <td><code>services/rag/vectorstore.py</code></td>
+              <td>Milvus/Qdrant/Chroma/pgvector 统一接口</td>
+            </tr>
+            <tr>
+              <td>需求查询</td>
+              <td><code>services/requirement_query.py</code></td>
+              <td>向量召回、Markdown fallback、来源引用、AI 回答</td>
+            </tr>
+            <tr>
+              <td>需求工作流</td>
+              <td><code>services/requirement_workflow.py</code></td>
+              <td>一句话创建、拆解、变更、版本、diff、草稿审批</td>
+            </tr>
+            <tr>
+              <td>同步源</td>
+              <td><code>services/rag/connectors/</code></td>
+              <td>Google Drive / S3 connector 和 registry</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="limits">
+        <h2>当前边界</h2>
+        <div class="grid two">
+          <div class="box">
+            <h3>已经形成闭环</h3>
+            <ul>
+              <li>生成器可按配置生成 RAG 项目</li>
+              <li>支持多种向量库和 embedding provider</li>
+              <li>文件上传、后台入库、搜索、同步源已成型</li>
+              <li>Req KB MVP 支持中文需求录入、查询、拆解、变更和版本</li>
+              <li>查询回答能回到完整 Markdown 原文生成来源引用</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>还不是完整生产态</h3>
+            <ul>
+              <li>多轮澄清状态机仍是后续工作</li>
+              <li>结构化红绿 diff 审批 UI 还未完整</li>
+              <li>Redis/pubsub 跨进程通知 fan-out 仍需补齐</li>
+              <li>read receipts / 通知中心仍未完整</li>
+              <li>旧版本向量清理和生产登录角色映射还需要硬化</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>最短心智模型</h2>
+        <div class="card">
+          <pre><code>生成器阶段:
+  CLI flags -> ProjectConfig/RAGFeatures -> cookiecutter context -> template 渲染 -> 生成项目
+
+运行时入库:
+  file -> RAGDocument(status=processing) -> worker -> parse/chunk -> embedding -> vector store
+       -> RAGDocument(status=done, markdown_content, vector_document_id)
+
+运行时查询:
+  query -> vector hits -> 找 RAGDocument -> 读 markdown_content -> 生成来源引用 -> 可选 AI 组织回答
+
+需求知识库:
+  通用 RAG + 完整 Markdown + 角色权限 + 版本链 + 变更审批</code></pre>
+        </div>
+      </section>
+
+      <div class="footer">
+        本页是静态说明文档，位于 <code>docs/rag-architecture-explained.html</code>。
+      </div>
+    </main>
+  </div>
+</body>
+</html>

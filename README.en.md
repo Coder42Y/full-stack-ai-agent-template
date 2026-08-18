@@ -13,9 +13,9 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-📐 **System architecture (draw.io source)**: [WorkMate-架构图.drawio](WorkMate-架构图.drawio)
+![WorkMate · Enterprise Employee AI Assistant system architecture](WorkMate-架构图.drawio.svg)
 
-> GitHub cannot render `.drawio` inside a README. Open the file above with the [draw.io](https://draw.io) desktop app or [github.dev](https://github.dev) (with the Draw.io extension) to view and edit the diagram.
+> This is a **`.drawio.svg` dual-format file**: GitHub renders it as a vector image (crisp at any zoom), and it remains a draw.io source file (editable with [draw.io](https://draw.io) or [github.dev](https://github.dev)).
 
 ---
 

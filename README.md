@@ -13,9 +13,9 @@
 
 ## ✨ 一图看懂
 
-📐 **系统架构图（draw.io 源文件）**：[WorkMate-架构图.drawio](WorkMate-架构图.drawio)
+![WorkMate · 企业员工 AI 助手系统架构](WorkMate-架构图.drawio.svg)
 
-> GitHub 无法在 README 内渲染 `.drawio`。点击上方链接查看/下载源文件，用 [draw.io](https://draw.io) 桌面版或 [github.dev](https://github.dev)（装 Draw.io 扩展）打开即可看到并编辑架构图。
+> 这是 **`.drawio.svg` 双格式**：既能在 GitHub 直接渲染成矢量图（放大不糊），又是 draw.io 源文件（用 [draw.io](https://draw.io) 或 [github.dev](https://github.dev) 即可编辑）。
 
 ---
 

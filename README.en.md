@@ -81,6 +81,8 @@ flowchart TB
     class LLM,BGE ext
 ```
 
+> 🖱️ Want **true interactivity** (drag / zoom / click a node for details)? Open the [interactive architecture diagram](ai_agent_test/docs/workmate-arch.html) (open in a browser; download the file on GitHub first).
+
 ---
 
 ## 🚀 WorkMate · Enterprise Employee AI Assistant

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WorkMate · 企业员工 AI 助手 — 交互式架构图</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body { margin: 0; background: #f8fafc; font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1a1a2e; }
+    header { text-align: center; padding: 24px 16px 8px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    p.sub { color: #666; margin: 0 0 8px; font-size: 14px; }
+    .hint { color: #888; font-size: 12px; margin-top: 4px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 24px; }
+    #diagram { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+    #diagram svg { max-width: 100%; height: auto; }
+    #info { margin-top: 16px; min-height: 56px; padding: 14px 18px; background: #f5f3ff; border: 1px solid #c7d2fe; border-radius: 10px; font-size: 14px; line-height: 1.6; color: #3730a3; display: none; }
+    #info b { color: #312e81; }
+    footer { text-align: center; color: #aaa; font-size: 12px; padding: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WorkMate · 企业员工 AI 助手 — 系统架构</h1>
+    <p class="sub">交互式架构图：拖拽空白处平移 · 滚轮缩放 · 点击节点查看详情</p>
+    <p class="hint">（本页用 Mermaid.js 渲染，浏览器打开即可交互；GitHub README 内嵌版本受安全策略限制无法交互）</p>
+  </header>
+
+  <div class="wrap">
+    <div id="info"></div>
+  </div>
+
+  <footer>WorkMate AI · 企业员工 AI 助手 Demo</footer>
+
+  <script>
+    const INFO = {
+      U: "<b>员工</b> —— 通过浏览器用中文提问，如「我最近三个月的报销是多少」",
+      C: "<b>智能分析 Chat</b> —— 前端聊天页，流式展示回答、SQL 依据与图表",
+      KB: "<b>制度知识库 KB</b> —— 前端知识库页，浏览/上传制度文档",
+      DASH: "<b>工作台 Dashboard</b> —— 前端仪表盘，DeepSeek 余额、用量、报销统计",
+      API: "<b>FastAPI 后端</b> —— REST API + WebSocket 流式输出",
+      AGENT: "<b>WorkMate Agent</b> —— PydanticAI 编排：理解意图、选择工具、生成带引用回答",
+      SQL: "<b>MCP · 数据库查询</b> —— 只读 SQL 工具，查询员工/报销/请假表",
+      ECH: "<b>MCP · 图表生成</b> —— 把 SQL 结果渲染成 ECharts 图表",
+      RAG: "<b>知识库检索</b> —— 从 pgvector 向量库召回制度条款，答案带来源引用",
+      PG: "<b>PostgreSQL</b> —— 业务表：employees / reimbursements / leaves",
+      VEC: "<b>pgvector</b> —— 制度文档向量库（员工手册、报销制度等）",
+      LLM: "<b>DeepSeek API</b> —— 大模型对话，生成自然语言回答",
+      BGE: "<b>本地 bge</b> —— 中文 Embedding，向量化制度文档与查询",
+    };
+    function showInfo(node) {
+      const box = document.getElementById("info");
+      if (INFO[node]) {
+        box.innerHTML = "<b>「" + (document.getElementById(node)?.textContent?.split("<br>")[0] || node) + "」</b><br>" + INFO[node];
+        box.style.display = "block";
+      } else {
+        box.style.display = "none";
+      }
+    }
+    function bindClicks() {
+      document.querySelectorAll("#diagram .node").forEach(function (el) {
+        var parts = (el.id || "").split("-");
+        var name = parts[parts.length - 2]; // flowchart-AGENT-5 → AGENT
+        if (INFO[name]) {
+          el.style.cursor = "pointer";
+          el.addEventListener("click", function () { showInfo(name); });
+        }
+      });
+    }
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "base", flowchart: { htmlLabels: true, curve: "basis" } });
+  </script>
+
+  <div id="diagram" class="mermaid">
+flowchart TB
+    U["👤 员工<br/>(浏览器提问)"]
+
+    subgraph FE["前端层 · Next.js 15"]
+        C["智能分析 Chat"]
+        KB["制度知识库 KB"]
+        DASH["工作台 Dashboard"]
+    end
+
+    subgraph BE["后端层 · FastAPI"]
+        API["REST API + WebSocket"]
+    end
+
+    subgraph AG["Agent 层 · PydanticAI"]
+        AGENT["WorkMate Agent<br/>意图理解 + 工具编排"]
+    end
+
+    subgraph TOOL["工具层 · MCP"]
+        SQL["数据库查询<br/>只读 SQL"]
+        ECH["图表生成<br/>ECharts"]
+        RAG["知识库检索<br/>RAG 召回"]
+    end
+
+    subgraph DB["数据层"]
+        PG["PostgreSQL<br/>员工 / 报销 / 请假"]
+        VEC["pgvector<br/>制度向量库"]
+    end
+
+    LLM["DeepSeek API<br/>大模型对话"]
+    BGE["本地 bge<br/>中文 Embedding"]
+
+    U --> C
+    C --> API
+    KB --> API
+    DASH --> API
+    API --> AGENT
+    AGENT --> SQL
+    AGENT --> ECH
+    AGENT --> RAG
+    SQL --> PG
+    ECH --> PG
+    RAG --> VEC
+    AGENT -.-> LLM
+    VEC -.-> BGE
+
+    click U showInfo "员工"
+    click C showInfo "智能分析"
+    click KB showInfo "制度知识库"
+    click DASH showInfo "工作台"
+    click API showInfo "后端"
+    click AGENT showInfo "Agent"
+    click SQL showInfo "数据库查询"
+    click ECH showInfo "图表"
+    click RAG showInfo "知识库检索"
+    click PG showInfo "PostgreSQL"
+    click VEC showInfo "pgvector"
+    click LLM showInfo "DeepSeek"
+    click BGE showInfo "bge"
+
+    classDef user fill:#fff2cc,stroke:#d6b656
+    classDef front fill:#dae8fc,stroke:#6c8ebf
+    classDef agent fill:#e1d5e7,stroke:#9673a6
+    classDef db fill:#e1d5e7,stroke:#9673a6
+    classDef ext fill:#ffd8a8,stroke:#d79b00
+    class U user
+    class C,KB,DASH front
+    class API,SQL,ECH,RAG front
+    class AGENT agent
+    class PG,VEC db
+    class LLM,BGE ext
+  </div>
+
+  <script>
+    // 轮询等 mermaid 渲染完成后绑定节点点击
+    (function pollBind() {
+      if (document.querySelector("#diagram svg")) { bindClicks(); }
+      else setTimeout(pollBind, 500);
+    })();
+    setTimeout(bindClicks, 6000); // 兜底
+  </script>
+</body>
+</html>

@@ -81,6 +81,8 @@ flowchart TB
     class LLM,BGE ext
 ```
 
+> 🖱️ 想要**真正的交互**（拖拽 / 缩放 / 点击节点看详情）？打开[交互式架构图](ai_agent_test/docs/workmate-arch.html)（浏览器打开即可；GitHub 上需先下载该文件）。
+
 ---
 
 ## 🚀 WorkMate · 企业员工 AI 助手（当前展示）

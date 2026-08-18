@@ -13,7 +13,7 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-![WorkMate · Enterprise Employee AI Assistant system architecture](ai_agent_test/docs/workmate-arch.png)
+<img src="ai_agent_test/docs/workmate-arch@2x.png" alt="WorkMate · Enterprise Employee AI Assistant system architecture" width="720">
 
 ---
 

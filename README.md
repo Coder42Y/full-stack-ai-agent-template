@@ -13,7 +13,7 @@
 
 ## ✨ 一图看懂
 
-![WorkMate · 企业员工 AI 助手系统架构](ai_agent_test/docs/workmate-arch.png)
+<img src="ai_agent_test/docs/workmate-arch@2x.png" alt="WorkMate · 企业员工 AI 助手系统架构" width="720">
 
 ---
 

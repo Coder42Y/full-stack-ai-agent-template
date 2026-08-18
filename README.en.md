@@ -13,7 +13,64 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-<img src="ai_agent_test/docs/workmate-arch@2x.png" alt="WorkMate · Enterprise Employee AI Assistant system architecture" width="720">
+```mermaid
+flowchart TB
+    U["👤 员工<br/>(浏览器提问)"]
+
+    subgraph FE["前端层 · Next.js 15"]
+        C["智能分析 Chat"]
+        KB["制度知识库 KB"]
+        DASH["工作台 Dashboard"]
+    end
+
+    subgraph BE["后端层 · FastAPI"]
+        API["REST API + WebSocket"]
+    end
+
+    subgraph AG["Agent 层 · PydanticAI"]
+        AGENT["WorkMate Agent<br/>意图理解 + 工具编排"]
+    end
+
+    subgraph TOOL["工具层 · MCP"]
+        SQL["数据库查询<br/>只读 SQL"]
+        ECH["图表生成<br/>ECharts"]
+        RAG["知识库检索<br/>RAG 召回"]
+    end
+
+    subgraph DB["数据层"]
+        PG["PostgreSQL<br/>员工 / 报销 / 请假"]
+        VEC["pgvector<br/>制度向量库"]
+    end
+
+    LLM["DeepSeek API<br/>大模型对话"]
+    BGE["本地 bge<br/>中文 Embedding"]
+
+    U --> C
+    C --> API
+    KB --> API
+    DASH --> API
+    API --> AGENT
+    AGENT --> SQL
+    AGENT --> ECH
+    AGENT --> RAG
+    SQL --> PG
+    ECH --> PG
+    RAG --> VEC
+    AGENT -.-> LLM
+    VEC -.-> BGE
+
+    classDef user fill:#fff2cc,stroke:#d6b656
+    classDef front fill:#dae8fc,stroke:#6c8ebf
+    classDef agent fill:#e1d5e7,stroke:#9673a6
+    classDef db fill:#e1d5e7,stroke:#9673a6
+    classDef ext fill:#ffd8a8,stroke:#d79b00
+    class U user
+    class C,KB,DASH front
+    class API,SQL,ECH,RAG front
+    class AGENT agent
+    class PG,VEC db
+    class LLM,BGE ext
+```
 
 ---
 

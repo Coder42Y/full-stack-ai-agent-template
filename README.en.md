@@ -13,75 +13,9 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
-**Crisp vector version** (exported from draw.io, click to zoom):
+📐 **System architecture (draw.io source)**: [WorkMate-架构图.drawio](WorkMate-架构图.drawio)
 
-<picture>
-  <source srcset="ai_agent_test/docs/workmate-arch.svg" type="image/svg+xml">
-  <img src="ai_agent_test/docs/workmate-arch.png" alt="WorkMate · Enterprise Employee AI Assistant system architecture" width="760">
-</picture>
-
-**Interactive Mermaid version** (native GitHub rendering, zoomable):
-
-```mermaid
-flowchart TB
-    U["👤 员工<br/>(浏览器提问)"]
-
-    subgraph FE["前端层 · Next.js 15"]
-        C["智能分析 Chat"]
-        KB["制度知识库 KB"]
-        DASH["工作台 Dashboard"]
-    end
-
-    subgraph BE["后端层 · FastAPI"]
-        API["REST API + WebSocket"]
-    end
-
-    subgraph AG["Agent 层 · PydanticAI"]
-        AGENT["WorkMate Agent<br/>意图理解 + 工具编排"]
-    end
-
-    subgraph TOOL["工具层 · MCP"]
-        SQL["数据库查询<br/>只读 SQL"]
-        ECH["图表生成<br/>ECharts"]
-        RAG["知识库检索<br/>RAG 召回"]
-    end
-
-    subgraph DB["数据层"]
-        PG["PostgreSQL<br/>员工 / 报销 / 请假"]
-        VEC["pgvector<br/>制度向量库"]
-    end
-
-    LLM["DeepSeek API<br/>大模型对话"]
-    BGE["本地 bge<br/>中文 Embedding"]
-
-    U --> C
-    C --> API
-    KB --> API
-    DASH --> API
-    API --> AGENT
-    AGENT --> SQL
-    AGENT --> ECH
-    AGENT --> RAG
-    SQL --> PG
-    ECH --> PG
-    RAG --> VEC
-    AGENT -.-> LLM
-    VEC -.-> BGE
-
-    classDef user fill:#fff2cc,stroke:#d6b656
-    classDef front fill:#dae8fc,stroke:#6c8ebf
-    classDef agent fill:#e1d5e7,stroke:#9673a6
-    classDef db fill:#e1d5e7,stroke:#9673a6
-    classDef ext fill:#ffd8a8,stroke:#d79b00
-    class U user
-    class C,KB,DASH front
-    class API,SQL,ECH,RAG front
-    class AGENT agent
-    class PG,VEC db
-    class LLM,BGE ext
-```
-
-> 🖱️ Want **true interactivity** (drag / zoom / click a node for details)? Open the [interactive architecture diagram](ai_agent_test/docs/workmate-arch.html) (open in a browser; download the file on GitHub first).
+> GitHub cannot render `.drawio` inside a README. Open the file above with the [draw.io](https://draw.io) desktop app or [github.dev](https://github.dev) (with the Draw.io extension) to view and edit the diagram.
 
 ---
 

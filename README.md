@@ -13,75 +13,9 @@
 
 ## ✨ 一图看懂
 
-**精致矢量版**（draw.io 导出，可点击放大）：
+📐 **系统架构图（draw.io 源文件）**：[WorkMate-架构图.drawio](WorkMate-架构图.drawio)
 
-<picture>
-  <source srcset="ai_agent_test/docs/workmate-arch.svg" type="image/svg+xml">
-  <img src="ai_agent_test/docs/workmate-arch.png" alt="WorkMate · 企业员工 AI 助手系统架构" width="760">
-</picture>
-
-**交互式 Mermaid 版**（GitHub 原生渲染，可缩放平移）：
-
-```mermaid
-flowchart TB
-    U["👤 员工<br/>(浏览器提问)"]
-
-    subgraph FE["前端层 · Next.js 15"]
-        C["智能分析 Chat"]
-        KB["制度知识库 KB"]
-        DASH["工作台 Dashboard"]
-    end
-
-    subgraph BE["后端层 · FastAPI"]
-        API["REST API + WebSocket"]
-    end
-
-    subgraph AG["Agent 层 · PydanticAI"]
-        AGENT["WorkMate Agent<br/>意图理解 + 工具编排"]
-    end
-
-    subgraph TOOL["工具层 · MCP"]
-        SQL["数据库查询<br/>只读 SQL"]
-        ECH["图表生成<br/>ECharts"]
-        RAG["知识库检索<br/>RAG 召回"]
-    end
-
-    subgraph DB["数据层"]
-        PG["PostgreSQL<br/>员工 / 报销 / 请假"]
-        VEC["pgvector<br/>制度向量库"]
-    end
-
-    LLM["DeepSeek API<br/>大模型对话"]
-    BGE["本地 bge<br/>中文 Embedding"]
-
-    U --> C
-    C --> API
-    KB --> API
-    DASH --> API
-    API --> AGENT
-    AGENT --> SQL
-    AGENT --> ECH
-    AGENT --> RAG
-    SQL --> PG
-    ECH --> PG
-    RAG --> VEC
-    AGENT -.-> LLM
-    VEC -.-> BGE
-
-    classDef user fill:#fff2cc,stroke:#d6b656
-    classDef front fill:#dae8fc,stroke:#6c8ebf
-    classDef agent fill:#e1d5e7,stroke:#9673a6
-    classDef db fill:#e1d5e7,stroke:#9673a6
-    classDef ext fill:#ffd8a8,stroke:#d79b00
-    class U user
-    class C,KB,DASH front
-    class API,SQL,ECH,RAG front
-    class AGENT agent
-    class PG,VEC db
-    class LLM,BGE ext
-```
-
-> 🖱️ 想要**真正的交互**（拖拽 / 缩放 / 点击节点看详情）？打开[交互式架构图](ai_agent_test/docs/workmate-arch.html)（浏览器打开即可；GitHub 上需先下载该文件）。
+> GitHub 无法在 README 内渲染 `.drawio`。点击上方链接查看/下载源文件，用 [draw.io](https://draw.io) 桌面版或 [github.dev](https://github.dev)（装 Draw.io 扩展）打开即可看到并编辑架构图。
 
 ---
 

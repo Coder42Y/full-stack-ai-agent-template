@@ -13,6 +13,15 @@ This repository is both an **AI app generator** and a **runnable showcase**:
 
 ## ✨ At a glance
 
+**Crisp vector version** (exported from draw.io, click to zoom):
+
+<picture>
+  <source srcset="ai_agent_test/docs/workmate-arch.svg" type="image/svg+xml">
+  <img src="ai_agent_test/docs/workmate-arch.png" alt="WorkMate · Enterprise Employee AI Assistant system architecture" width="760">
+</picture>
+
+**Interactive Mermaid version** (native GitHub rendering, zoomable):
+
 ```mermaid
 flowchart TB
     U["👤 员工<br/>(浏览器提问)"]

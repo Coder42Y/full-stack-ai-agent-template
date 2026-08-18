@@ -13,6 +13,15 @@
 
 ## ✨ 一图看懂
 
+**精致矢量版**（draw.io 导出，可点击放大）：
+
+<picture>
+  <source srcset="ai_agent_test/docs/workmate-arch.svg" type="image/svg+xml">
+  <img src="ai_agent_test/docs/workmate-arch.png" alt="WorkMate · 企业员工 AI 助手系统架构" width="760">
+</picture>
+
+**交互式 Mermaid 版**（GitHub 原生渲染，可缩放平移）：
+
 ```mermaid
 flowchart TB
     U["👤 员工<br/>(浏览器提问)"]
